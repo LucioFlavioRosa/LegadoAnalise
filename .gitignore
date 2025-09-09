@@ -1,5 +1,0 @@
-# Ignorar tudo
-*
-
-# Exceto o próprio .gitignore (para não sumir do repositório)
-!.gitignore
