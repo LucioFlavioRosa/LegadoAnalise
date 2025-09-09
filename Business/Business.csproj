@@ -1,0 +1,511 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
+  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{118FEF3C-5519-4327-A284-A6F663BD7B20}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Business</RootNamespace>
+    <AssemblyName>Business</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Azure.Core, Version=1.42.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+      <HintPath>..\packages\Azure.Core.1.42.0\lib\net472\Azure.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Azure.Identity, Version=1.12.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+      <HintPath>..\packages\Azure.Identity.1.12.0\lib\netstandard2.0\Azure.Identity.dll</HintPath>
+    </Reference>
+    <Reference Include="Azure.Security.KeyVault.Certificates, Version=4.6.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+      <HintPath>..\packages\Azure.Security.KeyVault.Certificates.4.6.0\lib\netstandard2.0\Azure.Security.KeyVault.Certificates.dll</HintPath>
+    </Reference>
+    <Reference Include="Azure.Security.KeyVault.Secrets, Version=4.6.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+      <HintPath>..\packages\Azure.Security.KeyVault.Secrets.4.6.0\lib\netstandard2.0\Azure.Security.KeyVault.Secrets.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=2.0.17.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.17\lib\net45\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AI.Agent.Intercept, Version=2.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ApplicationInsights.Agent.Intercept.2.4.0\lib\net45\Microsoft.AI.Agent.Intercept.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AI.DependencyCollector, Version=2.22.0.997, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ApplicationInsights.DependencyCollector.2.22.0\lib\net452\Microsoft.AI.DependencyCollector.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AI.PerfCounterCollector, Version=2.22.0.997, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ApplicationInsights.PerfCounterCollector.2.22.0\lib\net452\Microsoft.AI.PerfCounterCollector.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AI.ServerTelemetryChannel, Version=2.22.0.997, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.2.22.0\lib\net452\Microsoft.AI.ServerTelemetryChannel.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AI.Web, Version=2.22.0.997, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ApplicationInsights.Web.2.22.0\lib\net452\Microsoft.AI.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AI.WindowsServer, Version=2.22.0.997, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ApplicationInsights.WindowsServer.2.22.0\lib\net452\Microsoft.AI.WindowsServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ApplicationInsights, Version=2.22.0.997, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ApplicationInsights.2.22.0\lib\net46\Microsoft.ApplicationInsights.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.TelemetryCorrelation, Version=1.0.8.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.TelemetryCorrelation.1.0.8\lib\net45\Microsoft.AspNet.TelemetryCorrelation.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.6.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Identity.Client, Version=4.61.3.0, Culture=neutral, PublicKeyToken=0a613f4dd989e8ae, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Identity.Client.4.61.3\lib\net462\Microsoft.Identity.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Identity.Client.Extensions.Msal, Version=4.61.3.0, Culture=neutral, PublicKeyToken=0a613f4dd989e8ae, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Identity.Client.Extensions.Msal.4.61.3\lib\netstandard2.0\Microsoft.Identity.Client.Extensions.Msal.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Abstractions, Version=6.35.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Abstractions.6.35.0\lib\net472\Microsoft.IdentityModel.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ClientModel, Version=1.0.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ClientModel.1.0.0\lib\netstandard2.0\System.ClientModel.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.ConfigurationManager, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Configuration.ConfigurationManager.4.6.0\lib\net461\System.Configuration.ConfigurationManager.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.OracleClient" />
+    <Reference Include="System.Diagnostics.DiagnosticSource, Version=6.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.6.0.1\lib\net461\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.IO.FileSystem.AccessControl, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.FileSystem.AccessControl.5.0.0\lib\net461\System.IO.FileSystem.AccessControl.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Management" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Memory.Data, Version=1.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.Data.1.0.2\lib\net461\System.Memory.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Security.AccessControl, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.AccessControl.5.0.0\lib\net461\System.Security.AccessControl.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.ProtectedData, Version=4.0.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.ProtectedData.4.7.0\lib\net461\System.Security.Cryptography.ProtectedData.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Permissions, Version=5.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Permissions.5.0.0\lib\net461\System.Security.Permissions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Principal.Windows, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Principal.Windows.5.0.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Text.Encodings.Web, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Encodings.Web.6.0.0\lib\net461\System.Text.Encodings.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Json, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Text.Json.4.7.2\lib\net461\System.Text.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DataAccess\ASSOCIADOS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\ASSOCIADOSPROMOCOES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\ASSOCIADOSTEMP.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\AVALIACAO.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\AVALIACOESALOCACOESINTERNAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\AVALIACOESCOMPETENCIAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\AVALIACOESCOMPETENCIASNOTAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\AVALIACOESCOMPETENCIAS_HISTORICO.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\AVALIACOESPERFORMANCES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\AVALIACOESPERFORMANCESNOTAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\AVALIACOESPERFORMANCES_HISTORICO.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\AVALIACOESSTATUS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\CARGOS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\CARGOSNIVEIS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\CLIENTES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\COMENTARIOS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\COMPETENCIAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\COMPLEXIDADE.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\ConcatenaPredicates.cs" />
+    <Compile Include="DataAccess\CONSIDERACOESMENTOR.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\DataModelEntityFramework.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DataModelEntityFramework.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\DataModelEntityFramework.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\DataModelEntityFramework.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DataModelEntityFramework.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\DataModelEntityFramework1.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\DIMENSOES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\EIXOS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\EMAILPARAMETROS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\EMPRESAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\EQUIPE.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\EVOLUCAOASSOCIADO.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\EVOLUCAOCOMPETENCIAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\EVOLUCAOPERFORMANCE.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\FATORES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\FATORESPROJETOS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\FOTOSASSOCIADOS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\FRENTEINTERNA.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\LIDERESFRENTEINTERNA.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\MENTORADORESPOSTAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\MENTORPERGUNTAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\MENTORPERGUNTASMODO.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\MENTORPERGUNTASNOTAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\MODOCALCULOCOMPETENCIAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\NOTASALOCACOESINTERNAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\NOTASFATORES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PALAVRASIRRELEVANTES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PARTICIPANTESFRENTEINTERNA.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PDI_QUESTOES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PDI_RESPOSTAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PERFIS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PERFORMANCES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PERIODOSAVALIACOES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PRAZOS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PREMISSAS_RADAR.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PROC_QTDE_SUB_COMPETENCIAS_Result.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PROJETOS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PROJETOSASSOCIADOS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PROJETOSCOMPLEXIDADES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PROJETOSSTATUS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PROJETOSTIPOS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\PROMOCOES.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\QtdeSubCompetencias_Result.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\RATING.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\RELACAO_CARGO_SUBCOMPETENCIA.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\SUBCOMPETENCIAS.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\sysdiagrams.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\VERTICAL.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="DataAccess\WORKFLOW.cs">
+      <DependentUpon>DataModelEntityFramework.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\AssociadosModel.cs" />
+    <Compile Include="Model\AvaliacaoCompetenciaModel.cs" />
+    <Compile Include="Model\AvaliacaoEmailModel.cs" />
+    <Compile Include="Model\AvaliacaoMentoradoModel.cs" />
+    <Compile Include="Model\AvaliacaoModel.cs" />
+    <Compile Include="Model\AvaliacaoPerformanceModel.cs" />
+    <Compile Include="Model\CargoModel.cs" />
+    <Compile Include="Model\ComplexidadeModel.cs" />
+    <Compile Include="Model\ConsideracoesMentorModel.cs" />
+    <Compile Include="Model\DashboardModel.cs" />
+    <Compile Include="Model\MentoriaModel.cs" />
+    <Compile Include="Model\PDIModel.cs" />
+    <Compile Include="Model\FrenteInternaModel.cs" />
+    <Compile Include="Model\EquipeModel.cs" />
+    <Compile Include="Model\EvolucaoPerformanceModel.cs" />
+    <Compile Include="Model\PerformanceModel.cs" />
+    <Compile Include="Model\CompetenciaModel.cs" />
+    <Compile Include="Model\ModelBase.cs" />
+    <Compile Include="Model\PessoaModel.cs" />
+    <Compile Include="Model\ProjetoModel.cs" />
+    <Compile Include="Model\ProjetosAssociadosModel.cs" />
+    <Compile Include="Model\ResultadoLiderModel.cs" />
+    <Compile Include="Model\ResultadoAssociadoModel.cs" />
+    <Compile Include="Model\ResultadoCompetenciaModel.cs" />
+    <Compile Include="Model\ResultadoPerfomanceModel.cs" />
+    <Compile Include="Model\ResultadoProjetosModel.cs" />
+    <Compile Include="Model\ResultadoSomaProjetosModel.cs" />
+    <Compile Include="Model\StatusModel.cs" />
+    <Compile Include="Model\VerticalModel.cs" />
+    <Compile Include="Services\AssociadosService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\AvaliacoesService.cs" />
+    <Compile Include="Services\BulkEmailService.cs" />
+    <Compile Include="Services\ComentariosService.cs" />
+    <Compile Include="Services\FotosAssociadosService.cs" />
+    <Compile Include="Services\MentoriaService.cs" />
+    <Compile Include="Services\PDIService.cs" />
+    <Compile Include="Services\FrenteInternaService.cs" />
+    <Compile Include="Services\CargosNiveisService.cs" />
+    <Compile Include="Services\CargosService.cs" />
+    <Compile Include="Services\ConsideracoesMentorService.cs" />
+    <Compile Include="Services\ConsolidacaoService.cs" />
+    <Compile Include="Services\DashboardService.cs" />
+    <Compile Include="Services\EmailParametroService.cs" />
+    <Compile Include="Services\EquipeService.cs" />
+    <Compile Include="Services\EvolucaoAssociadoServices.cs" />
+    <Compile Include="Services\PremissaService.cs" />
+    <Compile Include="Services\ResultadoServices.cs" />
+    <Compile Include="Services\VerticalService.cs" />
+    <Compile Include="Services\WorkflowService.cs" />
+    <Compile Include="Services\ClientesService.cs" />
+    <Compile Include="Services\CompetenciasService.cs" />
+    <Compile Include="Services\ComplexidadesService.cs" />
+    <Compile Include="Services\DimensoesService.cs" />
+    <Compile Include="Services\DominiosService.cs" />
+    <Compile Include="Services\EixoService.cs" />
+    <Compile Include="Services\EmpresasService.cs" />
+    <Compile Include="Services\LoginService.cs" />
+    <Compile Include="Services\NotasAvaliacaoService.cs" />
+    <Compile Include="Services\NotificacoesService.cs" />
+    <Compile Include="Services\PerfisService.cs" />
+    <Compile Include="Services\PerformancesService.cs" />
+    <Compile Include="Services\PeriodoService.cs" />
+    <Compile Include="Services\ProjetosService.cs" />
+    <Compile Include="Services\StatusService.cs" />
+    <Compile Include="Services\SubCompetenciasService.cs" />
+    <Compile Include="Services\TipoProjetoService.cs" />
+    <Compile Include="Util\UsuarioLogado.cs" />
+    <Compile Include="Util\Util.cs" />
+    <Compile Include="Util\WebStorage.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Controller\" />
+    <Folder Include="Entity\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="DataAccess\DataModelEntityFramework.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>DataModelEntityFramework.edmx</DependentUpon>
+      <LastGenOutput>DataModelEntityFramework.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="DataAccess\DataModelEntityFramework.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>DataModelEntityFramework.edmx</DependentUpon>
+      <LastGenOutput>DataModelEntityFramework1.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.Config" />
+    <EntityDeploy Include="DataAccess\DataModelEntityFramework.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>DataModelEntityFramework.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="ApplicationInsights.config" />
+    <None Include="DataAccess\DataModelEntityFramework.edmx.diagram">
+      <DependentUpon>DataModelEntityFramework.edmx</DependentUpon>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Tria.Framework\Tria.Framework.csproj">
+      <Project>{f59e7a31-7ecd-4086-9f8d-f35c22556cd1}</Project>
+      <Name>Tria.Framework</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
+    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.ApplicationInsights.DependencyCollector.2.22.0\build\Microsoft.ApplicationInsights.DependencyCollector.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.ApplicationInsights.DependencyCollector.2.22.0\build\Microsoft.ApplicationInsights.DependencyCollector.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.ApplicationInsights.PerfCounterCollector.2.22.0\build\Microsoft.ApplicationInsights.PerfCounterCollector.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.ApplicationInsights.PerfCounterCollector.2.22.0\build\Microsoft.ApplicationInsights.PerfCounterCollector.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.2.22.0\build\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.2.22.0\build\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.ApplicationInsights.WindowsServer.2.22.0\build\Microsoft.ApplicationInsights.WindowsServer.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.ApplicationInsights.WindowsServer.2.22.0\build\Microsoft.ApplicationInsights.WindowsServer.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.ApplicationInsights.Web.2.22.0\build\Microsoft.ApplicationInsights.Web.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.ApplicationInsights.Web.2.22.0\build\Microsoft.ApplicationInsights.Web.targets'))" />
+  </Target>
+  <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
+  <Import Project="..\packages\Microsoft.ApplicationInsights.DependencyCollector.2.22.0\build\Microsoft.ApplicationInsights.DependencyCollector.targets" Condition="Exists('..\packages\Microsoft.ApplicationInsights.DependencyCollector.2.22.0\build\Microsoft.ApplicationInsights.DependencyCollector.targets')" />
+  <Import Project="..\packages\Microsoft.ApplicationInsights.PerfCounterCollector.2.22.0\build\Microsoft.ApplicationInsights.PerfCounterCollector.targets" Condition="Exists('..\packages\Microsoft.ApplicationInsights.PerfCounterCollector.2.22.0\build\Microsoft.ApplicationInsights.PerfCounterCollector.targets')" />
+  <Import Project="..\packages\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.2.22.0\build\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.targets" Condition="Exists('..\packages\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.2.22.0\build\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.targets')" />
+  <Import Project="..\packages\Microsoft.ApplicationInsights.WindowsServer.2.22.0\build\Microsoft.ApplicationInsights.WindowsServer.targets" Condition="Exists('..\packages\Microsoft.ApplicationInsights.WindowsServer.2.22.0\build\Microsoft.ApplicationInsights.WindowsServer.targets')" />
+  <Import Project="..\packages\Microsoft.ApplicationInsights.Web.2.22.0\build\Microsoft.ApplicationInsights.Web.targets" Condition="Exists('..\packages\Microsoft.ApplicationInsights.Web.2.22.0\build\Microsoft.ApplicationInsights.Web.targets')" />
+</Project>

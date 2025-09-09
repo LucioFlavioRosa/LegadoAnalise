@@ -1,0 +1,405 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Site.master.cs" Inherits="SistemaAvaliacao.SiteMaster" %>
+
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Sistema interno">
+    <meta name="author" content="Peers">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon.png">
+    <title>Peers - Sistema Avaliação</title>
+    <link href="assets/extra-libs/datatables.net-bs4/css/dataTables.bootstrap4.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="assets/libs/ckeditor/samples/toolbarconfigurator/lib/codemirror/neo.css">
+    <link rel="stylesheet" type="text/css" href="assets/libs/select2/dist/css/select2.min.css">
+
+    <link href="dist/css/style.min.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+		<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+	<![endif]-->
+</head>
+
+<body>
+    <form id="form1" runat="server">
+        <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true"></asp:ScriptManager>
+        <div class="preloader">
+            <div class="lds-ripple">
+                <div class="lds-pos"></div>
+                <div class="lds-pos"></div>
+            </div>
+        </div>
+        <!-- ============================================================== -->
+        <!-- Main wrapper - style you can find in pages.scss -->
+        <!-- ============================================================== -->
+        <div style="overflow:initial !important" id="main-wrapper" >
+            <!-- ============================================================== -->
+            <!-- Topbar header - style you can find in pages.scss -->
+            <!-- ============================================================== -->
+            <header class="topbar" >
+                <nav class="navbar top-navbar navbar-expand-md navbar-dark" >
+                    <div class="navbar-header border-right">
+                        <a class="nav-toggler waves-effect waves-light d-block d-md-none" href="javascript:void(0)"><i class="ti-menu ti-close"></i></a>
+                        <a class="navbar-brand" href="index.aspx">
+                            <b class="logo-icon">
+                                <img src="assets/images/logos/logo-icon.png" alt="homepage" class="dark-logo" />
+                                <%--<img src="assets/images/logos/logo-light-icon.png" alt="homepage" class="light-logo" />--%>
+                            </b>
+                            <span class="logo-text">
+                                <img src="assets/images/logos/logo-text.png" alt="homepage" class="dark-logo" />
+                                <img src="assets/images/logos/logo-light-text.png" width="120%" height="120%" style="margin:0px -20px" class="light-logo" alt="homepage" />
+                            </span>
+                        </a>
+                        <a class="topbartoggler d-block d-md-none waves-effect waves-light" href="javascript:void(0)" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><i class="ti-more"></i></a>
+                    </div>
+                    <div class="navbar-collapse collapse" id="navbarSupportedContent" >
+                        <ul class="navbar-nav float-left mr-auto" >
+                            <li class="nav-item d-none d-md-block" >
+                                <a class="nav-link sidebartoggler waves-effect waves-light" href="javascript:void(0)" data-sidebartype="mini-sidebar" > 
+                                    <i class="mdi mdi-menu font-18" ></i>
+                                </a>
+                            </li>
+                            <%--<li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" id="2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="font-18 mdi mdi-gmail"></i>
+                                    <div class="notify">
+                                        <span class="heartbit"></span>
+                                        <span class="point"></span>
+                                    </div>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-left mailbox animated bounceInDown" aria-labelledby="2">
+                                    <ul class="list-style-none">
+                                        <li>
+                                            <div class="drop-title border-bottom">Tem <span>4</span> novas mensagens</div>
+                                        </li>
+                                        <li>
+                                            <div class="message-center message-body">
+                                                <a href="javascript:void(0)" class="message-item">
+                                                    <span class="user-img">
+                                                        <img src="assets/images/users/1.jpg" alt="user" class="rounded-circle">
+                                                        <span class="profile-status online pull-right"></span></span>
+                                                    <span class="mail-contnet">
+                                                        <h5 class="message-title">Funcionário 1</h5>
+                                                        <span class="mail-desc">Mensagem 1!</span> <span class="time">13:30</span> </span>
+                                                </a>
+                                                <a href="javascript:void(0)" class="message-item">
+                                                    <span class="user-img">
+                                                        <img src="assets/images/users/4.jpg" alt="user" class="rounded-circle">
+                                                        <span class="profile-status offline pull-right"></span></span>
+                                                    <span class="mail-contnet">
+                                                        <h5 class="message-title">Funcionário 4</h5>
+                                                        <span class="mail-desc">Mensagem 4!</span> <span class="time">9:02</span> </span>
+                                                </a>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <a class="nav-link text-center link text-dark" href="javascript:void(0)"><b>Ver todas</b> <i class="fa fa-angle-right"></i></a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>--%>
+                            <%--<li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="mdi mdi-check-circle font-18"></i>
+                                    <div class="notify">
+                                        <span class="heartbit"></span>
+                                        <span class="point"></span>
+                                    </div>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-left mailbox animated bounceInDown">
+                                    <span class="with-arrow"><span class="bg-primary"></span></span>
+                                    <ul class="list-style-none">
+                                        <li>
+                                            <div class="drop-title border-bottom">Tem <span>3</span> novas avaliações</div>
+                                        </li>
+                                        <li>
+                                            <div class="message-center notifications">
+                                                <a href="javascript:void(0)" class="message-item">
+                                                    <span class="btn btn-danger btn-circle"><i class="fa fa-link"></i></span>
+                                                    <span class="mail-contnet">
+                                                        <h5 class="message-title">Avalie o projeto</h5>
+                                                        <span class="mail-desc">Avalie o projeto WBJ!</span> <span class="time">15:30</span> </span>
+                                                </a>
+
+                                                <a href="javascript:void(0)" class="message-item">
+                                                    <span class="btn btn-primary btn-circle"><i class="ti-user"></i></span>
+                                                    <span class="mail-contnet">
+                                                        <h5 class="message-title">Autoavaliação</h5>
+                                                        <span class="mail-desc">Faça autoavaliação no projeot X!</span> <span class="time">9:05</span> </span>
+                                                </a>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <a class="nav-link text-center mb-1 text-dark" href="javascript:void(0)"><strong>Ver todas</strong> <i class="fa fa-angle-right"></i></a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </li>--%>
+                        </ul>
+
+                        <ul class="navbar-nav float-right">
+                            <%--<li class="nav-item search-box">
+                                <input type="text" class="form-control" placeholder="Buscar...">
+                            </li>--%>
+
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img src="assets/images/users/usernophoto.jpg" alt="user" runat="server" id="imgUser1" class="rounded-circle" width="36" height="36">
+                                    <span class="ml-2 font-medium">
+                                        <asp:Label runat="server" ID="lblNome1" /></span><span class="fas fa-angle-down ml-2"></span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right user-dd animated flipInY">
+                                    <div class="d-flex no-block align-items-center p-3 mb-2 border-bottom">
+                                        <div class="">
+                                            <img src="assets/images/users/usernophoto.jpg" alt="user" runat="server" id="imgUser2" class="rounded-circle" width="80" height="80">
+                                        </div>
+                                        <div class="ml-2">
+                                            <h4 class="mb-0">
+                                                <asp:Label runat="server" ID="lblNome2" /></h4>
+                                            <p class=" mb-0 text-muted">
+                                                <asp:Label runat="server" ID="lblEmail" />
+                                            </p>
+                                            <a href="javascript:void(0)" style="color:black !important" id="btnAlterarSenha" data-toggle="modal" data-target="#senha-modal" class="btn btn-sm btn-danger text-white mt-2 btn-rounded">Alterar Senha</a>
+                                        </div>
+                                    </div>
+                                    <a class="dropdown-item" href="~/autoavalizacao.aspx" runat="server"><i class="ti-wallet mr-1 ml-1"></i>Minhas avaliações</a>
+                                    <%--<a class="dropdown-item" href="javascript:void(0)"><i class="ti-email mr-1 ml-1"></i>Mensagens</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="javascript:void(0)"><i class="ti-settings mr-1 ml-1"></i>Configurações</a>--%>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="~/Logout.aspx" runat="server"><i class="fa fa-power-off mr-1 ml-1"></i>Sair</a>
+                                </div>
+                            </li>
+                        </ul>
+
+                    </div>
+                </nav>
+            </header>
+            <aside class="left-sidebar">
+                <div class="scroll-sidebar">
+                    <nav class="sidebar-nav">
+                        <ul id="sidebarnav">
+                            <li class="sidebar-item"><a class="sidebar-link waves-effect waves-dark sidebar-link" href="index.aspx" aria-expanded="false"><i class="far fa-lightbulb"></i><span class="hide-menu">Página inicial</span></a></li>
+
+                            <asp:Panel runat="server" ID="panelCadastros">
+
+                                <li class="sidebar-item"><a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="fas fa-compress"></i><span class="hide-menu">Gerenciar Associados</span></a>
+                                    <ul aria-expanded="false" class="collapse first-level">
+                                        <li class="sidebar-item"><a href="associados.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Associados</span></a></li>
+                                        <li class="sidebar-item"><a href="cargos.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Cargos</span></a></li>
+                                        <li class="sidebar-item"><a href="perfis.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Perfil de Acesso</span></a></li>
+                                    </ul>
+                                </li>
+
+                                <li class="sidebar-item"><a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="fas fa-compress"></i><span class="hide-menu">Gerenciar Métricas</span></a>
+                                    <ul aria-expanded="false" class="collapse first-level">
+                                        <li class="sidebar-item"><a href="clientes.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Clientes</span></a></li>
+                                        <li class="sidebar-item"><a href="tiposprojetos.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Tipos de Projetos</span></a></li>
+                                        <li class="sidebar-item" hidden><a href="perguntasencerramento.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Perguntas de encerramento</span></a></li>
+                                        <li class="sidebar-item"><a href="eixo.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Eixos</span></a></li>
+                                        <li class="sidebar-item"><a href="subcompetencias.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Sub Competências</span></a></li>
+                                        <li class="sidebar-item"><a href="dimensoes.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Dimensões</span></a></li>
+                                        <li class="sidebar-item"><a href="competencias.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Competências</span></a></li>
+                                        <li class="sidebar-item"><a href="performance.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Performances</span></a></li>
+                                        <li class="sidebar-item"><a href="complexidade.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Complexidades</span></a></li>
+                                        <li class="sidebar-item"><a href="frentesinternas.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Alocações Internas</span></a></li>
+                                        <li class="sidebar-item"><a href="Prazos.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Prazos</span></a></li>
+                                        <li class="sidebar-item"><a href="Premissas.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Premissas do Radar</span></a></li>
+                                        <li class="sidebar-item"><a href="periodoavaliacao.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Período da Avaliação</span></a></li>
+                                    </ul>
+                                </li>
+                                <li class="sidebar-item"><a class="sidebar-link waves-effect waves-dark sidebar-link" href="CadastroProjetos.aspx" aria-expanded="false"><i class="far fa-lightbulb"></i><span class="hide-menu">Cadastro de Projetos</span></a></li>
+                                <li class="sidebar-item"><a class="sidebar-link waves-effect waves-dark sidebar-link" href="envioavaliacoes.aspx" aria-expanded="false"><i class="far fa-lightbulb"></i><span class="hide-menu">Envio de avaliações</span></a></li>
+                            </asp:Panel>
+
+                            <li class="sidebar-item"><a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false"><i class="fas fa-compress"></i><span class="hide-menu">Avaliações</span></a>
+                                <ul aria-expanded="false" class="collapse first-level">
+                                    <li class="sidebar-item"><a href="autoavalizacao.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Auto Avaliação</span></a></li>
+                                    <li class="sidebar-item"><a href="EvolucaoAssociado.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Evolução Associado</span></a></li>
+                                    <li class="sidebar-item"><a href="avalizacao_gestor.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Avaliação de Liderança</span></a></li>
+                                    <li runat="server" id="itemAvAsCegas" class="sidebar-item"><a href="avalizacao_gestorascegas.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Avaliação as Cegas</span></a></li>
+                                    <asp:Panel runat="server" ID="panelAvaliacoes">
+                                        <li class="sidebar-item"><a href="avalizacao_gestor.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Avaliação do Gestor</span></a></li>
+                                        <li class="sidebar-item"><a href="avalizacao_feedback.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Feedback</span></a></li>
+                                        <li class="sidebar-item"><a href="avalizacao_mentor.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Mentor</span></a></li>
+                                        <li class="sidebar-item"><a href="avalizacao_resultado_lideranca.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Resultado Av. Liderança</span></a></li>
+                                    </asp:Panel>
+                                </ul>
+                            </li>
+
+                            <li class="sidebar-item" runat="server" id="linkFrenteInterna"><a href="FrentesInternas.aspx" class="sidebar-link"><i class="far fa-lightbulb"></i><span class="hide-menu">Alocações Internas</span></a></li>
+
+                            <asp:Panel runat="server" ID="panelFinal">
+
+                                <li class="sidebar-item">
+                                    <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false">
+                                        <i class="fas fa-compress"></i><span class="hide-menu">Comitê</span></a>
+                                    <ul aria-expanded="false" class="collapse first-level">
+                                        <li class="sidebar-item" hidden>
+                                            <a href="Dashboard.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Dashboard</span></a>
+                                        </li>
+                                        <li class="sidebar-item">
+                                            <a href="Resultado.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Resultado</span></a>
+                                        </li>
+                                        <li class="sidebar-item">
+                                            <a href="Consolidacao.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Consolidação</span></a>
+                                        </li>
+                                        <li class="sidebar-item">
+                                            <a href="EnvioEvolucao.aspx" class="sidebar-link"><i class="mdi mdi-octagram"></i><span class="hide-menu">Envio Evolução</span></a>
+                                        </li>
+                                    </ul>
+                                </li>
+
+                                <li class="sidebar-item">
+                                    <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" aria-expanded="false">
+                                        <i class="fas fa-compress"></i><span class="hide-menu">Menu ADM</span></a>
+                                    <ul aria-expanded="false" class="collapse first-level">
+                                        <li class="sidebar-item">
+                                            <a class="sidebar-link waves-effect waves-dark sidebar-link" href="consulta_avancada.aspx" aria-expanded="false"><i class="far fa-lightbulb"></i>
+                                                <span class="hide-menu">Consulta avaliações</span></a>
+                                        </li>
+                                        <li class="sidebar-item">
+                                            <a class="sidebar-link waves-effect waves-dark sidebar-link" href="consulta_retroceder.aspx" aria-expanded="false"><i class="far fa-lightbulb"></i>
+                                                <span class="hide-menu">Retroceder avaliações</span></a>
+                                        </li>
+                                        <%--<li class="sidebar-item">
+                                            <a class="sidebar-link waves-effect waves-dark sidebar-link" href="consulta_retroceder.aspx" aria-expanded="false"><i class="far fa-lightbulb"></i>
+                                                <span class="hide-menu">Editar avaliações</span></a>
+                                        </li>--%>
+                                        <li class="sidebar-item">
+                                            <a class="sidebar-link waves-effect waves-dark sidebar-link" href="exportaravaliacoes.aspx" aria-expanded="false"><i class="far fa-lightbulb"></i>
+                                                <span class="hide-menu">Exportar avaliações</span></a>
+                                        </li>
+                                        <li class="sidebar-item"><a class="sidebar-link waves-effect waves-dark sidebar-link" href="radar.aspx" aria-expanded="false"><i class="far fa-lightbulb"></i>
+                                            <span class="hide-menu">Totalizadores das Avaliações</span></a>
+                                        </li>
+                                    </ul>
+                                </li>
+
+                                
+                            </asp:Panel>
+
+                        </ul>
+                    </nav>
+                </div>
+            </aside>
+
+            <div style="overflow:initial !important" class="page-wrapper">
+
+                <!-- ============================================================== -->
+                <!-- Container fluid  -->
+                <!-- ============================================================== -->
+
+                <asp:ContentPlaceHolder ID="MainContent" runat="server">
+
+                    <!--<div class="page-content container-fluid">-->
+
+                    <!--</div>-->
+                    <!-- ============================================================== -->
+                    <!-- End Container fluid  -->
+                    <!-- ============================================================== -->
+                </asp:ContentPlaceHolder>
+                <!-- ============================================================== -->
+                <!-- footer -->
+                <!-- ============================================================== -->
+
+                <footer class="footer text-center">
+                    Todos os direitos reservados para <a href="https://peers.com.br">Peers</a>.
+                </footer>
+                <!-- ============================================================== -->
+                <!-- End footer -->
+                <!-- ============================================================== -->
+
+            </div>
+        </div>
+
+        <div id="senha-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Alteração de Senha</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" title="Fechar">×</button>
+                    </div>
+                    <div class="modal-body">
+
+                        <asp:UpdatePanel runat="server">
+                            <ContentTemplate>
+                                <div class="form-body">
+                                    <div class="row">
+                                        <div class="col-md-2"></div>
+                                        <div class="col-md-8">
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="basic-addon1"><i class="ti-pencil"></i></span>
+                                                </div>
+                                                <input runat="server" id="txtSenha" type="password" class="form-control form-control-lg" placeholder="Senha Atual" aria-label="Senha Atual" aria-describedby="basic-addon1">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2"></div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-2"></div>
+                                        <div class="col-md-8">
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="basic-addon2"><i class="ti-lock"></i></span>
+                                                </div>
+                                                <input runat="server" id="txtNovaSenha" type="password" class="form-control form-control-lg" placeholder="Nova Senha" aria-label="Nova Senha" aria-describedby="basic-addon2">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2"></div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-2"></div>
+                                        <div class="col-md-8">
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="basic-addon3"><i class="ti-check"></i></span>
+                                                </div>
+                                                <input runat="server" id="txtConfirmaSenha" type="password" class="form-control form-control-lg" placeholder="Confirme a Senha" aria-label="Confirme a Senha" aria-describedby="basic-addon3">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2"></div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="text-left">
+                                        <asp:Label ID="lblMensagem" runat="server" Text="" ForeColor="DarkRed" />
+                                    </div>
+                                    <button id="btnFecharAlterarSenha" type="button" class="btn btn-default waves-effect" data-dismiss="modal">Fechar</button>
+                                    <asp:Button runat="server" ID="btnAlterar" OnClick="btnAlterar_Click" type="button" class="btn btn-danger" Text="Alterar"></asp:Button>
+                                </div>
+
+                            </ContentTemplate>
+                        </asp:UpdatePanel>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="assets/libs/jquery/dist/jquery.min.js"></script>
+        <script src="assets/libs/popper.js/dist/umd/popper.min.js"></script>
+        <script src="assets/libs/bootstrap/dist/js/bootstrap.min.js"></script>
+
+        <!-- apps -->
+        <script src="dist/js/app.min.js"></script>
+        <script src="dist/js/app.init.js"></script>
+        <script src="dist/js/app-style-switcher.js"></script>
+        <script src="assets/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js"></script>
+        <script src="assets/extra-libs/sparkline/sparkline.js"></script>
+        <script src="dist/js/waves.js"></script>
+        <script src="dist/js/sidebarmenu.js"></script>
+
+        <!--Custom JavaScript -->
+        <script src="assets/libs/ckeditor/ckeditor.js"></script>
+        <script src="assets/libs/select2/dist/js/select2.full.min.js"></script>
+        <script src="dist/js/custom.min.js"></script>
+
+        
+
+    </form>
+</body>
+
+</html>
+

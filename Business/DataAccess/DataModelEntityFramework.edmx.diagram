@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="d3a46ffacec44c848ac0fed20b870af7" Name="Diagram1" ZoomLevel="54">
+        <EntityTypeShape EntityType="Model.ASSOCIADOS" Width="1.5" PointX="6" PointY="41.75" />
+        <EntityTypeShape EntityType="Model.ASSOCIADOSPROMOCOES" Width="1.5" PointX="11.25" PointY="45.375" />
+        <EntityTypeShape EntityType="Model.AVALIACAO" Width="1.5" PointX="11.25" PointY="50.125" />
+        <EntityTypeShape EntityType="Model.AVALIACOESCOMPETENCIAS" Width="1.5" PointX="16.5" PointY="38.625" />
+        <EntityTypeShape EntityType="Model.AVALIACOESCOMPETENCIAS_HISTORICO" Width="1.5" PointX="18.75" PointY="39.25" />
+        <EntityTypeShape EntityType="Model.AVALIACOESCOMPETENCIASNOTAS" Width="1.5" PointX="14.25" PointY="34" />
+        <EntityTypeShape EntityType="Model.AVALIACOESPERFORMANCES" Width="1.5" PointX="14.25" PointY="39.875" />
+        <EntityTypeShape EntityType="Model.AVALIACOESPERFORMANCES_HISTORICO" Width="1.5" PointX="16.5" PointY="56.875" />
+        <EntityTypeShape EntityType="Model.AVALIACOESPERFORMANCESNOTAS" Width="1.5" PointX="12" PointY="35.5" />
+        <EntityTypeShape EntityType="Model.CARGOS" Width="1.5" PointX="3.75" PointY="48.75" />
+        <EntityTypeShape EntityType="Model.CARGOSNIVEIS" Width="1.5" PointX="3.75" PointY="53.5" />
+        <EntityTypeShape EntityType="Model.CLIENTES" Width="1.5" PointX="11.25" PointY="40.25" />
+        <EntityTypeShape EntityType="Model.COMPETENCIAS" Width="1.5" PointX="13.5" PointY="72.5" />
+        <EntityTypeShape EntityType="Model.DIMENSOES" Width="1.5" PointX="10.75" PointY="103" />
+        <EntityTypeShape EntityType="Model.EIXOS" Width="1.5" PointX="8.25" PointY="75.125" />
+        <EntityTypeShape EntityType="Model.EMAILPARAMETROS" Width="1.5" PointX="3" PointY="59.5" />
+        <EntityTypeShape EntityType="Model.EMPRESAS" Width="1.5" PointX="0.75" PointY="45.25" />
+        <EntityTypeShape EntityType="Model.PERFIS" Width="1.5" PointX="3.75" PointY="40" />
+        <EntityTypeShape EntityType="Model.PERFORMANCES" Width="1.5" PointX="8.25" PointY="40.25" />
+        <EntityTypeShape EntityType="Model.PERIODOSAVALIACOES" Width="1.5" PointX="3" PointY="43.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="Model.PREMISSAS_RADAR" Width="1.5" PointX="10.5" PointY="74.5" />
+        <EntityTypeShape EntityType="Model.PROJETOS" Width="1.5" PointX="21.5" PointY="43.375" />
+        <EntityTypeShape EntityType="Model.PROJETOSASSOCIADOS" Width="1.5" PointX="23.75" PointY="45.125" />
+        <EntityTypeShape EntityType="Model.PROJETOSCOMPLEXIDADES" Width="1.5" PointX="19.25" PointY="35.25" />
+        <EntityTypeShape EntityType="Model.PROJETOSSTATUS" Width="1.5" PointX="19.25" PointY="56" />
+        <EntityTypeShape EntityType="Model.PROJETOSTIPOS" Width="1.5" PointX="19.25" PointY="58.75" />
+        <EntityTypeShape EntityType="Model.SUBCOMPETENCIAS" Width="1.5" PointX="8.25" PointY="52" />
+        <EntityTypeShape EntityType="Model.sysdiagrams" Width="1.5" PointX="2.75" PointY="0.75" />
+        <EntityTypeShape EntityType="Model.WORKFLOW" Width="1.5" PointX="8.25" PointY="45.25" />
+        <AssociationConnector Association="Model.FK_ASSOCIADOS_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_ASSOCIADOS_ASSOCIADOS1" />
+        <AssociationConnector Association="Model.FK_ASSOCIADOS_CARGOS" />
+        <AssociationConnector Association="Model.FK_ASSOCIADOS_EMPRESAS" />
+        <AssociationConnector Association="Model.FK_ASSOCIADOS_NIVEL" />
+        <AssociationConnector Association="Model.FK_ASSOCIADOS_PERFIS" />
+        <AssociationConnector Association="Model.FK_ASSOCIADOSPROMOCOES_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_AVALIACAO_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_AVALIACAO_ASSOCIADOS_USR" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_ASSOCIADOS1" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_ASSOCIADOS2" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_ASSOCIADOS3" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_ASSOCIADOS4" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_ASSOCIADOS5" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_ASSOCIADOS6" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_ASSOCIADOS1" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_ASSOCIADOS2" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_ASSOCIADOS3" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_ASSOCIADOS4" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_ASSOCIADOS5" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_ASSOCIADOS6" />
+        <AssociationConnector Association="Model.FK_CLIENTES_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_COMPETENCIAS_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_DIMENSOES_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_EIXOS_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_PERFORMANCES_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_PROJETOS_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_PROJETOS_ASSOCIADOS1" />
+        <AssociationConnector Association="Model.FK_PROJETOS_ASSOCIADOS2" />
+        <AssociationConnector Association="Model.FK_PROJETOSASSOCIADOS_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_PROJETOSASSOCIADOS_ASSOCIADOS1" />
+        <AssociationConnector Association="Model.FK_PROJETOSASSOCIADOS_AVALIADOR" />
+        <AssociationConnector Association="Model.FK_PROJETOSASSOCIADOS_GESTOR" />
+        <AssociationConnector Association="Model.FK_SUBCOMPETENCIAS_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_WORKFLOW_ASSOCIADOS" />
+        <AssociationConnector Association="Model.FK_ASSOCIADOSPROMOCOES_CARGOS" />
+        <AssociationConnector Association="Model.FK_ASSOCIADOSPROMOCOES_CARGOS1" />
+        <AssociationConnector Association="Model.FK_ASSOCIADOSPROMOCOES_PERIODOSAVALIACOES" />
+        <AssociationConnector Association="Model.FK_AVALIACAO_EMPRESAS" />
+        <AssociationConnector Association="Model.FK_AVALIACAO_PERIODOSAVALIACOES" />
+        <AssociationConnector Association="Model.FK_AVALIACAO_PROJETOS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_AVALIACOESCOMPETENCIASNOTAS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_AVALIACOESCOMPETENCIASNOTAS1" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_AVALIACOESCOMPETENCIASNOTAS2" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_AVALIACOESCOMPETENCIASNOTAS3" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_AVALIACOESCOMPETENCIASNOTAS4" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_AVALIACOESCOMPETENCIASNOTAS5" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_AVALIACOESCOMPETENCIASNOTAS6" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_AVALIACOESCOMPETENCIASNOTAS7" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_AVALIACOESCOMPETENCIASNOTAS8" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_AVALIACOESCOMPETENCIASNOTAS9" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_AVALIACOESPERFORMANCE" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_CARGOS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_CARGOS1" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_CARGOSNIVEIS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_COMPETENCIAS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_EMPRESAS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_HISTORICO_AVALIACOESCOMPETENCIAS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_PERIODOSAVALIACOES" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_PROJETOS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_AVALIACAOPERFORMANCESNOTAS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_AVALIACAOPERFORMANCESNOTAS2" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_AVALIACAOPERFORMANCESNOTAS4" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_AVALIACAOPERFORMANCESNOTAS6" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_AVALIACAOPERFORMANCESNOTAS8" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_CARGOS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_CARGOSNIVEIS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_EMPRESAS" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_HISTORICO_AVALIACOESPERFORMANCES" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_PERIODOSAVALIACOES" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_PROJETOS" />
+        <AssociationConnector Association="Model.FK_CARGOS_PROXIMOCARGOS" />
+        <AssociationConnector Association="Model.FK_COMPETENCIAS_CARGOS" />
+        <AssociationConnector Association="Model.FK_PERFORMANCES_CARGOS" />
+        <AssociationConnector Association="Model.FK_PREMISSAS_RADAR_CARGOS" />
+        <AssociationConnector Association="Model.FK_COMPETENCIAS_CARGOSNIVEIS" />
+        <AssociationConnector Association="Model.FK_PERFORMANCES_CARGOSNIVEIS" />
+        <AssociationConnector Association="Model.FK_PREMISSAS_RADAR_CARGOSNIVEIS" />
+        <AssociationConnector Association="Model.FK_CLIENTES_EMPRESAS" />
+        <AssociationConnector Association="Model.FK_PROJETOS_CLIENTES" />
+        <AssociationConnector Association="Model.FK_COMPETENCIAS_DIMENSOES" />
+        <AssociationConnector Association="Model.FK_COMPETENCIAS_EIXOS" />
+        <AssociationConnector Association="Model.FK_COMPETENCIAS_EMPRESAS" />
+        <AssociationConnector Association="Model.FK_COMPETENCIAS_SUBCOMPETENCIAS" />
+        <AssociationConnector Association="Model.FK_PREMISSAS_RADAR_EIXOS" />
+        <AssociationConnector Association="Model.FK_EMAILPARAMETROS_EMPRESAS" />
+        <AssociationConnector Association="Model.FK_PERFORMANCES_EMPRESAS" />
+        <AssociationConnector Association="Model.FK_PERIODOSAVALIACOES_EMPRESAS" />
+        <AssociationConnector Association="Model.FK_PROJETOS_EMPRESAS" />
+        <AssociationConnector Association="Model.FK_WORKFLOW_EMPRESAS" />
+        <AssociationConnector Association="Model.FK_WORKFLOW_PERIODOSAVALIACOES" />
+        <AssociationConnector Association="Model.FK_PROJETOS_PROJETOSCOMPLEXIDADES" />
+        <AssociationConnector Association="Model.FK_PROJETOS_PROJETOSSTATUS" />
+        <AssociationConnector Association="Model.FK_PROJETOS_PROJETOSTIPOS" />
+        <AssociationConnector Association="Model.FK_PROJETOSASSOCIADOS_PROJETOS2" />
+        <AssociationConnector Association="Model.FK_AVALIACOESPERFORMANCES_IdNotaComite" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_IdNotaNivel1Comite" />
+        <AssociationConnector Association="Model.FK_AVALIACOESCOMPETENCIAS_IdNotaNivel2Comite" />
+        <EntityTypeShape EntityType="Model.RATING" Width="1.5" PointX="21.5" PointY="35.75" />
+        <AssociationConnector Association="Model.fk_rating_idcomplexidade" />
+        <EntityTypeShape EntityType="Model.EVOLUCAOASSOCIADO" Width="1.5" PointX="8.25" PointY="35.75" />
+        <EntityTypeShape EntityType="Model.EVOLUCAOCOMPETENCIAS" Width="1.5" PointX="10.5" PointY="55.75" />
+        <EntityTypeShape EntityType="Model.EVOLUCAOPERFORMANCE" Width="1.5" PointX="16.5" PointY="35" />
+        <AssociationConnector Association="Model.fk_evolucaoassociado_idassociado" />
+        <AssociationConnector Association="Model.fk_evolucaocompetencias_ideixo" />
+        <AssociationConnector Association="Model.fk_evolucaoassociado_idperiodo" />
+        <AssociationConnector Association="Model.fk_evolucaocompetencias_idevolucaoassociado" />
+        <AssociationConnector Association="Model.fk_evolucaoperformance_idevolucaoassociado" />
+        <AssociationConnector Association="Model.fk_evolucaoperformance_idperformance" />
+        <EntityTypeShape EntityType="Model.ASSOCIADOSTEMP" Width="1.5" PointX="3.375" PointY="3.75" />
+        <EntityTypeShape EntityType="Model.CONSIDERACOESMENTOR" Width="1.5" PointX="8.25" PointY="55.75" />
+        <AssociationConnector Association="Model.fk_Consideracoes_Associado" />
+        <AssociationConnector Association="Model.fk_Consideracoes_Mentor" />
+        <AssociationConnector Association="Model.fk_Consideracoes_Periodo" />
+        <EntityTypeShape EntityType="Model.EQUIPE" Width="1.5" PointX="26.75" PointY="46.25" />
+        <AssociationConnector Association="Model.fk_Equipe_Associado" />
+        <AssociationConnector Association="Model.fk_Equipe_Hierarquia" />
+        <AssociationConnector Association="Model.fk_Equipe_Projeto" />
+        <EntityTypeShape EntityType="Model.PROMOCOES" Width="1.5" PointX="0.75" PointY="4.75" />
+        <AssociationConnector Association="Model.fk_Promocoes_Associado" />
+        <AssociationConnector Association="Model.fk_Promocoes_CargoAnterior" />
+        <AssociationConnector Association="Model.fk_Promocoes_CargoNovo" />
+        <EntityTypeShape EntityType="Model.RELACAO_CARGO_SUBCOMPETENCIA" Width="1.5" PointX="13.5" PointY="56.625" />
+        <AssociationConnector Association="Model.FK_CARGO" />
+        <AssociationConnector Association="Model.FK_Subcompetencia" />
+        <EntityTypeShape EntityType="Model.PRAZOS" Width="1.5" PointX="8.25" PointY="29.75" />
+        <AssociationConnector Association="Model.FK_USR_ASSOCIADO" />
+        <AssociationConnector Association="Model.FK_PRAZO" />
+        <EntityTypeShape EntityType="Model.FATORES" Width="1.5" PointX="5.375" PointY="0.75" />
+        <EntityTypeShape EntityType="Model.NOTASFATORES" Width="1.5" PointX="5.375" PointY="6.75" />
+        <EntityTypeShape EntityType="Model.PALAVRASIRRELEVANTES" Width="1.5" PointX="7.375" PointY="0.75" />
+        <EntityTypeShape EntityType="Model.LIDERESFRENTEINTERNA" Width="1.5" PointX="11.25" PointY="59" />
+        <AssociationConnector Association="Model.fk_ASSOCIADO" />
+        <EntityTypeShape EntityType="Model.PARTICIPANTESFRENTEINTERNA" Width="1.5" PointX="14.25" PointY="60.375" />
+        <AssociationConnector Association="Model.fk_PARTICIPANTE_ASSOCIADO" />
+        <EntityTypeShape EntityType="Model.PDI_QUESTOES" Width="1.5" PointX="7.375" PointY="3.75" />
+        <EntityTypeShape EntityType="Model.PDI_RESPOSTAS" Width="1.5" PointX="10.625" PointY="29.125" />
+        <AssociationConnector Association="Model.FK_PDIRESPOSTAS_ASSOCIADO" />
+        <AssociationConnector Association="Model.FK_PDIRESPOSTAS_PDIQUESTOES" />
+        <AssociationConnector Association="Model.FK_PDIRESPOSTAS_PERIODO" />
+        <EntityTypeShape EntityType="Model.COMENTARIOS" Width="1.5" PointX="21.25" PointY="51.375" />
+        <AssociationConnector Association="Model.FK_COMENTARIOS_ASSOCIADO" />
+        <AssociationConnector Association="Model.FK_COMENTARIOS_PERIODO" />
+        <EntityTypeShape EntityType="Model.COMPLEXIDADE" Width="1.5" PointX="0.75" PointY="8.75" />
+        <EntityTypeShape EntityType="Model.FATORESPROJETOS" Width="1.5" PointX="24.125" PointY="23.625" />
+        <EntityTypeShape EntityType="Model.FRENTEINTERNA" Width="1.5" PointX="9.375" PointY="63.125" />
+        <AssociationConnector Association="Model.fk_FATOR" />
+        <AssociationConnector Association="Model.fk_NOTAFATOR" />
+        <AssociationConnector Association="Model.fk_PROJETO" />
+        <AssociationConnector Association="Model.fk_FRENTEINTERNA" />
+        <AssociationConnector Association="Model.fk_PARTICIPANTE_FRENTEINTERNA" />
+        <EntityTypeShape EntityType="Model.AVALIACOESALOCACOESINTERNAS" Width="1.5" PointX="22.25" PointY="39.25" />
+        <EntityTypeShape EntityType="Model.NOTASALOCACOESINTERNAS" Width="1.5" PointX="20" PointY="31.75" />
+        <AssociationConnector Association="Model.fk_avaliacaoalocacaointerna_associado" />
+        <AssociationConnector Association="Model.fk_avaliacaoalocacaointerna_avaliador" />
+        <AssociationConnector Association="Model.fk_avaliacaoalocacaointerna_nota" />
+        <AssociationConnector Association="Model.fk_avaliacaoalocacaointerna_periodo" />
+        <AssociationConnector Association="Model.fk_avaliacaoalocacaointerna_alocacaointerna" />
+        <EntityTypeShape EntityType="Model.MODOCALCULOCOMPETENCIAS" Width="1.5" PointX="7.375" PointY="8.875" />
+        <AssociationConnector Association="Model.fk_competencias_IdNotaPadraoNivel1" />
+        <AssociationConnector Association="Model.fk_competencias_IdNotaPadraoNivel2" />
+        <AssociationConnector Association="Model.fk_competencias_IdModo" />
+        <EntityTypeShape EntityType="Model.MENTORADORESPOSTAS" Width="1.5" PointX="22.25" PointY="55.25" />
+        <EntityTypeShape EntityType="Model.MENTORPERGUNTAS" Width="1.5" PointX="20" PointY="72.375" />
+        <EntityTypeShape EntityType="Model.MENTORPERGUNTASMODO" Width="1.5" PointX="17.75" PointY="72.5" />
+        <EntityTypeShape EntityType="Model.MENTORPERGUNTASNOTAS" Width="1.5" PointX="20" PointY="61.625" />
+        <AssociationConnector Association="Model.FK_MENTORADORESPOSTA_MENTOR" />
+        <AssociationConnector Association="Model.FK_MENTORADORESPOSTA_MENTORADO" />
+        <AssociationConnector Association="Model.FK_MENTORADORESPOSTA_NOTA" />
+        <AssociationConnector Association="Model.FK_MENTORADORESPOSTA_PERGUNTA" />
+        <AssociationConnector Association="Model.FK_MENTORADORESPOSTA_PERIODO" />
+        <AssociationConnector Association="Model.FK_MENTORPERGUNTA_MODO" />
+        <EntityTypeShape EntityType="Model.VERTICAL" Width="1.5" PointX="9.375" PointY="0.875" />
+        <AssociationConnector Association="Model.FK_ASSOCIADOS_VERTICAL" />
+        <EntityTypeShape EntityType="Model.FOTOSASSOCIADOS" Width="1.5" PointX="8.25" PointY="67.25" />
+        <AssociationConnector Association="Model.FK_FOTOSASSOCIADOS_ASSOCIADOS" />
+        </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

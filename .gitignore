@@ -1,0 +1,18 @@
+# Build
+bin/
+obj/
+dist/
+node_modules/
+
+# IDEs
+.vs/
+.idea/
+*.user
+*.suo
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
