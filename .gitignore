@@ -1,18 +1,5 @@
-# Build
-bin/
-obj/
-dist/
-node_modules/
+# Ignorar tudo
+*
 
-# IDEs
-.vs/
-.idea/
-*.user
-*.suo
-
-# Logs
-*.log
-
-# Sistema
-.DS_Store
-Thumbs.db
+# Exceto o próprio .gitignore (para não sumir do repositório)
+!.gitignore

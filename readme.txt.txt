@@ -1,1 +1,0 @@
-SisAval DevOps Pipeline
