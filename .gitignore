@@ -1,0 +1,131 @@
+# =========================
+# 🔹 Visual Studio e Rider
+# =========================
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.cache
+*.sln.ide
+*.swp
+*.ncb
+*.opendb
+*.VC.db
+.idea/
+*.DotSettings.user
+
+# =========================
+# 🔹 Binários e Arquivos de Build
+# =========================
+bin/
+obj/
+out/
+*.pdb
+*.ilk
+*.aps
+*.sdf
+*.cache
+*.log
+*.tmp
+*.tlog
+*.ipch
+*.iobj
+*.ipdb
+
+# =========================
+# 🔹 Arquivos de Configuração do IIS e ASP.NET
+# =========================
+App_Data/
+App_WebReferences/
+App_global.asax.*
+C:\inetpub\wwwroot\Avaliacao\Content/
+C:\inetpub\wwwroot\Avaliacao\Emails/
+C:\inetpub\wwwroot\Avaliacao\Web.config
+
+# =========================
+# 🔹 Pacotes e Dependências (.NET e Node.js)
+# =========================
+packages/
+node_modules/
+npm-debug.log
+yarn.lock
+pnpm-lock.yaml
+package-lock.json
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
+
+# =========================
+# 🔹 Arquivos de Deploy e Publicação
+# =========================
+.publish/
+*.publishsettings
+*.deploy
+*.pfx
+*.key
+*.cer
+*.crt
+*.config.transform
+
+# =========================
+# 🔹 Arquivos de Logs e Dump
+# =========================
+*.log
+*.dmp
+*.stackdump
+*.temp
+*.bak
+
+# =========================
+# 🔹 Arquivos de Teste e Cobertura de Código
+# =========================
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+*.trx
+*.csproj.user
+
+# =========================
+# 🔹 Arquivos do Docker e Containers (se aplicável)
+# =========================
+**/Dockerfile
+**/docker-compose*.yml
+.dockerignore
+
+# =========================
+# 🔹 Arquivos de Cache e Temporários do Sistema
+# =========================
+Thumbs.db
+ehthumbs.db
+*.DS_Store
+*.AppleDouble
+*.LSOverride
+
+# =========================
+# 🔹 Ignorar Backups e Arquivos Temporários
+# =========================
+*.bak
+*.swp
+*.swo
+*.swn
+*.tmp
+~$*
+
+# =========================
+# 🔹 Certificados e Segurança
+# =========================
+*.pfx
+*.key
+*.pem
+*.cert
+*.crt
+*.csr
+
+# =========================
+# 🔹 Arquivos específicos de IDEs
+# =========================
+.idea/
+*.vscode/
+*.code-workspace

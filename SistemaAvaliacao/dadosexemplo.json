@@ -1,0 +1,122 @@
+[
+	{
+		"id": 1,
+		"text": "Projeto: SOCOPA Corretora | Em andamento | Início: 01/07/19, Término: 31/09/19 (Previsto) | Responsável: Marcelo Shiramizu",
+		"checked": false,
+		"hasChildren": true,
+		"children": [
+			{
+				"id": 2,
+				"text": "Everton Amorim | Gerente de TI | Inínio: 01/07/19, Término: 20/08/19 | Gestor: Marcelo Shiramizu | Avaliador: Marcelo Shiramizu",
+				"checked": true,
+				"hasChildren": false,
+				"children": []
+			},
+			{
+				"id": 3,
+				"text": "Rodrigo Venâncio | Analista SR | Início: 01/07/19, Término: 31/09/19 (Previsto) | Gestor: Marcelo Shiramizu | Avaliador: Everton Amorim",
+				"checked": false,
+				"hasChildren": false,
+				"children": []
+			},
+			{
+				"id": 4,
+				"text": "Silvia Scarponi | Analista SR | Início: 01/07/19,Término: 31/09/19 (Previsto) | Gestor: Marcelo Shiramizu | Avaliador: Everton Amorim",
+				"checked": false,
+				"hasChildren": false,
+				"children": []
+			}
+		]
+	},
+	{
+		"id": 5,
+		"text": "Projeto: Mercado Livre - Estruturação Cobrança | Concluído | Início: 01/07/19, Término: 30/08/19 | Responsável: Fernando Escobar",
+		"checked": false,
+		"hasChildren": true,
+		"children": [
+			{
+				"id": 6,
+				"text": "Profissiona | Cargo | Início: DD/MM/YY, Término: DD/MM/YY | Gestor: Nome do Gestor | Avaliador: Nome do Avaliador",
+				"checked": false,
+				"hasChildren": false,
+				"children": []
+			},
+			{
+				"id": 9,
+				"text": "Profissiona | Cargo | Início: DD/MM/YY, Término: DD/MM/YY | Gestor: Nome do Gestor | Avaliador: Nome do Avaliador",
+				"checked": false,
+				"hasChildren": false,
+				"children": []
+			}
+		]
+	},
+	{
+		"id": 11,
+		"text": "Projeto: XYZ | STATUS | Início: DD/MM/YY, Término: DD/MM/YY | Responsável: XYZ",
+		"population": null,
+		"flagUrl": null,
+		"checked": false,
+		"hasChildren": true,
+		"children": [
+			{
+				"id": 12,
+				"text": "Profissiona | Cargo | Início: DD/MM/YY, Término: DD/MM/YY | Gestor: Nome do Gestor | Avaliador: Nome do Avaliador",
+				"checked": false,
+				"hasChildren": false,
+				"children": []
+			},
+			{
+				"id": 13,
+				"text": "Profissiona | Cargo | Início: DD/MM/YY, Término: DD/MM/YY | Gestor: Nome do Gestor | Avaliador: Nome do Avaliador",
+				"checked": false,
+				"hasChildren": false,
+				"children": []
+			},
+			{
+				"id": 14,
+				"text": "Profissiona | Cargo | Início: DD/MM/YY, Término: DD/MM/YY | Gestor: Nome do Gestor | Avaliador: Nome do Avaliador",
+				"checked": false,
+				"hasChildren": false,
+				"children": []
+			}
+		]
+	},
+	{
+		"id": 15,
+		"text": "Projeto: XYZ | STATUS | Início: DD/MM/YY, Término: DD/MM/YY (FLAG_PREVISTO) | Responsável: XYZ",
+		"population": null,
+		"flagUrl": null,
+		"checked": false,
+		"hasChildren": true,
+		"children": [
+			{
+				"id": 16,
+				"text": "Profissiona | Cargo | Início: DD/MM/YY, Término: DD/MM/YY | Gestor: Nome do Gestor | Avaliador: Nome do Avaliador",
+				"checked": false,
+				"hasChildren": false,
+				"children": []
+			},
+			{
+				"id": 17,
+				"text": "Profissiona | Cargo | Início: DD/MM/YY, Término: DD/MM/YY | Gestor: Nome do Gestor | Avaliador: Nome do Avaliador",
+				"checked": false,
+				"hasChildren": false,
+				"children": []
+			},
+			{
+				"id": 18,
+				"text": "Profissiona | Cargo | Início: DD/MM/YY, Término: DD/MM/YY | Gestor: Nome do Gestor | Avaliador: Nome do Avaliador",
+				"checked": false,
+				"hasChildren": false,
+				"children": []
+			},
+			{
+				"id": 19,
+				"text": "Profissiona | Cargo | Início: DD/MM/YY, Término: DD/MM/YY | Gestor: Nome do Gestor | Avaliador: Nome do Avaliador",
+				"checked": false,
+				"hasChildren": false,
+				"children": []
+			}
+		]
+	}
+]

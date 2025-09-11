@@ -1,0 +1,52 @@
+﻿
+.tbresultado table, th, td {
+    padding: 0 0!important;      
+}
+
+.tbresultado table, th, td .center {
+    text-align:center;
+}
+
+.tdresultado {
+    background-color: #021240;
+    color: white;
+    width:70% !important;
+}
+
+.tdComite {
+    background-color: #e5f419;
+    color: #021240;
+    width: 70% !important;
+}
+
+.tdBranco {
+    background-color: #FFF;
+}
+
+.thresultado {
+    background-color: #808080;
+    color: white;
+    width: 70% !important;
+    white-space: initial;
+}
+
+.hidelinha {
+    display: none;
+}
+
+.openTable {
+    height: 40vh;
+}
+
+.closeTable {
+    height: 5vh;
+}
+
+.resultado-group > .row {
+    overflow-x: auto;
+    white-space: nowrap;
+}
+    .resultado-group > .row > .col-md-3 {
+        display: inline-block;
+        float: none;
+    }
