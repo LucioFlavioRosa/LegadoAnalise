@@ -89,7 +89,7 @@ O modelo `Dimensao` está mapeado para a tabela `DIMENSOES` existente, mantendo 
 
 ## Estrutura de Arquivos
 
-
+```text
 Components/Pages/Dimensoes/
 ├── Dimensoes.razor              # Interface do usuário
 └── Dimensoes.razor.cs           # Code-behind
@@ -104,7 +104,7 @@ Services/Dimensoes/
 Models/
 ├── Dimensao.cs                  # Entidade de domínio
 └── DimensaoExportDto.cs         # DTO de exportação
-
+```
 
 ## Fluxo de Alto Nível
 
