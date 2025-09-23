@@ -1,0 +1,13 @@
+.tbresultado {
+    margin-bottom: 10px;
+}
+
+.tdresultado {
+    background-color: #f8f9fa;
+    font-weight: 500;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
