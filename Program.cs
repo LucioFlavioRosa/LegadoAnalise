@@ -23,6 +23,8 @@ using Peers.Moderno.Services.DisparoMassivoRH;
 using Peers.Moderno.Services.DisparoMassivoRH.Common;
 using Peers.Moderno.Services.Eixos;
 using Peers.Moderno.Services.Eixos.Common;
+using Peers.Moderno.Services.Avaliacoes;
+using Peers.Moderno.Services.Avaliacoes.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -155,6 +157,13 @@ builder.Services.AddScoped<IPeriodoUtil, PeriodoUtil>();
 
 // DisparoMassivoRH Services
 builder.Services.AddScoped<IDisparoMassivoRHService, DisparoMassivoRHService>();
+
+// Avaliacoes Services - Novos serviços adicionados
+builder.Services.AddScoped<IEnvioAvaliacoesService, EnvioAvaliacoesService>();
+
+// Avaliacoes Common Services - Novos serviços adicionados
+builder.Services.AddScoped<IEmailUtils, EmailUtils>();
+builder.Services.AddScoped<IWorkflowUtils, WorkflowUtils>();
 
 var app = builder.Build();
 
