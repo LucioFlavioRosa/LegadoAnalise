@@ -18,7 +18,7 @@ Este documento descreve a implementação da funcionalidade "Evolução do Assoc
 
 ### Estrutura de Pastas
 
-
+```text
 Services/
 ├── Common/
 │   ├── ComboHelper.cs
@@ -40,11 +40,11 @@ wwwroot/
 │   └── evolucao.js
 └── css/
     └── evolucao.css
-
+```
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa página] --> B[EvolucaoAssociado.razor]
     B --> C[Carrega combos via ComboHelper]
@@ -67,7 +67,7 @@ flowchart TD
     style B fill:#f3e5f5
     style I fill:#e8f5e8
     style Q fill:#fff3e0
-
+```
 
 ## Integração dos Serviços
 
@@ -144,7 +144,7 @@ flowchart TD
 ## Configuração e Injeção de Dependência
 
 ### Program.cs
-
+```text
 csharp
 // Registro do serviço principal
 builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>();
@@ -152,7 +152,7 @@ builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>(
 // Serviços comuns já registrados
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 builder.Services.AddScoped<IMessageBoxService, MessageBoxService>();
-
+```
 
 ### Dependências do EvolucaoAssociadoService
 
@@ -179,7 +179,7 @@ builder.Services.AddScoped<IMessageBoxService, MessageBoxService>();
 ## Modelos de Dados
 
 ### ViewModels
-
+```text
 csharp
 public class EvolucaoAssociadoViewModel
 {
@@ -201,7 +201,7 @@ public class EvolucaoAssociadoProjeto
     public bool ExibirPerformance { get; set; }
 }
 
-
+```
 ## Tratamento de Erros
 
 ### Estratégias Implementadas
