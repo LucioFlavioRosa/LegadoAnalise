@@ -27,7 +27,7 @@ Este documento descreve a implementação do sistema de callback de autenticaç�
 
 ### Fluxo de Autenticação
 
-mermaid
+```mermaid
 flowchart TD
     Start([Usuário inicia login via Azure AD])
     AzureAD[Azure AD redireciona para /auth-callback?code=...]
@@ -53,7 +53,7 @@ flowchart TD
     ValidaUsuario -->|Não| Error
     ConfigAuth --> ConfigSessao
     ConfigSessao --> Redirect
-
+```
 
 ## Configuração
 
