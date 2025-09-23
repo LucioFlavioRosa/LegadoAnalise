@@ -1,0 +1,145 @@
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Associados.Common
+@inject PromocaoService PromocaoService
+@rendermode InteractiveAuto
+
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Histórico de promoções do associado</h4>
+        
+        <div class="table-responsive">
+            <table class="table table-striped border">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Data</th>
+                        <th>Cargo Antigo</th>
+                        <th>Cargo Novo</th>
+                        <th>Comentários</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (promocoes.Any())
+                    {
+                        @foreach (var promocao in promocoes)
+                        {
+                            <tr>
+                                <td>@promocao.Id</td>
+                                <td>@promocao.DataPromocao.ToString("dd/MM/yyyy")</td>
+                                <td>@promocao.CargoAnterior</td>
+                                <td>@promocao.CargoNovo</td>
+                                <td>
+                                    @if (promocaoEditando == promocao.Id)
+                                    {
+                                        <input type="text" @bind="comentarioEditando" class="form-control" />
+                                    }
+                                    else
+                                    {
+                                        <span>@promocao.Comentarios</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (promocaoEditando == promocao.Id)
+                                    {
+                                        <button class="btn btn-success btn-sm" @onclick="() => SalvarComentario(promocao.Id)">Salvar</button>
+                                        <button class="btn btn-secondary btn-sm" @onclick="CancelarEdicao">Cancelar</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-info btn-sm" @onclick="() => EditarComentario(promocao.Id, promocao.Comentarios)">Editar</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center">Nenhuma promoção encontrada</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(mensagem))
+{
+    <div class="alert alert-@(tipoMensagem) alert-dismissible fade show" role="alert">
+        @mensagem
+        <button type="button" class="btn-close" @onclick="@(() => mensagem = string.Empty)"></button>
+    </div>
+}
+
+@code {
+    [Parameter] public int AssociadoId { get; set; }
+    
+    private List<PromocaoHistorico> promocoes = new();
+    private int promocaoEditando = 0;
+    private string comentarioEditando = string.Empty;
+    private string mensagem = string.Empty;
+    private string tipoMensagem = "info";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (AssociadoId > 0)
+        {
+            await CarregarHistorico();
+        }
+    }
+
+    private async Task CarregarHistorico()
+    {
+        try
+        {
+            promocoes = await PromocaoService.ObterHistoricoPromocoes(AssociadoId);
+        }
+        catch (Exception ex)
+        {
+            ExibirMensagem($"Erro ao carregar histórico: {ex.Message}", "danger");
+        }
+    }
+
+    private void EditarComentario(int promocaoId, string comentarioAtual)
+    {
+        promocaoEditando = promocaoId;
+        comentarioEditando = comentarioAtual;
+    }
+
+    private async Task SalvarComentario(int promocaoId)
+    {
+        try
+        {
+            var sucesso = await PromocaoService.AlterarComentarioPromocaoAsync(promocaoId, comentarioEditando);
+            if (sucesso)
+            {
+                ExibirMensagem("Comentário salvo com sucesso!", "success");
+                await CarregarHistorico();
+                CancelarEdicao();
+            }
+            else
+            {
+                ExibirMensagem("Erro ao salvar comentário", "danger");
+            }
+        }
+        catch (Exception ex)
+        {
+            ExibirMensagem($"Erro: {ex.Message}", "danger");
+        }
+    }
+
+    private void CancelarEdicao()
+    {
+        promocaoEditando = 0;
+        comentarioEditando = string.Empty;
+    }
+
+    private void ExibirMensagem(string msg, string tipo)
+    {
+        mensagem = msg;
+        tipoMensagem = tipo;
+        StateHasChanged();
+    }
+}

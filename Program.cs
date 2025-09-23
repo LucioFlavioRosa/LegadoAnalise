@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Peers.Moderno.Data;
 using Peers.Moderno.Services;
 using Peers.Moderno.Services.Common;
+using Peers.Moderno.Services.Associados;
+using Peers.Moderno.Services.Associados.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,20 @@ builder.Services.AddScoped<IDimensoesService, DimensoesService>();
 builder.Services.AddScoped<IAvaliacoesService, AvaliacoesService>();
 builder.Services.AddScoped<IExportFileService, ExportFileService>();
 builder.Services.AddScoped<IPremissasService, PremissasService>();
+
+// Associados Services
+builder.Services.AddScoped<IAssociadosService, AssociadosService>();
+builder.Services.AddScoped<AssociadosService>();
+
+// Associados Common Services
+builder.Services.AddScoped<IFotoService, FotoService>();
+builder.Services.AddScoped<FotoService>();
+builder.Services.AddScoped<IExcelService, ExcelService>();
+builder.Services.AddScoped<ExcelService>();
+builder.Services.AddScoped<IDropdownService, DropdownService>();
+builder.Services.AddScoped<DropdownService>();
+builder.Services.AddScoped<IPromocaoService, PromocaoService>();
+builder.Services.AddScoped<PromocaoService>();
 
 var app = builder.Build();
 

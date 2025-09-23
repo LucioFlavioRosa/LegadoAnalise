@@ -19,12 +19,18 @@ public class ApplicationDbContext : DbContext
     public DbSet<ModoCalculoCompetencia> ModosCalculosCompetencias { get; set; }
     public DbSet<PremissasRadar> PremissasRadar { get; set; }
     public DbSet<CargoNivel> CargosNiveis { get; set; }
+    
+    // Novos DbSets para Associados
+    public DbSet<Associado> Associados { get; set; }
+    public DbSet<Promocao> Promocoes { get; set; }
+    public DbSet<Perfil> Perfis { get; set; }
+    public DbSet<Vertical> Verticais { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configurações das entidades
+        // Configurações das entidades existentes
         modelBuilder.Entity<Competencia>(entity =>
         {
             entity.HasKey(e => e.IdCompetencia);
@@ -118,6 +124,72 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.IdNivel);
             entity.ToTable("CARGOSNIVEIS");
+        });
+
+        // Configurações das novas entidades de Associados
+        modelBuilder.Entity<Associado>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("ASSOCIADOS");
+            entity.Property(e => e.Id).HasColumnName("IdAssociado");
+            
+            entity.HasOne(d => d.Cargo)
+                .WithMany()
+                .HasForeignKey(d => d.IdCargo)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.Mentor)
+                .WithMany(p => p.Mentorados)
+                .HasForeignKey(d => d.IdMentor)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.Perfil)
+                .WithMany(p => p.Associados)
+                .HasForeignKey(d => d.IdPerfil)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.Vertical)
+                .WithMany(p => p.Associados)
+                .HasForeignKey(d => d.IdVertical)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Promocao>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("PROMOCOES");
+            entity.Property(e => e.Id).HasColumnName("IdPromocao");
+            
+            entity.HasOne(d => d.Associado)
+                .WithMany(p => p.Promocoes)
+                .HasForeignKey(d => d.IdAssociado)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.CargoAnterior)
+                .WithMany()
+                .HasForeignKey(d => d.IdCargoAnterior)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.CargoNovo)
+                .WithMany()
+                .HasForeignKey(d => d.IdCargoNovo)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Perfil>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("PERFIS");
+            entity.Property(e => e.Id).HasColumnName("IdPerfil");
+            entity.Property(e => e.Nome).HasColumnName("Perfil");
+        });
+
+        modelBuilder.Entity<Vertical>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("VERTICAIS");
+            entity.Property(e => e.Id).HasColumnName("IdVertical");
+            entity.Property(e => e.Nome).HasColumnName("Descricao");
         });
     }
 }
