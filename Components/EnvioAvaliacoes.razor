@@ -1,0 +1,302 @@
+@page "/envio-avaliacoes"
+@rendermode InteractiveAuto
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Avaliacoes
+@using Peers.Moderno.Services.Common
+@inject IEnvioAvaliacoesService EnvioAvaliacoesService
+@inject IMessageBoxService MessageBoxService
+@inject IJSRuntime JSRuntime
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Envio de Avaliações</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Envio de Avaliações</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <!-- FILTROS -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Período da Avaliação</h4>
+                    <div class="form-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label><b>* Período</b></label>
+                                    <select @bind="filtros.IdPeriodo" class="form-control">
+                                        <option value="">Selecionar</option>
+                                        @foreach (var periodo in periodos)
+                                        {
+                                            <option value="@periodo.IdPeriodo">@periodo.Periodo</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Projeto</label>
+                                    <select @bind="filtros.IdProjeto" class="form-control">
+                                        <option value="">Selecionar</option>
+                                        @foreach (var projeto in projetos)
+                                        {
+                                            <option value="@projeto.IdProjeto">@projeto.Projeto</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Cliente</label>
+                                    <select @bind="filtros.IdCliente" class="form-control">
+                                        <option value="">Selecionar</option>
+                                        @foreach (var cliente in clientes)
+                                        {
+                                            <option value="@cliente.IdCliente">@cliente.Nome</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Status</label>
+                                    <select @bind="filtros.IdStatus" class="form-control">
+                                        <option value="">Selecionar</option>
+                                        @foreach (var status in statusList)
+                                        {
+                                            <option value="@status.IdStatus">@status.Status</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Associado</label>
+                                    <select @bind="filtros.IdAssociado" class="form-control">
+                                        <option value="">Selecionar</option>
+                                        @foreach (var associado in associados)
+                                        {
+                                            <option value="@associado.Id">@associado.Nome</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label>Disparo (todos)</label>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-2">
+                                <select @bind="filtros.IdDisparo" class="form-control">
+                                    @foreach (var disparo in disparos)
+                                    {
+                                        <option value="@disparo.IdPrazo">@disparo.NomeDisparo</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-danger" @onclick="ListarAvaliacoes" style="width: 75%">
+                                    @if (carregandoLista)
+                                    {
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        <span>Carregando...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Listar Avaliações</span>
+                                    }
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                @if (mostrarBotaoEnviarTodas)
+                                {
+                                    <button type="button" class="btn btn-info" @onclick="EnviarTodasAvaliacoes">
+                                        @if (carregandoEnvioTodas)
+                                        {
+                                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            <span>Enviando...</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Gerar/Enviar TODAS as Avaliações</span>
+                                        }
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LISTA DE ENVIOS -->
+    @if (avaliacoes.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Projetos para Envio de E-mail</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped border">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Projeto</th>
+                                <th>Cliente</th>
+                                <th>Status</th>
+                                <th>Início</th>
+                                <th>Término</th>
+                                <th>Responsável</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var projeto in avaliacoes)
+                            {
+                                <tr>
+                                    <td>@projeto.Id</td>
+                                    <td>@projeto.Nome</td>
+                                    <td>@projeto.Cliente?.Nome</td>
+                                    <td>@projeto.Status?.Status</td>
+                                    <td>@projeto.DataInicio</td>
+                                    <td>@projeto.DataTermino</td>
+                                    <td>@projeto.Responsavel?.Nome</td>
+                                </tr>
+                                <tr>
+                                    <td>&nbsp;</td>
+                                    <td colspan="6">
+                                        @if (projeto.Associados.Any())
+                                        {
+                                            <table class="table table-striped border">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Profissional</th>
+                                                        <th>Cargo</th>
+                                                        <th>Período</th>
+                                                        <th>Início</th>
+                                                        <th>Término</th>
+                                                        <th>Gestor/Liderado</th>
+                                                        <th>Avaliador</th>
+                                                        <th>Tipo de Avaliação</th>
+                                                        <th>Escopo</th>
+                                                        <th>Disparo</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var associado in projeto.Associados)
+                                                    {
+                                                        <tr>
+                                                            <td>@associado.Associado?.Nome</td>
+                                                            <td>@associado.Associado?.Cargo?.Nome</td>
+                                                            <td>@associado.Periodo?.Periodo</td>
+                                                            <td>@associado.DataInicio</td>
+                                                            <td>@associado.DataTermino</td>
+                                                            <td>@associado.Gestor?.Nome</td>
+                                                            <td>@associado.Avaliador?.Nome</td>
+                                                            <td>@associado.TipoAvaliacao</td>
+                                                            <td>@associado.Escopo</td>
+                                                            <td>
+                                                                <select @bind="@associado.DisparoSelecionado" class="form-control" style="width: 150px">
+                                                                    @foreach (var disparo in disparos)
+                                                                    {
+                                                                        <option value="@disparo.IdPrazo">@disparo.NomeDisparo</option>
+                                                                    }
+                                                                </select>
+                                                            </td>
+                                                            <td style="width: 170px; text-align: right;">
+                                                                <button class="btn btn-facebook btn-outline btn-lg m-r-5" 
+                                                                        @onclick="() => EnviarAvaliacaoUnica(associado.IdEmail, associado.DisparoSelecionado)"
+                                                                        disabled="@carregandoEnvioUnico">
+                                                                    @if (carregandoEnvioUnico)
+                                                                    {
+                                                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span>Enviar</span>
+                                                                    }
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- AVALIAÇÕES PENDENTES -->
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Avaliações pendentes</h4>
+            <button class="btn btn-danger" @onclick="RedispararPendencias" disabled="@carregandoRedisparo">
+                @if (carregandoRedisparo)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span>Enviando...</span>
+                }
+                else
+                {
+                    <span>Alertar pendências a todos</span>
+                }
+            </button>
+
+            <div class="table-responsive">
+                @if (pendencias.Any())
+                {
+                    <table class="table table-striped border">
+                        <thead>
+                            <tr>
+                                <th>Avaliado</th>
+                                <th>Respondente</th>
+                                <th>Projeto</th>
+                                <th>Pendência</th>
+                                <th>Período</th>
+                                <th>Data Limite</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pendencia in pendencias)
+                            {
+                                <tr>
+                                    <td>@pendencia.Nome</td>
+                                    <td>@pendencia.Respondente</td>
+                                    <td>@pendencia.Projeto</td>
+                                    <td>@pendencia.Pendencia</td>
+                                    <td>@pendencia.Periodo</td>
+                                    <td>@pendencia.DataLimite</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-muted">Nenhuma pendência encontrada.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
