@@ -15,6 +15,8 @@ using Peers.Moderno.Services.Complexidades;
 using Peers.Moderno.Services.Complexidades.Common;
 using Peers.Moderno.Services.Consolidacao;
 using Peers.Moderno.Services.Consolidacao.Common;
+using Peers.Moderno.Services.Dashboard;
+using Peers.Moderno.Services.Dashboard.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -120,6 +122,13 @@ builder.Services.AddScoped<IConsolidacaoService, ConsolidacaoService>();
 // Consolidacao Common Services
 builder.Services.AddScoped<Services.Consolidacao.Common.IExportFileService, Services.Consolidacao.Common.ExportFileService>();
 builder.Services.AddScoped<Services.Consolidacao.Common.IImportFileService, Services.Consolidacao.Common.ImportFileService>();
+
+// Dashboard Services
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
+// Dashboard Common Services
+builder.Services.AddScoped<IChartJsonUtil, ChartJsonUtil>();
+builder.Services.AddScoped<IPeriodoUtil, PeriodoUtil>();
 
 var app = builder.Build();
 

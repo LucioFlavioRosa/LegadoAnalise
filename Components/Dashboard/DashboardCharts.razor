@@ -1,0 +1,102 @@
+@inject IJSRuntime JSRuntime
+
+<div class="row">
+    <div class="col-xl-4 col-lg-4">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Gráfico Percentagem do Andamento das Avaliações</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie">
+                    <canvas id="pieandamentoavaliacoes" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-8 col-lg-8">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Avaliados Por Período</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-bar">
+                    <canvas id="baravaliadosperiodo" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    Média Geral Consolidado de Competências
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-bar">
+                    <canvas id="radarn1" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Média Geral Consolidado de Performance</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="linechart" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string AndamentoJson { get; set; } = string.Empty;
+    [Parameter] public string AvaliadosJson { get; set; } = string.Empty;
+    [Parameter] public string CompetenciaJson { get; set; } = string.Empty;
+    [Parameter] public string PerformanceJson { get; set; } = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeCharts();
+        }
+        else if (!string.IsNullOrEmpty(AndamentoJson) || !string.IsNullOrEmpty(AvaliadosJson))
+        {
+            await UpdateCharts();
+        }
+    }
+
+    private async Task InitializeCharts()
+    {
+        await JSRuntime.InvokeVoidAsync("initializeDashboardCharts");
+    }
+
+    private async Task UpdateCharts()
+    {
+        if (!string.IsNullOrEmpty(AndamentoJson))
+        {
+            await JSRuntime.InvokeVoidAsync("updatePieChart", "pieandamentoavaliacoes", AndamentoJson);
+        }
+        
+        if (!string.IsNullOrEmpty(AvaliadosJson))
+        {
+            await JSRuntime.InvokeVoidAsync("updateBarChart", "baravaliadosperiodo", AvaliadosJson);
+        }
+        
+        if (!string.IsNullOrEmpty(CompetenciaJson))
+        {
+            await JSRuntime.InvokeVoidAsync("updateRadarChart", "radarn1", CompetenciaJson);
+        }
+        
+        if (!string.IsNullOrEmpty(PerformanceJson))
+        {
+            await JSRuntime.InvokeVoidAsync("updateLineChart", "linechart", PerformanceJson);
+        }
+    }
+}
