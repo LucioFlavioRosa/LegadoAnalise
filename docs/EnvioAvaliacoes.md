@@ -16,7 +16,7 @@ O módulo de **Envio de Avaliações** foi migrado de Web Forms para Blazor Híb
 
 ### Estrutura de Pastas
 
-
+```text
 Peers.Moderno/
 ├── Components/
 │   ├── EnvioAvaliacoes.razor
@@ -33,7 +33,7 @@ Peers.Moderno/
 │   └── AvaliacaoModels.cs
 └── docs/
     └── EnvioAvaliacoes.md
-
+```
 
 ## Funcionalidades
 
@@ -58,7 +58,7 @@ Peers.Moderno/
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa Envio de Avaliações] --> B[Carrega dados iniciais]
     B --> C[Define filtros]
@@ -91,13 +91,14 @@ flowchart TD
     U[Gerencia pendências] --> V[Lista avaliações em andamento]
     V --> W[Calcula prazos e etapas]
     W --> X[Envia lembretes]
-
+```
 
 ## Modelos de Dados
 
 ### ProjetoModel
 Representa um projeto com suas avaliações associadas.
 
+```text
 csharp
 public class ProjetoModel
 {
@@ -106,11 +107,12 @@ public class ProjetoModel
     public List<ProjetosAssociadosModel> Associados { get; set; }
     // ... outros campos
 }
-
+```
 
 ### EnvioAvaliacaoRequest
 DTO para requisições de envio de avaliação.
 
+```text
 csharp
 public class EnvioAvaliacaoRequest
 {
@@ -122,7 +124,7 @@ public class EnvioAvaliacaoRequest
     public int IdGestor { get; set; }
     public int IdPrazo { get; set; }
 }
-
+```
 
 ## Serviços
 
@@ -156,6 +158,7 @@ Utilitário para operações de workflow.
 
 ### Injeção de Dependência (Program.cs)
 
+```text
 csharp
 // Avaliacoes Services
 builder.Services.AddScoped<IEnvioAvaliacoesService, EnvioAvaliacoesService>();
@@ -163,7 +166,7 @@ builder.Services.AddScoped<IEnvioAvaliacoesService, EnvioAvaliacoesService>();
 // Avaliacoes Common Services
 builder.Services.AddScoped<IEmailUtils, EmailUtils>();
 builder.Services.AddScoped<IWorkflowUtils, WorkflowUtils>();
-
+```
 
 ### Configurações de E-mail
 As configurações de e-mail são obtidas da tabela `EmailParametro` no banco de dados, incluindo:
