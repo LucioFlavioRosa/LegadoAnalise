@@ -59,7 +59,7 @@ flowchart TD
 
 ### appsettings.json
 
-
+```text
 {
   "Authentication": {
     "AzureAd": {
@@ -72,10 +72,10 @@ flowchart TD
     }
   }
 }
-
+```
 
 ### Program.cs - Registro de Serviços
-
+```text
 csharp
 // Auth Common Services
 builder.Services.AddScoped<ITokenDecoder, TokenDecoder>();
@@ -89,7 +89,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(...)
 .AddOpenIdConnect(...);
-
+```
 
 ## Integração
 
