@@ -1,0 +1,38 @@
+@page "/clientes"
+@using Peers.Moderno.Services.Clientes.Common
+@using Peers.Moderno.Components.Shared
+@rendermode InteractiveAuto
+@inject IClientesService ClientesService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Clientes</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Clientes</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers / Cadastro Básico de Projetos / </a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Clientes</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <ClienteForm @ref="clienteForm" 
+                 FormModel="@formModel" 
+                 OnClienteSalvo="@OnClienteSalvo" 
+                 OnCancelado="@OnCancelado"
+                 IdEmpresa="@idEmpresa"
+                 IdUsuario="@idUsuario" />
+    
+    <ClienteList Clientes="@clientes" 
+                 OnClienteAlterado="@OnClienteAlterado" 
+                 OnClienteInativado="@OnClienteInativado"
+                 IsLoading="@isLoadingList" />
+</div>

@@ -1,0 +1,79 @@
+@using Peers.Moderno.Services.Clientes.Common
+
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Lista de clientes</h4>
+        <h6 class="card-subtitle">Filtre as informações separadas por espaço para busca em qualquer coluna em qualquer ordem, completo ou parcial: <code>cliente código</code>.</h6>
+        
+        @if (IsLoading)
+        {
+            <div class="text-center p-4">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped border">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Cliente</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Clientes?.Any() == true)
+                        {
+                            @foreach (var cliente in Clientes)
+                            {
+                                <tr>
+                                    <td>@cliente.IdCliente</td>
+                                    <td>@cliente.Cliente</td>
+                                    <td>@cliente.Email</td>
+                                    <td>
+                                        <span class="badge @(cliente.ATV == 1 ? "bg-success" : "bg-secondary")">
+                                            @cliente.StatusTexto
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-info btn-sm" @onclick="() => OnAlterar(cliente)">
+                                            Alterar
+                                        </button>
+                                        @if (cliente.ATV == 1)
+                                        {
+                                            <button class="btn btn-dark btn-sm" @onclick="() => OnInativar(cliente)">
+                                                Inativar
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">
+                                    Nenhum cliente encontrado
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Código</th>
+                            <th>Cliente</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Ação</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        }
+    </div>
+</div>
