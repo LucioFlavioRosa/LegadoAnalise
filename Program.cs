@@ -91,6 +91,9 @@ builder.Services.AddScoped<Services.Cargos.ICargosService, Services.Cargos.Cargo
 builder.Services.AddScoped<Services.Cargos.Common.IDropdownService, Services.Cargos.Common.DropdownService>();
 builder.Services.AddScoped<Services.Cargos.Common.IExportService, Services.Cargos.Common.ExportService>();
 
+// Cargos Common Services - Novo serviço adicionado
+builder.Services.AddScoped<ICargoLookupService, CargoLookupService>();
+
 // Associados Services
 builder.Services.AddScoped<IAssociadosService, AssociadosService>();
 builder.Services.AddScoped<AssociadosService>();
