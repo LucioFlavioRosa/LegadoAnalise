@@ -8,7 +8,7 @@ O módulo de Clientes foi migrado de Web Forms para Blazor Server com renderiza�
 
 ### Estrutura de Pastas
 
-
+```text
 Peers.Moderno/
 ├── Components/
 │   ├── Pages/
@@ -29,7 +29,7 @@ Peers.Moderno/
 │   └── Cliente.cs                      # Entidade do banco
 └── docs/
     └── Clientes.md                     # Esta documentação
-
+```
 
 ### Componentes
 
