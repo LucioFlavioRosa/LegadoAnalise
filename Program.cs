@@ -5,6 +5,8 @@ using Peers.Moderno.Services.Common;
 using Peers.Moderno.Services.Associados;
 using Peers.Moderno.Services.Associados.Common;
 using Peers.Moderno.Services.Common.Auth;
+using Peers.Moderno.Services.Cargos;
+using Peers.Moderno.Services.Cargos.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -55,6 +57,7 @@ builder.Services.AddAuthentication(options =>
 
 // Common Services
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
+builder.Services.AddScoped<IMessageBoxService, MessageBoxService>();
 
 // Auth Common Services
 builder.Services.AddScoped<ITokenDecoder, TokenDecoder>();
@@ -70,6 +73,11 @@ builder.Services.AddScoped<IAvaliacoesService, AvaliacoesService>();
 builder.Services.AddScoped<IExportFileService, ExportFileService>();
 builder.Services.AddScoped<IPremissasService, PremissasService>();
 
+// Cargos Services
+builder.Services.AddScoped<Services.Cargos.ICargosService, Services.Cargos.CargosService>();
+builder.Services.AddScoped<Services.Cargos.Common.IDropdownService, Services.Cargos.Common.DropdownService>();
+builder.Services.AddScoped<Services.Cargos.Common.IExportService, Services.Cargos.Common.ExportService>();
+
 // Associados Services
 builder.Services.AddScoped<IAssociadosService, AssociadosService>();
 builder.Services.AddScoped<AssociadosService>();
@@ -79,8 +87,8 @@ builder.Services.AddScoped<IFotoService, FotoService>();
 builder.Services.AddScoped<FotoService>();
 builder.Services.AddScoped<IExcelService, ExcelService>();
 builder.Services.AddScoped<ExcelService>();
-builder.Services.AddScoped<IDropdownService, DropdownService>();
-builder.Services.AddScoped<DropdownService>();
+builder.Services.AddScoped<Services.Associados.Common.IDropdownService, Services.Associados.Common.DropdownService>();
+builder.Services.AddScoped<Services.Associados.Common.DropdownService>();
 builder.Services.AddScoped<IPromocaoService, PromocaoService>();
 builder.Services.AddScoped<PromocaoService>();
 
