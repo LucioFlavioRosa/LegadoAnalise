@@ -17,6 +17,8 @@ using Peers.Moderno.Services.Consolidacao;
 using Peers.Moderno.Services.Consolidacao.Common;
 using Peers.Moderno.Services.Dashboard;
 using Peers.Moderno.Services.Dashboard.Common;
+using Peers.Moderno.Services.Dimensoes;
+using Peers.Moderno.Services.Dimensoes.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -78,10 +80,13 @@ builder.Services.AddScoped<ICompetenciasService, CompetenciasService>();
 builder.Services.AddScoped<ICargosService, CargosService>();
 builder.Services.AddScoped<IEixosService, EixosService>();
 builder.Services.AddScoped<ISubCompetenciasService, SubCompetenciasService>();
-builder.Services.AddScoped<IDimensoesService, DimensoesService>();
 builder.Services.AddScoped<IAvaliacoesService, AvaliacoesService>();
 builder.Services.AddScoped<IExportFileService, ExportFileService>();
 builder.Services.AddScoped<IPremissasService, PremissasService>();
+
+// Dimensoes Services
+builder.Services.AddScoped<Services.Dimensoes.Common.IDimensoesService, Services.Dimensoes.DimensoesService>();
+builder.Services.AddScoped<IDimensoesExportService, DimensoesExportService>();
 
 // Competencias Services
 builder.Services.AddScoped<Services.Competencias.ICompetenciasService, Services.Competencias.CompetenciasService>();
