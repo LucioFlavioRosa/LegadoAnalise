@@ -1,0 +1,177 @@
+@page "/clientes"
+@using Peers.Moderno.Services.Clientes
+@using Peers.Moderno.Services.Clientes.Common
+@using Peers.Moderno.Services.Common
+@inject IClienteService ClienteService
+@inject IDropdownService DropdownService
+@inject IMessageBoxService MessageBoxService
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveAuto
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Clientes</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers / Cadastro Básico de Projetos / </a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Clientes</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    @if (!string.IsNullOrEmpty(mensagem))
+    {
+        <div class="alert @GetAlertClass(tipoMensagem) alert-dismissible fade show" role="alert">
+            @mensagem
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Dados do cliente</h4>
+            <EditForm Model="@clienteDto" OnValidSubmit="@CadastrarCliente">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Cliente</label>
+                                <InputText @bind-Value="clienteDto.Cliente" class="form-control" />
+                                <ValidationMessage For="@(() => clienteDto.Cliente)" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Sócio Responsável</label>
+                                <InputSelect @bind-Value="clienteDto.IdAssociadoResponsavel" class="form-control">
+                                    <option value="0">[Selecionar]</option>
+                                    @foreach (var socio in socios)
+                                    {
+                                        <option value="@socio.Id">@socio.Nome</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => clienteDto.IdAssociadoResponsavel)" />
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <InputSelect @bind-Value="clienteDto.Ativo" class="form-control">
+                                    <option value="true">Ativo</option>
+                                    <option value="false">Inativo</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Gestor do Cliente</label>
+                                <InputText @bind-Value="clienteDto.GestorCliente" class="form-control" />
+                                <ValidationMessage For="@(() => clienteDto.GestorCliente)" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>E-mail do Cliente</label>
+                                <InputText @bind-Value="clienteDto.Email" class="form-control" type="email" />
+                                <ValidationMessage For="@(() => clienteDto.Email)" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Telefone do Cliente</label>
+                                <InputText @bind-Value="clienteDto.Telefone" class="form-control" type="tel" />
+                                <ValidationMessage For="@(() => clienteDto.Telefone)" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-info" disabled="@isProcessing">
+                            @if (isProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span>Processando...</span>
+                            }
+                            else
+                            {
+                                <span>@(clienteDto.Id > 0 ? "Salvar" : "Cadastrar")</span>
+                            }
+                        </button>
+                        @if (clienteDto.Id > 0)
+                        {
+                            <button type="button" class="btn btn-secondary" @onclick="LimparFormulario">
+                                Cancelar
+                            </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Lista de clientes</h4>
+            <h6 class="card-subtitle">Filtre as informações separadas por espaço para busca em qualquer coluna em qualquer ordem, completo ou parcial: <code>cliente código</code>.</h6>
+            
+            @if (clientes == null)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped border">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Cliente</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var cliente in clientes)
+                            {
+                                <tr>
+                                    <td>@cliente.Id</td>
+                                    <td>@cliente.Cliente</td>
+                                    <td>@cliente.Email</td>
+                                    <td>@(cliente.Ativo ? "Ativo" : "Inativo")</td>
+                                    <td>
+                                        <button class="btn btn-info btn-sm" @onclick="() => EditarCliente(cliente.Id)">
+                                            Alterar
+                                        </button>
+                                        @if (cliente.Ativo)
+                                        {
+                                            <button class="btn btn-dark btn-sm" @onclick="() => InativarCliente(cliente.Id)">
+                                                Inativar
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
