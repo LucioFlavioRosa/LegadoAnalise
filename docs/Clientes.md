@@ -111,7 +111,7 @@ Peers.Moderno/
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /clientes] --> B[Clientes.razor]
     B --> C[Carrega ClienteForm]
@@ -150,7 +150,7 @@ flowchart TD
     
     Y --> AA[Atualiza status no banco]
     AA --> BB[Atualiza lista]
-
+```
 
 ## Principais Melhorias da Migração
 
