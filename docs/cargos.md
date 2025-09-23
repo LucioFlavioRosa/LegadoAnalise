@@ -144,7 +144,7 @@ O modelo `Cargo` está mapeado no `ApplicationDbContext` com:
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário] --> B[Cargos.razor]
     B --> C{Ação do Usuário}
@@ -177,7 +177,7 @@ flowchart TD
     style I fill:#f3e5f5
     style J fill:#e8f5e8
     style K fill:#fff3e0
-
+```
 
 ## Benefícios da Arquitetura
 
