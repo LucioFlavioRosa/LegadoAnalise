@@ -58,6 +58,12 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.IdCargo);
             entity.ToTable("CARGOS");
             entity.Property(e => e.Nome).HasColumnName("Cargo");
+            
+            // Self-referencing relationship for ProximoCargo
+            entity.HasOne(e => e.ProximoCargo)
+                .WithMany()
+                .HasForeignKey(e => e.IdProximoCargo)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Eixo>(entity =>
