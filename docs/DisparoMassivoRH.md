@@ -15,7 +15,7 @@ O módulo de Disparo Massivo RH foi migrado de Web Forms para Blazor Server com 
 
 ### Estrutura de Pastas
 
-
+```text
 Services/
   DisparoMassivoRH/
     Common/
@@ -25,7 +25,7 @@ Services/
 Components/
   DisparoMassivoRH/
     DisparoMassivoRH.razor          # Interface do usuário
-
+```
 
 ## Funcionalidades
 
@@ -90,7 +90,7 @@ Obtenção de dados de associados e mentores:
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa página] --> B[DisparoMassivoRH.razor]
     B --> C[OnInitializedAsync]
@@ -117,7 +117,7 @@ flowchart TD
     L --> T[Erro no envio]
     T --> U[Log do erro]
     U --> P
-
+```
 
 ## Configuração
 
