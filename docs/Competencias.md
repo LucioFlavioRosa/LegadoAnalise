@@ -1,109 +1,190 @@
-# Competências - Estrutura Migrada (.NET 9 Blazor)
+# Competências - Arquitetura e Integração
 
-## Visão Geral
-Este documento descreve a estrutura dos arquivos e componentes migrados do legado ASP.NET Web Forms para Blazor Híbrido .NET 9. A lógica de negócio foi movida para serviços injetáveis, e a UI foi reescrita em componentes Blazor para máxima responsividade.
+Este documento descreve a arquitetura dos serviços e componentes relacionados ao cadastro, edição, importação/exportação e listagem de competências no sistema modernizado.
 
-## Arquitetura da Solução
+## Estrutura de Pastas
 
-### Modelos (Models/)
-- **Competencia.cs:** Modelo principal representando uma competência com todas suas propriedades e configurações
-- **RelacaoCargoSubcompetencia.cs:** Modelo para relacionar cargos com subcompetências
-- **Cargo.cs, Eixo.cs, SubCompetencia.cs, Dimensao.cs:** Modelos de apoio para os dropdowns
-- **AvaliacaoCompetenciaNota.cs, ModoCalculoCompetencia.cs:** Modelos para configurações de avaliação
-- **CompetenciaExportModel.cs:** Modelo específico para exportação Excel
+- `Services/Competencias/` - Serviços de negócio específicos de competências
+- `Services/Competencias/Common/` - Utilitários, interfaces, validadores e DTOs reutilizáveis
+- `Components/Competencias/` - Componentes Blazor para UI de competências (a serem criados)
+- `docs/` - Documentação e diagramas
 
-### Serviços (Services/)
-- **CompetenciasService:** Serviço principal para CRUD de competências
-- **CargosService:** Gerencia cargos e relações cargo-subcompetência
-- **EixosService, SubCompetenciasService, DimensoesService:** Serviços para entidades de apoio
-- **AvaliacoesService:** Gerencia notas e modos de cálculo
-- **ExportFileService:** Responsável pela geração de arquivos Excel
+## Arquitetura dos Serviços
 
-### Componentes Blazor (Pages/ e Components/)
-- **Competencias.razor:** Página principal de cadastro/gestão
-- **CompetenciaFormDesempenho.razor:** Formulário específico para competências de desempenho
-- **CompetenciaFormLideranca.razor:** Formulário específico para competências de liderança
-- **CompetenciasList.razor:** Lista de competências com filtros e ações
+### Serviços Principais
 
-### Configuração e Infraestrutura
-- **ApplicationDbContext.cs:** Context do Entity Framework com mapeamento das entidades
-- **Program.cs:** Configuração da aplicação e injeção de dependência
-- **appsettings.json:** Configurações da aplicação incluindo connection strings
+#### CompetenciasService
+Serviço principal que centraliza toda a lógica de negócio relacionada a competências:
+- Cadastro e alteração de competências
+- Listagem e busca de competências
+- Exclusão lógica (inativação)
+- Integração com importação/exportação
+- Agregação de competências a avaliações existentes
 
-## Principais Melhorias Implementadas
+#### ICompetenciasService
+Interface que define os contratos do serviço principal, facilitando:
+- Injeção de dependência
+- Testes unitários
+- Substituição de implementações
 
-1. **Arquitetura Moderna:** Migração de Web Forms para Blazor Server com renderização híbrida
-2. **Injeção de Dependência:** Todos os serviços são injetáveis e testáveis
-3. **Programação Assíncrona:** Todos os métodos de acesso a dados são assíncronos
-4. **Entity Framework Core:** Substituição do acesso a dados legado por EF Core 9
-5. **Componentização:** UI dividida em componentes reutilizáveis e especializados
-6. **Configuração Moderna:** Migração de Web.config para appsettings.json
+### Serviços de Apoio (Common)
 
-## Funcionalidades Implementadas
+#### CompetenciasValidator
+Responsável pela validação de regras de negócio:
+- Validação de campos obrigatórios por tipo de avaliação
+- Validação de dados de importação
+- Validação de consistência de dados
 
-- ✅ Cadastro e edição de competências (desempenho e liderança)
-- ✅ Listagem de competências com status ativo/inativo
-- ✅ Configurações avançadas de auto preenchimento
-- ✅ Exportação para Excel
-- ✅ Gerenciamento de relações cargo-subcompetência
-- ⚠️ Importação de Excel (em desenvolvimento)
-- ⚠️ Funcionalidade de agregação (em desenvolvimento)
+#### CompetenciasImportExportUtil
+Utilitário para manipulação de arquivos Excel:
+- Exportação de competências para Excel
+- Importação de competências via Excel
+- Validação de estrutura de arquivos
+- Mapeamento de dados entre Excel e entidades
 
-## Tecnologias Utilizadas
+### DTOs (Data Transfer Objects)
 
-- **.NET 9:** Framework principal
-- **Blazor Server:** Para renderização híbrida e interatividade
-- **Entity Framework Core 9:** ORM para acesso a dados
-- **EPPlus:** Geração de arquivos Excel
-- **Bootstrap:** Framework CSS para UI responsiva
+#### CompetenciaDto
+DTO principal para transferência de dados de competências entre camadas:
+- Contém todos os campos necessários para cadastro/edição
+- Inclui configurações de auto preenchimento
+- Suporta tanto avaliações de desempenho quanto liderança
 
-## Diagrama de Alto Nível
+#### CompetenciaExportDto
+DTO específico para exportação:
+- Inclui dados relacionados (nomes de cargo, eixo, etc.)
+- Otimizado para geração de relatórios Excel
 
-```mermaid
+#### CompetenciaImportDto
+DTO para importação via Excel:
+- Contém apenas campos essenciais para importação
+- Validação simplificada para processamento em lote
+
+#### ImportResultDto
+DTO para resultado de importação:
+- Estatísticas detalhadas do processo
+- Lista de erros encontrados
+- Mensagem resumo para feedback ao usuário
+
+## Fluxo de Alto Nível
+
+mermaid
 flowchart TD
-    A[Competencias.razor] --> B[CompetenciaFormDesempenho.razor]
-    A --> C[CompetenciaFormLideranca.razor]
-    A --> D[CompetenciasList.razor]
-    A --> E[CompetenciasService]
-    E --> F[ApplicationDbContext]
-    E --> G[Entity Framework Core]
-    G --> H[SQL Server Database]
-    A --> I[CargosService]
-    A --> J[EixosService]
-    A --> K[SubCompetenciasService]
-    A --> L[DimensoesService]
-    A --> M[AvaliacoesService]
-    A --> N[ExportFileService]
-    I --> F
-    J --> F
-    K --> F
-    L --> F
-    M --> F
-    N --> O[EPPlus Excel Generation]
-    P[Program.cs] --> Q[Dependency Injection Container]
-    Q --> E
-    Q --> I
-    Q --> J
-    Q --> K
-    Q --> L
-    Q --> M
-    Q --> N
-    R[appsettings.json] --> S[Configuration]
-    S --> F
-```
+    UI[Blazor Page: CompetenciasPage.razor]
+    sub1[CompetenciasForm.razor]
+    sub2[CompetenciasList.razor]
+    sub3[CompetenciasImportExport.razor]
+    service[CompetenciasService]
+    validator[CompetenciasValidator]
+    util[CompetenciasImportExportUtil]
+    db[(ApplicationDbContext)]
+    cargos[CargosService]
+    avaliacoes[AvaliacoesService]
 
-## Como Executar
+    UI --> sub1
+    UI --> sub2
+    UI --> sub3
+    sub1 --> service
+    sub2 --> service
+    sub3 --> util
+    service --> validator
+    service --> util
+    service --> cargos
+    service --> avaliacoes
+    service --> db
+    util --> db
+    validator --> db
 
-1. Configure a string de conexão no `appsettings.json`
-2. Execute as migrações do Entity Framework: `dotnet ef database update`
-3. Execute a aplicação: `dotnet run`
-4. Acesse `/competencias` para a página de gestão de competências
+
+## Integração dos Serviços
+
+### Cadastro e Edição
+1. O componente de formulário injeta `ICompetenciasService`
+2. Os dados são validados via `ICompetenciasValidator`
+3. Para competências de desempenho, atualiza relação cargo-subcompetência
+4. Persiste dados via `ApplicationDbContext`
+
+### Listagem e Busca
+1. O componente de listagem injeta `ICompetenciasService`
+2. Busca competências com dados relacionados (Include)
+3. Suporte a filtros por status ativo/inativo
+4. Operações de inativação via serviço
+
+### Importação/Exportação
+1. O componente de import/export utiliza `CompetenciasImportExportUtil`
+2. Exportação gera arquivo Excel com dados completos
+3. Importação processa arquivo Excel com validação linha por linha
+4. Resultado detalhado com estatísticas e erros
+
+### Agregação de Competências
+1. Funcionalidade para adicionar competência a avaliações existentes
+2. Integração com `IAvaliacoesService`
+3. Busca avaliações do período atual para o cargo da competência
+4. Adiciona competência apenas onde não existe
+
+## Validações Implementadas
+
+### Competências de Desempenho
+- Cargo obrigatório
+- Eixo obrigatório
+- Sub Competência obrigatória
+- Dimensão obrigatória
+- Detalhamento do Nível Atual obrigatório
+- Nível Atual obrigatório
+
+### Competências de Liderança
+- Pilar (Eixo) obrigatório
+- Título (Sub Competência) obrigatório
+- Escopo obrigatório
+- Detalhamento obrigatório
+
+### Importação
+- Validação de IDs de entidades relacionadas
+- Validação de campos obrigatórios
+- Verificação de duplicatas
+- Tratamento de erros por linha
+
+## Configurações e Dependências
+
+### Injeção de Dependência
+Todos os serviços são registrados no `Program.cs`:
+csharp
+builder.Services.AddScoped<Services.Competencias.ICompetenciasService, Services.Competencias.CompetenciasService>();
+builder.Services.AddScoped<Services.Competencias.Common.ICompetenciasValidator, Services.Competencias.Common.CompetenciasValidator>();
+builder.Services.AddScoped<Services.Competencias.Common.CompetenciasImportExportUtil>();
+
+
+### Dependências Externas
+- Entity Framework Core para acesso a dados
+- EPPlus para manipulação de arquivos Excel
+- Serviços de Cargos para relações cargo-subcompetência
+- Serviços de Avaliações para agregação
+
+## Padrões Utilizados
+
+### Repository Pattern
+O `ApplicationDbContext` atua como repository, centralizando acesso a dados.
+
+### Service Layer Pattern
+Lógica de negócio centralizada em serviços específicos.
+
+### DTO Pattern
+Separação clara entre modelos de domínio e objetos de transferência.
+
+### Dependency Injection
+Todos os serviços utilizam injeção de dependência para baixo acoplamento.
+
+### Validation Pattern
+Validações centralizadas em validadores específicos.
 
 ## Próximos Passos
 
-1. Implementar a funcionalidade de importação de Excel
-2. Implementar a funcionalidade de agregação de competências
-3. Adicionar validações mais robustas nos formulários
-4. Implementar testes automatizados
-5. Adicionar logging estruturado
-6. Implementar cache para melhor performance
+1. **Criação dos Componentes Blazor**: Implementar os componentes de UI para substituir as páginas Web Forms
+2. **Testes Unitários**: Criar testes para validadores e serviços
+3. **Otimizações de Performance**: Implementar cache e otimizações de consulta
+4. **Logs e Monitoramento**: Adicionar logging detalhado para auditoria
+5. **Documentação de API**: Documentar endpoints se necessário para integração
+
+## Considerações de Migração
+
+Esta implementação mantém compatibilidade com a estrutura de dados existente, facilitando a migração incremental do sistema Web Forms para Blazor. Os serviços podem ser utilizados tanto por componentes Blazor quanto por páginas Web Forms durante o período de transição.
