@@ -9,6 +9,8 @@ using Peers.Moderno.Services.Cargos;
 using Peers.Moderno.Services.Cargos.Common;
 using Peers.Moderno.Services.Clientes;
 using Peers.Moderno.Services.Clientes.Common;
+using Peers.Moderno.Services.Competencias;
+using Peers.Moderno.Services.Competencias.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -74,6 +76,11 @@ builder.Services.AddScoped<IDimensoesService, DimensoesService>();
 builder.Services.AddScoped<IAvaliacoesService, AvaliacoesService>();
 builder.Services.AddScoped<IExportFileService, ExportFileService>();
 builder.Services.AddScoped<IPremissasService, PremissasService>();
+
+// Competencias Services
+builder.Services.AddScoped<Services.Competencias.ICompetenciasService, Services.Competencias.CompetenciasService>();
+builder.Services.AddScoped<Services.Competencias.Common.ICompetenciasValidator, Services.Competencias.Common.CompetenciasValidator>();
+builder.Services.AddScoped<Services.Competencias.Common.CompetenciasImportExportUtil>();
 
 // Cargos Services
 builder.Services.AddScoped<Services.Cargos.ICargosService, Services.Cargos.CargosService>();
