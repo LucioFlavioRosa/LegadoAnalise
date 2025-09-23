@@ -141,7 +141,7 @@ csharp
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     UI["Blazor Components<br/>(AssociadosCadastro, Lista, Historico, ImportExport)"] -->|Injeta| SVC["Services/Associados/*Service.cs"]
     SVC -->|Reutiliza| COMMON["Services/Associados/Common/*Service.cs"]
@@ -172,7 +172,7 @@ flowchart TD
     DB --> PROM
     DB --> PERF
     DB --> VERT
-
+```
 
 ## Considerações de Segurança
 
