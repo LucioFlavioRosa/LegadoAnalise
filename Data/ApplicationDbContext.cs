@@ -28,6 +28,9 @@ public class ApplicationDbContext : DbContext
     
     // Novo DbSet para Clientes
     public DbSet<Cliente> Clientes { get; set; }
+    
+    // Novo DbSet para Complexidades
+    public DbSet<Complexidade> Complexidades { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -211,6 +214,60 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(d => d.IdAssociacoResponsavel)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configuração da entidade Complexidade
+        modelBuilder.Entity<Complexidade>(entity =>
+        {
+            entity.HasKey(e => e.IdComplexidade);
+            entity.ToTable("PROJETOSCOMPLEXIDADES");
+            
+            entity.Property(e => e.ComplexidadeNome)
+                .HasColumnName("Complexidade")
+                .HasMaxLength(500)
+                .IsRequired();
+                
+            entity.Property(e => e.Codigo)
+                .HasColumnName("Codigo")
+                .HasMaxLength(100)
+                .IsRequired();
+                
+            entity.Property(e => e.ATV)
+                .HasColumnName("ATV")
+                .IsRequired();
+                
+            entity.Property(e => e.Peso)
+                .HasColumnName("Peso")
+                .HasColumnType("decimal(18,2)");
+                
+            entity.Property(e => e.PesoPonderado)
+                .HasColumnName("PesoPonderado")
+                .HasColumnType("decimal(18,2)");
+                
+            entity.Property(e => e.Ponderacao)
+                .HasColumnName("Ponderacao")
+                .HasColumnType("decimal(18,2)");
+                
+            entity.Property(e => e.FaixaInicial)
+                .HasColumnName("FaixaInicial")
+                .HasColumnType("decimal(18,2)");
+                
+            entity.Property(e => e.FaixaFinal)
+                .HasColumnName("FaixaFinal")
+                .HasColumnType("decimal(18,2)");
+                
+            entity.Property(e => e.SomaMinimaFator)
+                .HasColumnName("SomaMinimaFator")
+                .HasColumnType("decimal(18,2)");
+                
+            entity.Property(e => e.DHC)
+                .HasColumnName("DHC")
+                .IsRequired();
+                
+            entity.Property(e => e.USR)
+                .HasColumnName("USR")
+                .HasMaxLength(50)
+                .IsRequired();
         });
     }
 }
