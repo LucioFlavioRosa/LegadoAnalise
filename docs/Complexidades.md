@@ -116,7 +116,7 @@ As configurações específicas do módulo estão em `appsettings.json`:
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /complexidades] --> B[Complexidade.razor]
     B --> C[OnInitializedAsync]
@@ -150,7 +150,7 @@ flowchart TD
     CC --> DD[SaveChangesAsync]
     DD --> EE[MessageBoxService.ShowSuccess]
     EE --> FF[CarregarComplexidades]
-
+```
 
 ## Benefícios da Migração
 
