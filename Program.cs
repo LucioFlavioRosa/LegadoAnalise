@@ -13,6 +13,8 @@ using Peers.Moderno.Services.Competencias;
 using Peers.Moderno.Services.Competencias.Common;
 using Peers.Moderno.Services.Complexidades;
 using Peers.Moderno.Services.Complexidades.Common;
+using Peers.Moderno.Services.Consolidacao;
+using Peers.Moderno.Services.Consolidacao.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -108,6 +110,13 @@ builder.Services.AddScoped<Services.Clientes.Common.IClientesService, Services.C
 
 // Complexidades Services
 builder.Services.AddScoped<IComplexidadeService, ComplexidadesService>();
+
+// Consolidacao Services
+builder.Services.AddScoped<IConsolidacaoService, ConsolidacaoService>();
+
+// Consolidacao Common Services
+builder.Services.AddScoped<Services.Consolidacao.Common.IExportFileService, Services.Consolidacao.Common.ExportFileService>();
+builder.Services.AddScoped<Services.Consolidacao.Common.IImportFileService, Services.Consolidacao.Common.ImportFileService>();
 
 var app = builder.Build();
 
