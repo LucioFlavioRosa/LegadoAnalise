@@ -2,54 +2,33 @@ namespace Peers.Moderno.Services.Common;
 
 public interface IMessageBoxService
 {
-    void ShowSuccess(string message);
-    void ShowError(string message);
-    void ShowInfo(string message);
-    void ShowWarning(string message);
-    event Action<MessageBoxEventArgs>? OnMessageReceived;
+    Task ExibirMensagemAsync(string mensagem, TipoMensagem tipo = TipoMensagem.Info);
+    Task<bool> ConfirmarAsync(string mensagem);
+    event Action<string, TipoMensagem>? OnMensagemExibida;
 }
 
 public class MessageBoxService : IMessageBoxService
 {
-    public event Action<MessageBoxEventArgs>? OnMessageReceived;
+    public event Action<string, TipoMensagem>? OnMensagemExibida;
 
-    public void ShowSuccess(string message)
+    public Task ExibirMensagemAsync(string mensagem, TipoMensagem tipo = TipoMensagem.Info)
     {
-        OnMessageReceived?.Invoke(new MessageBoxEventArgs(message, MessageBoxType.Success));
+        OnMensagemExibida?.Invoke(mensagem, tipo);
+        return Task.CompletedTask;
     }
 
-    public void ShowError(string message)
+    public Task<bool> ConfirmarAsync(string mensagem)
     {
-        OnMessageReceived?.Invoke(new MessageBoxEventArgs(message, MessageBoxType.Error));
-    }
-
-    public void ShowInfo(string message)
-    {
-        OnMessageReceived?.Invoke(new MessageBoxEventArgs(message, MessageBoxType.Info));
-    }
-
-    public void ShowWarning(string message)
-    {
-        OnMessageReceived?.Invoke(new MessageBoxEventArgs(message, MessageBoxType.Warning));
+        // Esta implementação será expandida futuramente para usar modais personalizados
+        // Por enquanto, retorna true para manter compatibilidade
+        return Task.FromResult(true);
     }
 }
 
-public class MessageBoxEventArgs
+public enum TipoMensagem
 {
-    public string Message { get; }
-    public MessageBoxType Type { get; }
-
-    public MessageBoxEventArgs(string message, MessageBoxType type)
-    {
-        Message = message;
-        Type = type;
-    }
-}
-
-public enum MessageBoxType
-{
-    Success,
-    Error,
     Info,
-    Warning
+    Success,
+    Warning,
+    Error
 }
