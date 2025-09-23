@@ -1,0 +1,514 @@
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Competencias
+@using Peers.Moderno.Services.Common
+@inject ICompetenciasService CompetenciasService
+@inject ICargosService CargosService
+@inject IEixosService EixosService
+@inject ISubCompetenciasService SubCompetenciasService
+@inject IDimensoesService DimensoesService
+@inject IAvaliacoesService AvaliacoesService
+@inject IMessageBoxService MessageBoxService
+
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Dados da Competência</h4>
+        <EditForm Model="@competencia" OnValidSubmit="@HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            
+            <div class="form-body">
+                <div class="text-left">
+                    <label>Tipo de Avaliação</label><br />
+                    <InputSelect @bind-Value="tipoAvaliacao" @onchange="OnTipoAvaliacaoChanged" class="form-control p-0 select2" style="width: 25%">
+                        <option value="">Selecionar</option>
+                        <option value="desempenho">Avaliação de Desempenho</option>
+                        <option value="lideranca">Avaliação de Liderança</option>
+                    </InputSelect><br />
+                </div>
+            </div>
+
+            @if (tipoAvaliacao == "desempenho")
+            {
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Cargo</label>
+                                <InputSelect @bind-Value="competencia.IdCargo" @onchange="OnCargoChanged" class="form-control p-0 select2" style="width: 100%">
+                                    <option value="0">Selecionar</option>
+                                    @foreach (var cargo in cargos)
+                                    {
+                                        <option value="@cargo.IdCargo">@cargo.Nome</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Eixo</label>
+                                <InputSelect @bind-Value="competencia.IdEixo" class="form-control p-0 select2" style="width: 100%">
+                                    <option value="0">Selecionar</option>
+                                    @foreach (var eixo in eixos)
+                                    {
+                                        <option value="@eixo.IdEixo">@eixo.Nome</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Sub Competência</label>
+                                <InputSelect @bind-Value="competencia.IdSubCompetencia" @onchange="OnSubCompetenciaChanged" class="form-control p-0 select2" style="width: 100%">
+                                    <option value="0">Selecionar</option>
+                                    @foreach (var subComp in subCompetencias)
+                                    {
+                                        <option value="@subComp.IdSubCompetencia">@subComp.Nome</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Dimensão</label>
+                                <InputSelect @bind-Value="competencia.IdDimensao" class="form-control p-0 select2" style="width: 100%">
+                                    <option value="0">Selecionar</option>
+                                    @foreach (var dimensao in dimensoes)
+                                    {
+                                        <option value="@dimensao.IdDimensao">@dimensao.Nome</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-9">
+                            <div class="form-group">
+                                <label>Detalhamento Nível Atual</label>
+                                <InputTextArea @bind-Value="competencia.CompetenciaJRDetalhe" rows="5" cols="40" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Nivel Atual</label>
+                                <InputText @bind-Value="competencia.CompetenciaJR" @oninput="OnNivelAtualChanged" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm">
+                            <div class="form-group">
+                                <label>Palavras-chave</label>
+                                <InputTextArea @bind-Value="competencia.PalavrasChave" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <div class="form-group">
+                                <label>Resumo da subcompetência pro cargo</label>
+                                <InputTextArea @bind-Value="relacaoSubcompetencia" class="form-control" />
+                                <small class="text-muted font-italic">O valor acima é compartilhado para todas as competências que possuírem a mesma associação de cargo e subcompetência</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <h4>Configurações de auto preenchimento</h4>
+                    </div>
+                    <br />
+                    <div class="row" style="white-space:nowrap">
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.InputAutoAvaliacao" class="checkbox" id="cboxInputAutoAv" />
+                            <label class="labelCbox">Input Auto Avaliação</label>
+                        </div>
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.InputAvaliacaoAsCegas" class="checkbox" id="cboxInputAvCegas" />
+                            <label class="labelCbox">Input Avaliação as Cegas</label>
+                        </div>
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.InputAvaliacaoGestor" class="checkbox" id="cboxInputAvGestor" />
+                            <label class="labelCbox">Input Avaliação do Gestor</label>
+                        </div>
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.InputFeedback" class="checkbox" id="cboxInputFeedback" />
+                            <label class="labelCbox">Input Feedback</label>
+                        </div>
+                    </div>
+                    <div class="row" style="white-space:nowrap">
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.InputNivel1" class="checkbox" id="cboxInputNivel1" />
+                            <label class="labelCbox">Input Nível 1</label>
+                        </div>
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.InputNivel2" class="checkbox" id="cboxInputNivel2" />
+                            <label class="labelCbox">Input Nível 2</label>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row" style="white-space:nowrap">
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.VisivelAutoAvaliacao" class="checkbox" id="cboxVisivelAutoAv" />
+                            <label class="labelCbox">Visível Auto Avaliação</label>
+                        </div>
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.VisivelAvaliacaoAsCegas" class="checkbox" id="cboxVisivelAvCegas" />
+                            <label class="labelCbox">Visível Avaliação as Cegas</label>
+                        </div>
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.VisivelAvaliacaoGestor" class="checkbox" id="cboxVisivelAvGestor" />
+                            <label class="labelCbox">Visível Avaliação do Gestor</label>
+                        </div>
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.VisivelFeedback" class="checkbox" id="cboxVisivelFeedback" />
+                            <label class="labelCbox">Visível Feedback</label>
+                        </div>
+                    </div>
+                    <div class="row" style="white-space:nowrap">
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.VisivelNivel1" class="checkbox" id="cboxVisivelNivel1" />
+                            <label class="labelCbox">Visível Nível 1</label>
+                        </div>
+                        <div class="col-sm">
+                            <InputCheckbox @bind-Value="competencia.VisivelNivel2" class="checkbox" id="cboxVisivelNivel2" />
+                            <label class="labelCbox">Visível Nível 2</label>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="labelCbox">Nota Padrão Nível 1</label>
+                            <InputSelect @bind-Value="competencia.IdNotaPadraoNivel1" class="form-control p-0 select2" style="width: 100%">
+                                <option value="0">Selecionar</option>
+                                @foreach (var nota in notasPadrao)
+                                {
+                                    <option value="@nota.IdNota">@nota.CodigoNota</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="labelCbox">Nota Padrão Nível 2</label>
+                            <InputSelect @bind-Value="competencia.IdNotaPadraoNivel2" class="form-control p-0 select2" style="width: 100%">
+                                <option value="0">Selecionar</option>
+                                @foreach (var nota in notasPadrao)
+                                {
+                                    <option value="@nota.IdNota">@nota.CodigoNota</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="labelCbox">Modo de Cálculo</label>
+                            <InputSelect @bind-Value="competencia.IdModo" class="form-control p-0 select2" style="width: 100%">
+                                @foreach (var modo in modosCalculo)
+                                {
+                                    <option value="@modo.IdModo">@modo.ModoDesc</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (tipoAvaliacao == "lideranca")
+            {
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Escopo</label><br />
+                                <InputSelect @bind-Value="competencia.Escopo" class="form-control p-0 select2" style="width: 100%">
+                                    <option value="">Selecionar</option>
+                                    <option value="projeto">Por projeto</option>
+                                    <option value="líder">Por líder</option>
+                                    <option value="backoffice">backoffice</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Pilar</label><br />
+                                <InputSelect @bind-Value="competencia.IdEixo" class="form-control p-0 select2" style="width: 100%">
+                                    <option value="0">Selecionar</option>
+                                    @foreach (var eixo in eixosLideranca)
+                                    {
+                                        <option value="@eixo.IdEixo">@eixo.Nome</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Título</label><br />
+                                <InputSelect @bind-Value="competencia.IdSubCompetencia" class="form-control p-0 select2" style="width: 100%">
+                                    <option value="0">Selecionar</option>
+                                    @foreach (var subComp in subCompetencias)
+                                    {
+                                        <option value="@subComp.IdSubCompetencia">@subComp.Nome</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Detalhamento</label>
+                                <InputText @bind-Value="competencia.CompetenciaJRDetalhe" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="form-actions">
+                <div class="text-right">
+                    @if (competencia.IdCompetencia > 0)
+                    {
+                        <button type="button" @onclick="AgregarCompetencia" class="btn btn-facebook" 
+                                title="Adicionar esta competência as avaliações já existentes do período atual que não possuírem esta competência.">
+                            Agregar
+                        </button>
+                    }
+                    <button type="submit" class="btn btn-info">@(competencia.IdCompetencia == 0 ? "Cadastrar" : "Salvar")</button>
+                    <button type="button" @onclick="LimparFormulario" class="btn btn-secondary">Limpar</button>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Competencia? CompetenciaEdicao { get; set; }
+    [Parameter] public EventCallback OnCompetenciaSalva { get; set; }
+    [Parameter] public EventCallback OnFormularioLimpo { get; set; }
+
+    private Competencia competencia = new();
+    private string tipoAvaliacao = string.Empty;
+    private string relacaoSubcompetencia = string.Empty;
+    
+    private List<Cargo> cargos = new();
+    private List<Eixo> eixos = new();
+    private List<Eixo> eixosLideranca = new();
+    private List<SubCompetencia> subCompetencias = new();
+    private List<Dimensao> dimensoes = new();
+    private List<AvaliacaoCompetenciaNota> notasPadrao = new();
+    private List<ModoCalculoCompetencia> modosCalculo = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDadosIniciais();
+        
+        if (CompetenciaEdicao != null)
+        {
+            competencia = CompetenciaEdicao;
+            tipoAvaliacao = competencia.TipoAvaliacao ?? "desempenho";
+            await CarregarRelacaoCargoSubcompetencia();
+        }
+        else
+        {
+            InicializarNovaCompetencia();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (CompetenciaEdicao != null && CompetenciaEdicao.IdCompetencia != competencia.IdCompetencia)
+        {
+            competencia = CompetenciaEdicao;
+            tipoAvaliacao = competencia.TipoAvaliacao ?? "desempenho";
+            await CarregarRelacaoCargoSubcompetencia();
+        }
+    }
+
+    private async Task CarregarDadosIniciais()
+    {
+        cargos = await CargosService.ObterListaCargosAsync(true);
+        eixos = await EixosService.ListaEixosAsync(true, "desempenho");
+        eixosLideranca = await EixosService.ListaEixosAsync(true, "lideranca");
+        subCompetencias = await SubCompetenciasService.ListaSubCompetenciasAsync(true);
+        dimensoes = await DimensoesService.ListaDimensoesAsync(true, "desempenho");
+        notasPadrao = await AvaliacoesService.ObterAvaliacaoCompetenciasNotasAsync();
+        modosCalculo = await AvaliacoesService.ObterModosCalculosCompetenciasAsync();
+    }
+
+    private void InicializarNovaCompetencia()
+    {
+        competencia = new Competencia
+        {
+            InputAutoAvaliacao = true,
+            InputAvaliacaoAsCegas = true,
+            InputAvaliacaoGestor = true,
+            InputFeedback = true,
+            InputNivel1 = true,
+            InputNivel2 = true,
+            VisivelAutoAvaliacao = true,
+            VisivelAvaliacaoAsCegas = true,
+            VisivelAvaliacaoGestor = true,
+            VisivelFeedback = true,
+            VisivelNivel1 = true,
+            VisivelNivel2 = true,
+            ATV = 1
+        };
+        tipoAvaliacao = string.Empty;
+        relacaoSubcompetencia = string.Empty;
+    }
+
+    private async Task OnTipoAvaliacaoChanged(ChangeEventArgs e)
+    {
+        tipoAvaliacao = e.Value?.ToString() ?? string.Empty;
+        competencia.TipoAvaliacao = tipoAvaliacao;
+        
+        if (tipoAvaliacao == "lideranca")
+        {
+            competencia.IdCargo = 96; // Cargo fixo para liderança
+            competencia.IdNivel = 1;
+            competencia.IdDimensao = 10; // Dimensão fixa para liderança
+        }
+    }
+
+    private async Task OnCargoChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int cargoId))
+        {
+            competencia.IdCargo = cargoId;
+            await CarregarRelacaoCargoSubcompetencia();
+        }
+    }
+
+    private async Task OnSubCompetenciaChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int subCompId))
+        {
+            competencia.IdSubCompetencia = subCompId;
+            await CarregarRelacaoCargoSubcompetencia();
+        }
+    }
+
+    private void OnNivelAtualChanged(ChangeEventArgs e)
+    {
+        relacaoSubcompetencia = e.Value?.ToString() ?? string.Empty;
+    }
+
+    private async Task CarregarRelacaoCargoSubcompetencia()
+    {
+        if (competencia.IdCargo > 0 && competencia.IdSubCompetencia > 0)
+        {
+            var relacao = await CargosService.ObterRelacaoCargoSubcompetenciaAsync(competencia.IdCargo, competencia.IdSubCompetencia);
+            relacaoSubcompetencia = relacao?.Descricao ?? string.Empty;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            if (ValidarFormulario())
+            {
+                // Atualizar relação cargo x subcompetência se necessário
+                if (!string.IsNullOrEmpty(relacaoSubcompetencia) && competencia.IdCargo > 0 && competencia.IdSubCompetencia > 0)
+                {
+                    await CargosService.AtualizarRelacaoCargoSubcompetenciaAsync(new RelacaoCargoSubcompetencia
+                    {
+                        IdCargo = competencia.IdCargo,
+                        IdSubcompetencia = competencia.IdSubCompetencia,
+                        Descricao = relacaoSubcompetencia
+                    });
+                }
+
+                bool sucesso;
+                if (competencia.IdCompetencia == 0)
+                {
+                    sucesso = await CompetenciasService.InserirCompetenciaAsync(competencia);
+                    MessageBoxService.ShowSuccess(sucesso ? "Competência inserida com sucesso!" : "Falha na inserção da competência!");
+                }
+                else
+                {
+                    sucesso = await CompetenciasService.AlterarCompetenciaAsync(competencia);
+                    MessageBoxService.ShowSuccess(sucesso ? "Competência alterada com sucesso!" : "Falha na alteração da competência!");
+                }
+
+                if (sucesso)
+                {
+                    await OnCompetenciaSalva.InvokeAsync();
+                    LimparFormulario();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError($"Erro ao salvar competência: {ex.Message}");
+        }
+    }
+
+    private bool ValidarFormulario()
+    {
+        if (string.IsNullOrEmpty(tipoAvaliacao))
+        {
+            MessageBoxService.ShowWarning("Selecione o tipo de avaliação");
+            return false;
+        }
+
+        if (tipoAvaliacao == "desempenho")
+        {
+            if (competencia.IdCargo == 0)
+            {
+                MessageBoxService.ShowInfo("Favor selecionar o Cargo!");
+                return false;
+            }
+            if (competencia.IdEixo == 0)
+            {
+                MessageBoxService.ShowInfo("Favor selecionar o Eixo!");
+                return false;
+            }
+            if (competencia.IdSubCompetencia == 0)
+            {
+                MessageBoxService.ShowInfo("Favor selecionar a Sub Competência!");
+                return false;
+            }
+            if (competencia.IdDimensao == 0)
+            {
+                MessageBoxService.ShowInfo("Favor selecionar a Dimensão!");
+                return false;
+            }
+            if (string.IsNullOrEmpty(competencia.CompetenciaJRDetalhe))
+            {
+                MessageBoxService.ShowInfo("Favor preencher o Detalhamento do Nível Atual!");
+                return false;
+            }
+            if (string.IsNullOrEmpty(competencia.CompetenciaJR))
+            {
+                MessageBoxService.ShowInfo("Favor preencher o Nivel Atual!");
+                return false;
+            }
+        }
+        else if (tipoAvaliacao == "lideranca")
+        {
+            if (competencia.IdEixo == 0 || string.IsNullOrEmpty(competencia.Escopo) || 
+                competencia.IdSubCompetencia == 0 || string.IsNullOrEmpty(competencia.CompetenciaJRDetalhe))
+            {
+                MessageBoxService.ShowWarning("Preencha todos os campos");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private async Task AgregarCompetencia()
+    {
+        try
+        {
+            var resultado = await CompetenciasService.AgregarCompetenciaAsync(competencia.IdCompetencia);
+            MessageBoxService.ShowInfo($"Agregadas {resultado.CompetenciasAdicionadas} competências as avaliações existentes de {resultado.AssociadosAfetados} associados.");
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError($"Erro ao agregar competência: {ex.Message}");
+        }
+    }
+
+    private void LimparFormulario()
+    {
+        InicializarNovaCompetencia();
+        OnFormularioLimpo.InvokeAsync();
+    }
+}

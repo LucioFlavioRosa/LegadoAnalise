@@ -1,0 +1,129 @@
+@page "/competencias"
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Common
+@inject IMessageBoxService MessageBoxService
+
+<PageTitle>Competências - Sistema de Avaliação</PageTitle>
+
+<!-- Breadcrumb -->
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Competências</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers / Cadastro Básico de Projetos</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Competências</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Container Principal -->
+<div class="page-content container-fluid">
+    
+    <!-- Mensagens -->
+    <MessageBoxComponent />
+    
+    <!-- Formulário de Competências -->
+    <CompetenciasForm CompetenciaEdicao="@competenciaEdicao" 
+                      OnCompetenciaSalva="@OnCompetenciaSalva" 
+                      OnFormularioLimpo="@OnFormularioLimpo" />
+    
+    <!-- Importação e Exportação -->
+    <CompetenciasImportExport OnImportacaoConcluida="@OnImportacaoConcluida" />
+    
+    <!-- Lista de Competências -->
+    <CompetenciasList @ref="competenciasList" 
+                      OnEditarCompetencia="@OnEditarCompetencia" 
+                      OnCompetenciaInativada="@OnCompetenciaInativada" />
+    
+</div>
+
+@code {
+    private CompetenciasList? competenciasList;
+    private Competencia? competenciaEdicao;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Configurar listener para mensagens
+        MessageBoxService.OnMessageReceived += OnMessageReceived;
+    }
+
+    private void OnMessageReceived(MessageBoxEventArgs args)
+    {
+        // As mensagens são tratadas pelo componente MessageBoxComponent
+        StateHasChanged();
+    }
+
+    private async Task OnCompetenciaSalva()
+    {
+        // Limpar edição e atualizar lista
+        competenciaEdicao = null;
+        
+        if (competenciasList != null)
+        {
+            await competenciasList.AtualizarLista();
+        }
+        
+        StateHasChanged();
+    }
+
+    private void OnFormularioLimpo()
+    {
+        // Limpar edição
+        competenciaEdicao = null;
+        StateHasChanged();
+    }
+
+    private async Task OnEditarCompetencia(Competencia competencia)
+    {
+        // Definir competência para edição
+        competenciaEdicao = competencia;
+        StateHasChanged();
+        
+        // Scroll para o topo da página
+        await Task.Delay(100); // Aguardar renderização
+        await ScrollToTop();
+    }
+
+    private async Task OnCompetenciaInativada()
+    {
+        // Limpar edição se a competência inativada estava sendo editada
+        if (competenciaEdicao != null)
+        {
+            competenciaEdicao = null;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnImportacaoConcluida()
+    {
+        // Atualizar lista após importação
+        if (competenciasList != null)
+        {
+            await competenciasList.AtualizarLista();
+        }
+    }
+
+    private async Task ScrollToTop()
+    {
+        try
+        {
+            await Task.Delay(50);
+            // Implementar scroll suave para o topo se necessário
+        }
+        catch
+        {
+            // Ignorar erros de scroll
+        }
+    }
+
+    public void Dispose()
+    {
+        MessageBoxService.OnMessageReceived -= OnMessageReceived;
+    }
+}
