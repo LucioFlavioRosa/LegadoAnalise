@@ -1,0 +1,194 @@
+@page "/evolucao-associado"
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services
+@inject IEvolucaoAssociadoService EvolucaoService
+@inject IWebStorageService WebStorageService
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Evolução do Associado</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Associado</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item"><a href="/">Competência / Performance</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Evolução</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-1">
+                                <label><b>Avaliado</b></label>
+                            </div>
+                            <div class="col-md-4">
+                                <label>@associadoInfo.Nome</label>
+                            </div>
+                            <div class="col-md-2">
+                                <label><b>Mentor</b></label>
+                            </div>
+                            <div class="col-md-5">
+                                <label>@associadoInfo.Mentor</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-1">
+                                <label><b>Cargo</b></label>
+                            </div>
+                            <div class="col-md-4">
+                                <label>@associadoInfo.Cargo</label>
+                            </div>
+                            <div class="col-md-2">
+                                <label><b>Próximo Cargo</b></label>
+                            </div>
+                            <div class="col-md-5">
+                                <label>@associadoInfo.ProximoCargo</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="row">
+                            <label>Tipo de Avaliações</label>
+                        </div>
+                        <div class="row">
+                            <InputSelect @bind-Value="tipoAvaliacaoSelecionado" class="form-control p-0" style="width:80%">
+                                <option value="">[Selecionar]</option>
+                                <option value="desempenho">desempenho</option>
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="row">
+                            <label>Escopo</label>
+                        </div>
+                        <div class="row">
+                            <InputSelect @bind-Value="escopoSelecionado" class="form-control p-0" style="width:80%">
+                                <option value="">[Selecionar]</option>
+                                <option value="projeto">projeto</option>
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-info" @onclick="GerarEvolucao" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <text> Carregando...</text>
+                            }
+                            else
+                            {
+                                <text>Gerar Evolução</text>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (resultadoAssociado.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    @foreach (var projeto in resultadoAssociado)
+                    {
+                        <div class="col-md-3">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="table table-striped border tbresultado">
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="2" class="text-center">@projeto.Cargo</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tdresultado">Período</td>
+                                                <td class="text-center">@projeto.PERIODOSAVALIACOES.Periodo</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="tdresultado">Nota Competências</td>
+                                                <td class="text-center"><b>@EvolucaoService.FormatarPercentagem(projeto.NotaCompetencia)</b></td>
+                                            </tr>
+                                            @foreach (var competencia in projeto.EVOLUCAOCOMPETENCIAS)
+                                            {
+                                                <tr>
+                                                    <td>@competencia.EIXOS.Eixo</td>
+                                                    <td class="text-center">@EvolucaoService.FormatarPercentagem(competencia.NotaNeutra)</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+
+                                    @if (projeto.TipoAvaliacao != "lideranca")
+                                    {
+                                        <table class="table table-striped border tbresultado">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="text-center" colspan="2">@projeto.RatingPerformance</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdresultado">Nota Performance</td>
+                                                    <td class="text-center">
+                                                        <b>
+                                                            @if (projeto.NotaPerfomance.HasValue)
+                                                            {
+                                                                @EvolucaoService.FormatarDecimal(projeto.NotaPerfomance.Value)
+                                                            }
+                                                        </b>
+                                                    </td>
+                                                </tr>
+                                                @foreach (var performance in projeto.EVOLUCAOPERFORMANCE.OrderBy(x => x.IdPerformance))
+                                                {
+                                                    <tr>
+                                                        <td>@performance.PERFORMANCES.Performance</td>
+                                                        <td class="text-center">@performance.Nota</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <br />
+                <div class="row" style="display:flex;justify-content:center">
+                    <div style="width:70%;height:70%; margin: 15px;">
+                        <canvas id="radarassociado" width="120" height="120" style="padding: 25px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(mensagemErro))
+    {
+        <div class="alert alert-danger" role="alert">
+            @mensagemErro
+        </div>
+    }
+</div>
