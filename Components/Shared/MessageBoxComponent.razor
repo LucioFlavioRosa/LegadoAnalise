@@ -1,0 +1,101 @@
+@using Peers.Moderno.Services.Common
+@inject IMessageBoxService MessageBoxService
+@implements IDisposable
+
+@if (mensagens.Any())
+{
+    <div class="message-container">
+        @foreach (var mensagem in mensagens)
+        {
+            <div class="alert @GetAlertClass(mensagem.Type) alert-dismissible fade show" role="alert">
+                <i class="@GetIconClass(mensagem.Type)"></i>
+                @((MarkupString)mensagem.Message)
+                <button type="button" class="close" @onclick="() => RemoverMensagem(mensagem)" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<MessageBoxEventArgs> mensagens = new();
+    private Timer? timer;
+
+    protected override void OnInitialized()
+    {
+        MessageBoxService.OnMessageReceived += OnMessageReceived;
+    }
+
+    private void OnMessageReceived(MessageBoxEventArgs args)
+    {
+        mensagens.Add(args);
+        InvokeAsync(StateHasChanged);
+        
+        // Auto-remover mensagens após 5 segundos (exceto erros)
+        if (args.Type != MessageBoxType.Error)
+        {
+            timer?.Dispose();
+            timer = new Timer(_ => 
+            {
+                RemoverMensagem(args);
+                InvokeAsync(StateHasChanged);
+            }, null, TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    private void RemoverMensagem(MessageBoxEventArgs mensagem)
+    {
+        mensagens.Remove(mensagem);
+        StateHasChanged();
+    }
+
+    private string GetAlertClass(MessageBoxType type)
+    {
+        return type switch
+        {
+            MessageBoxType.Success => "alert-success",
+            MessageBoxType.Error => "alert-danger",
+            MessageBoxType.Warning => "alert-warning",
+            MessageBoxType.Info => "alert-info",
+            _ => "alert-info"
+        };
+    }
+
+    private string GetIconClass(MessageBoxType type)
+    {
+        return type switch
+        {
+            MessageBoxType.Success => "fas fa-check-circle",
+            MessageBoxType.Error => "fas fa-exclamation-triangle",
+            MessageBoxType.Warning => "fas fa-exclamation-circle",
+            MessageBoxType.Info => "fas fa-info-circle",
+            _ => "fas fa-info-circle"
+        };
+    }
+
+    public void Dispose()
+    {
+        MessageBoxService.OnMessageReceived -= OnMessageReceived;
+        timer?.Dispose();
+    }
+}
+
+<style>
+    .message-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        max-width: 400px;
+    }
+    
+    .alert {
+        margin-bottom: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .alert i {
+        margin-right: 8px;
+    }
+</style>
