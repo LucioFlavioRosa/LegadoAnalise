@@ -1,0 +1,211 @@
+@using Peers.Moderno.Models
+
+<div class="form-body">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Cargo</label>
+                <InputSelect @bind-Value="Model.IdCargo" @onchange="OnCargoChanged" class="form-control p-0 select2" style="width: 100%">
+                    <option value="0">[Selecionar]</option>
+                    @foreach (var cargo in Cargos)
+                    {
+                        <option value="@cargo.IdCargo">@cargo.Nome</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Eixo</label>
+                <InputSelect @bind-Value="Model.IdEixo" class="form-control p-0 select2" style="width: 100%">
+                    <option value="0">[Selecionar]</option>
+                    @foreach (var eixo in Eixos)
+                    {
+                        <option value="@eixo.IdEixo">@eixo.Nome</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Sub Competência</label>
+                <InputSelect @bind-Value="Model.IdSubCompetencia" @onchange="OnSubCompetenciaChanged" class="form-control p-0 select2" style="width: 100%">
+                    <option value="0">[Selecionar]</option>
+                    @foreach (var sub in SubCompetencias)
+                    {
+                        <option value="@sub.IdSubCompetencia">@sub.Nome</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Dimensão</label>
+                <InputSelect @bind-Value="Model.IdDimensao" class="form-control p-0 select2" style="width: 100%">
+                    <option value="0">[Selecionar]</option>
+                    @foreach (var dimensao in Dimensoes)
+                    {
+                        <option value="@dimensao.IdDimensao">@dimensao.Nome</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-9">
+            <div class="form-group">
+                <label>Detalhamento Nível Atual</label>
+                <InputTextArea @bind-Value="Model.CompetenciaJRDetalhe" rows="5" class="form-control" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Nível Atual</label>
+                <InputText @bind-Value="Model.CompetenciaJR" class="form-control" />
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm">
+            <div class="form-group">
+                <label>Palavras-chave</label>
+                <InputTextArea @bind-Value="Model.PalavrasChave" class="form-control" />
+            </div>
+        </div>
+        <div class="col-sm">
+            <div class="form-group">
+                <label>Resumo da subcompetência pro cargo</label>
+                <InputTextArea @bind-Value="RelacaoCargoSubcompetencia" class="form-control" />
+                <small class="form-text text-muted">O valor acima é compartilhado para todas as competências que possuírem a mesma associação de cargo e subcompetência</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Configurações de auto preenchimento -->
+    <div class="row">
+        <h4>Configurações de auto preenchimento</h4>
+    </div>
+    <br />
+    <div class="row" style="white-space:nowrap">
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.InputAutoAvaliacao" class="checkbox" />
+            <label class="labelCbox">Input Auto Avaliação</label>
+        </div>
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.InputAvaliacaoAsCegas" class="checkbox" />
+            <label class="labelCbox">Input Avaliação as Cegas</label>
+        </div>
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.InputAvaliacaoGestor" class="checkbox" />
+            <label class="labelCbox">Input Avaliação do Gestor</label>
+        </div>
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.InputFeedback" class="checkbox" />
+            <label class="labelCbox">Input Feedback</label>
+        </div>
+    </div>
+    <div class="row" style="white-space:nowrap">
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.InputNivel1" class="checkbox" />
+            <label class="labelCbox">Input Nível 1</label>
+        </div>
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.InputNivel2" class="checkbox" />
+            <label class="labelCbox">Input Nível 2</label>
+        </div>
+    </div>
+    <br />
+    <div class="row" style="white-space:nowrap">
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.VisivelAutoAvaliacao" class="checkbox" />
+            <label class="labelCbox">Visível Auto Avaliação</label>
+        </div>
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.VisivelAvaliacaoAsCegas" class="checkbox" />
+            <label class="labelCbox">Visível Avaliação as Cegas</label>
+        </div>
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.VisivelAvaliacaoGestor" class="checkbox" />
+            <label class="labelCbox">Visível Avaliação do Gestor</label>
+        </div>
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.VisivelFeedback" class="checkbox" />
+            <label class="labelCbox">Visível Feedback</label>
+        </div>
+    </div>
+    <div class="row" style="white-space:nowrap">
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.VisivelNivel1" class="checkbox" />
+            <label class="labelCbox">Visível Nível 1</label>
+        </div>
+        <div class="col-sm">
+            <InputCheckbox @bind-Value="Model.VisivelNivel2" class="checkbox" />
+            <label class="labelCbox">Visível Nível 2</label>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-3">
+            <label class="labelCbox">Nota Padrão Nível 1</label>
+            <InputSelect @bind-Value="Model.IdNotaPadraoNivel1" class="form-control p-0 select2" style="width: 100%">
+                <option value="0">[Selecionar]</option>
+                @foreach (var nota in NotasPadrao)
+                {
+                    <option value="@nota.IdNota">@nota.CodigoNota</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-3">
+            <label class="labelCbox">Nota Padrão Nível 2</label>
+            <InputSelect @bind-Value="Model.IdNotaPadraoNivel2" class="form-control p-0 select2" style="width: 100%">
+                <option value="0">[Selecionar]</option>
+                @foreach (var nota in NotasPadrao)
+                {
+                    <option value="@nota.IdNota">@nota.CodigoNota</option>
+                }
+            </InputSelect>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-3">
+            <label class="labelCbox">Modo de Cálculo</label>
+            <InputSelect @bind-Value="Model.IdModo" class="form-control p-0 select2" style="width: 100%">
+                @foreach (var modo in ModosCalculo)
+                {
+                    <option value="@modo.IdModo">@modo.ModoDesc</option>
+                }
+            </InputSelect>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Competencia Model { get; set; } = new();
+    [Parameter] public EventCallback<Competencia> ModelChanged { get; set; }
+    [Parameter] public List<Cargo> Cargos { get; set; } = new();
+    [Parameter] public List<Eixo> Eixos { get; set; } = new();
+    [Parameter] public List<SubCompetencia> SubCompetencias { get; set; } = new();
+    [Parameter] public List<Dimensao> Dimensoes { get; set; } = new();
+    [Parameter] public List<AvaliacaoCompetenciaNota> NotasPadrao { get; set; } = new();
+    [Parameter] public List<ModoCalculoCompetencia> ModosCalculo { get; set; } = new();
+    [Parameter] public string RelacaoCargoSubcompetencia { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> RelacaoCargoSubcompetenciaChanged { get; set; }
+    [Parameter] public EventCallback<(int idCargo, int idSubCompetencia)> OnCargoSubCompetenciaChanged { get; set; }
+
+    private async Task OnCargoChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int idCargo) && Model.IdSubCompetencia > 0)
+        {
+            await OnCargoSubCompetenciaChanged.InvokeAsync((idCargo, Model.IdSubCompetencia));
+        }
+    }
+
+    private async Task OnSubCompetenciaChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int idSubCompetencia) && Model.IdCargo > 0)
+        {
+            await OnCargoSubCompetenciaChanged.InvokeAsync((Model.IdCargo, idSubCompetencia));
+        }
+    }
+}

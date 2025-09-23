@@ -1,0 +1,109 @@
+@page "/competencias"
+@rendermode InteractiveServer
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services
+@inject ICompetenciasService CompetenciasService
+@inject ICargosService CargosService
+@inject IEixosService EixosService
+@inject ISubCompetenciasService SubCompetenciasService
+@inject IDimensoesService DimensoesService
+@inject IAvaliacoesService AvaliacoesService
+@inject IExportFileService ExportFileService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Competências</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Competências</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers / Cadastro Básico de Projetos</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Competências</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    @if (!string.IsNullOrEmpty(mensagem))
+    {
+        <div class="alert @(tipoMensagem == "success" ? "alert-success" : tipoMensagem == "error" ? "alert-danger" : "alert-warning") alert-dismissible fade show" role="alert">
+            @((MarkupString)mensagem)
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- EDITOR DE CAMPOS -->
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Dados da Competência</h4>
+            <EditForm Model="@competenciaModel" OnValidSubmit="@SalvarCompetencia">
+                <div class="form-body">
+                    <div class="text-left">
+                        <label>Tipo de Avaliação</label><br />
+                        <InputSelect @bind-Value="tipoAvaliacaoSelecionado" @onchange="OnTipoAvaliacaoChanged" class="form-control p-0 select2" style="width: 25%">
+                            <option value="">[Selecionar]</option>
+                            <option value="desempenho">Avaliação de Desempenho</option>
+                            <option value="lideranca">Avaliação de Liderança</option>
+                        </InputSelect><br />
+                    </div>
+                </div>
+
+                @if (tipoAvaliacaoSelecionado == "desempenho")
+                {
+                    <CompetenciaFormDesempenho @bind-Model="competenciaModel" 
+                                              Cargos="cargos" 
+                                              Eixos="eixosDesempenho" 
+                                              SubCompetencias="subCompetencias" 
+                                              Dimensoes="dimensoesDesempenho"
+                                              NotasPadrao="notasPadrao"
+                                              ModosCalculo="modosCalculo"
+                                              RelacaoCargoSubcompetencia="@relacaoCargoSubcompetencia"
+                                              OnCargoSubCompetenciaChanged="@OnCargoSubCompetenciaChanged" />
+                }
+                else if (tipoAvaliacaoSelecionado == "lideranca")
+                {
+                    <CompetenciaFormLideranca @bind-Model="competenciaModel" 
+                                            Eixos="eixosLideranca" 
+                                            SubCompetencias="subCompetencias" />
+                }
+
+                <div class="form-actions">
+                    <div class="text-right">
+                        @if (competenciaModel.IdCompetencia > 0)
+                        {
+                            <button type="button" @onclick="AgregarCompetencia" class="btn btn-facebook">
+                                Agregar
+                            </button>
+                        }
+                        <button type="submit" class="btn btn-info">
+                            @(competenciaModel.IdCompetencia > 0 ? "Salvar" : "Cadastrar")
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <!-- EXPORT E IMPORT -->
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Exportar e Importar Competências</h4>
+            <h6 class="card-subtitle">Utilize o modelo de arquivo exportado para alterar ou adicionar competências.</h6>
+            <h6 class="card-subtitle">Mantenha uma linha SEM um valor na coluna IdCompetência para adicionar uma nova competência.</h6>
+            <h6 class="card-subtitle">As correlações de cargo, eixo, subcompetência e dimensão devem ser identificadas por seus CÓDIGOS.</h6>
+            <h6 class="card-subtitle">NÃO altere a ordem e quantidade das colunas, a quantidade de abas do arquivo ou coloque linhas acima da linha de títulos.</h6>
+            <button type="button" @onclick="ExportarCompetencias" class="btn btn-info">Exportar</button>
+            <button type="button" @onclick="() => fileInputRef.Click()" class="btn btn-info">Importar</button>
+            <InputFile @ref="fileInputRef" @onchange="ImportarCompetencias" accept=".xlsx" style="display: none;" />
+        </div>
+    </div>
+
+    <!-- LISTA DE COMPETENCIAS -->
+    <CompetenciasList Competencias="competencias" OnEditar="EditarCompetencia" OnInativar="InativarCompetencia" />
+</div>

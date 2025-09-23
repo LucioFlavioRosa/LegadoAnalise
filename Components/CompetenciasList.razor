@@ -1,0 +1,67 @@
+@using Peers.Moderno.Models
+
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Lista de Competências</h4>
+        <h6 class="card-subtitle">Filtre as informações separadas por espaço para busca em qualquer coluna em qualquer ordem, completo ou parcial: <code>competência nível cargo</code>.</h6>
+        <div class="table-responsive">
+            <table class="table table-striped border">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Cargo</th>
+                        <th>Escopo</th>
+                        <th>Eixo</th>
+                        <th>Sub Competência</th>
+                        <th>Competência Jr</th>
+                        <th>Status(Ativo/Inativo)</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var competencia in Competencias)
+                    {
+                        <tr>
+                            <td>@competencia.IdCompetencia</td>
+                            <td>@competencia.Cargo?.Nome</td>
+                            <td>@competencia.Escopo</td>
+                            <td>@competencia.Eixo?.Nome</td>
+                            <td>@competencia.SubCompetencia?.Nome</td>
+                            <td>@competencia.CompetenciaJR</td>
+                            <td>@(competencia.ATV == 1 ? "Ativo" : "Inativo")</td>
+                            <td>
+                                <button class="btn btn-info btn-sm" @onclick="() => OnEditar.InvokeAsync(competencia.IdCompetencia)">
+                                    Alterar
+                                </button>
+                                @if (competencia.ATV == 1)
+                                {
+                                    <button class="btn btn-dark btn-sm" @onclick="() => OnInativar.InvokeAsync(competencia.IdCompetencia)">
+                                        Inativar
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>Código</th>
+                        <th>Cargo</th>
+                        <th>Escopo</th>
+                        <th>Eixo</th>
+                        <th>Sub Competência</th>
+                        <th>Competência Jr</th>
+                        <th>Status(Ativo/Inativo)</th>
+                        <th>Ação</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Competencia> Competencias { get; set; } = new();
+    [Parameter] public EventCallback<int> OnEditar { get; set; }
+    [Parameter] public EventCallback<int> OnInativar { get; set; }
+}
