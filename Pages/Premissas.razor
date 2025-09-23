@@ -1,0 +1,172 @@
+@page "/premissas"
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services
+@inject IPremissasService PremissasService
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveAuto
+
+<PageTitle>Premissas do Radar</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Competências</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers / Cadastro Básico de Premissas</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Premissas do Radar</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    @if (!string.IsNullOrEmpty(mensagem))
+    {
+        <div class="alert @(tipoMensagem == "success" ? "alert-success" : tipoMensagem == "error" ? "alert-danger" : "alert-warning")" role="alert">
+            @mensagem
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Dados da Premissa</h4>
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Eixo</label>
+                            <InputSelect @bind-Value="premissaAtual.IdEixo" class="form-control">
+                                <option value="0">[Selecionar]</option>
+                                @foreach (var eixo in eixos)
+                                {
+                                    <option value="@eixo.IdEixo">@eixo.Nome</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Cargo</label>
+                            <InputSelect @bind-Value="premissaAtual.IdCargo" class="form-control">
+                                <option value="0">[Selecionar]</option>
+                                @foreach (var cargo in cargos)
+                                {
+                                    <option value="@cargo.IdCargo">@cargo.Nome</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Nível</label>
+                            <InputSelect @bind-Value="premissaAtual.IdNivel" class="form-control">
+                                <option value="0">[Selecionar]</option>
+                                @foreach (var nivel in niveis)
+                                {
+                                    <option value="@nivel.IdNivel">@nivel.Nivel</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Valor Radar Peers</label>
+                            <InputNumber @bind-Value="premissaAtual.ValorRadarPeers" class="form-control text-right" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Valor Base Avaliado</label>
+                            <InputNumber @bind-Value="premissaAtual.ValorBaseAutoAvaliacao" class="form-control text-right" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Valor Base Gestor</label>
+                            <InputNumber @bind-Value="premissaAtual.ValorBaseAvaliacaoGestor" class="form-control text-right" />
+                        </div>
+                    </div>
+                    <div class="form-actions col-md-3">
+                        <label>&nbsp;</label>
+                        <div class="text-right">
+                            <button @onclick="SalvarPremissa" class="btn btn-info" disabled="@salvando">
+                                @if (salvando)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <text> Salvando...</text>
+                                }
+                                else
+                                {
+                                    <text>@(modoEdicao ? "Salvar" : "Cadastrar")</text>
+                                }
+                            </button>
+                            @if (modoEdicao)
+                            {
+                                <button @onclick="CancelarEdicao" class="btn btn-secondary">Cancelar</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Lista de Competências</h4>
+            <h6 class="card-subtitle">Filtre as informações separadas por espaço para busca em qualquer coluna em qualquer ordem, completo ou parcial.</h6>
+            <div class="table-responsive">
+                @if (carregandoLista)
+                {
+                    <div class="text-center p-4">
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">Carregando...</span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <table class="table table-striped border">
+                        <thead>
+                            <tr>
+                                <th>Eixo</th>
+                                <th>Cargo</th>
+                                <th>Nível</th>
+                                <th>Base Peers</th>
+                                <th>Base Avaliado</th>
+                                <th>Base Gestor</th>
+                                <th>Status (Ativo/Inativo)</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var premissa in premissas)
+                            {
+                                <tr>
+                                    <td>@premissa.Eixo?.Nome</td>
+                                    <td>@premissa.Cargo?.Nome</td>
+                                    <td>@premissa.CargoNivel?.Nivel</td>
+                                    <td>@premissa.ValorRadarPeers</td>
+                                    <td>@premissa.ValorBaseAutoAvaliacao</td>
+                                    <td>@premissa.ValorBaseAvaliacaoGestor</td>
+                                    <td>@(premissa.ATV == 1 ? "Ativo" : "Inativo")</td>
+                                    <td>
+                                        <button @onclick="() => EditarPremissa(premissa.IdPremissa)" class="btn btn-info btn-sm">Alterar</button>
+                                        <button @onclick="() => InativarPremissa(premissa.IdPremissa)" class="btn btn-dark btn-sm">@(premissa.ATV == 1 ? "Inativar" : "Ativar")</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
