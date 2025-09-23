@@ -105,7 +105,7 @@ flowchart TD
 ## Configuração
 
 ### appsettings.json
-
+```text
 {
   "Eixos": {
     "MaxEixoLength": 500,
@@ -119,17 +119,21 @@ flowchart TD
     "CacheExpirationMinutes": 15
   }
 }
-
+```
 
 ### Injeção de Dependência (Program.cs)
+
+```text
 csharp
 builder.Services.AddScoped<Services.Eixos.IEixosService, Services.Eixos.EixosService>();
 builder.Services.AddScoped<Services.Eixos.Common.IExportFileService, Services.Eixos.Common.ExportFileService>();
-
+```
 
 ## Modelo de Dados
 
 ### Entidade Eixo
+
+```text
 csharp
 public class Eixo
 {
@@ -140,7 +144,7 @@ public class Eixo
     public DateTime? DHC { get; set; }       // Data/hora da criação/alteração
     public string? TipoAvaliacao { get; set; } // Tipo de avaliação
 }
-
+```
 
 ### Mapeamento EF Core
 - **Tabela**: EIXOS
