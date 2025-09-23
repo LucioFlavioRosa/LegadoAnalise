@@ -20,6 +20,7 @@ builder.Services.AddScoped<ISubCompetenciasService, SubCompetenciasService>();
 builder.Services.AddScoped<IDimensoesService, DimensoesService>();
 builder.Services.AddScoped<IAvaliacoesService, AvaliacoesService>();
 builder.Services.AddScoped<IExportFileService, ExportFileService>();
+builder.Services.AddScoped<IPremissasService, PremissasService>();
 
 var app = builder.Build();
 

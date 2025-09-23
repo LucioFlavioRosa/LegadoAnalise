@@ -17,6 +17,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<RelacaoCargoSubcompetencia> RelacoesCargosSubcompetencias { get; set; }
     public DbSet<AvaliacaoCompetenciaNota> AvaliacoesCompetenciasNotas { get; set; }
     public DbSet<ModoCalculoCompetencia> ModosCalculosCompetencias { get; set; }
+    public DbSet<PremissasRadar> PremissasRadar { get; set; }
+    public DbSet<CargoNivel> CargosNiveis { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -92,6 +94,30 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.IdModo);
             entity.ToTable("MODOSCALCULOSCOMPETENCIAS");
             entity.Property(e => e.IdModo).HasColumnName("idModo");
+        });
+
+        modelBuilder.Entity<PremissasRadar>(entity =>
+        {
+            entity.HasKey(e => e.IdPremissa);
+            entity.ToTable("PREMISSAS_RADAR");
+            
+            entity.HasOne(d => d.Eixo)
+                .WithMany()
+                .HasForeignKey(d => d.IdEixo);
+                
+            entity.HasOne(d => d.Cargo)
+                .WithMany()
+                .HasForeignKey(d => d.IdCargo);
+                
+            entity.HasOne(d => d.CargoNivel)
+                .WithMany(p => p.PremissasRadar)
+                .HasForeignKey(d => d.IdNivel);
+        });
+
+        modelBuilder.Entity<CargoNivel>(entity =>
+        {
+            entity.HasKey(e => e.IdNivel);
+            entity.ToTable("CARGOSNIVEIS");
         });
     }
 }
