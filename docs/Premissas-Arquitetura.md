@@ -2,6 +2,7 @@
 
 ## Diagrama de Alto Nível
 
+```
 mermaid
 flowchart TD
     A[Usuário] --> B[Premissas.razor]
@@ -53,10 +54,10 @@ flowchart TD
     style H fill:#f1f8e9
     style I fill:#f1f8e9
     style K fill:#f1f8e9
-
+```
 
 ## Fluxo de Operações
-
+```
 mermaid
 sequenceDiagram
     participant U as Usuário
@@ -92,7 +93,7 @@ sequenceDiagram
     S-->>CB: Lista atualizada
     CB->>UI: StateHasChanged()
     UI-->>U: Tabela atualizada + mensagem
-
+```
 
 ## Componentes da Arquitetura
 
