@@ -19,6 +19,8 @@ using Peers.Moderno.Services.Dashboard;
 using Peers.Moderno.Services.Dashboard.Common;
 using Peers.Moderno.Services.Dimensoes;
 using Peers.Moderno.Services.Dimensoes.Common;
+using Peers.Moderno.Services.DisparoMassivoRH;
+using Peers.Moderno.Services.DisparoMassivoRH.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -37,6 +39,17 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // HttpClient for Auth Services
 builder.Services.AddHttpClient();
+
+// Session support for migration compatibility
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// HttpContextAccessor for session access
+builder.Services.AddHttpContextAccessor();
 
 // Authentication Services
 builder.Services.AddAuthentication(options =>
@@ -135,6 +148,9 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IChartJsonUtil, ChartJsonUtil>();
 builder.Services.AddScoped<IPeriodoUtil, PeriodoUtil>();
 
+// DisparoMassivoRH Services
+builder.Services.AddScoped<IDisparoMassivoRHService, DisparoMassivoRHService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -148,6 +164,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Session middleware
+app.UseSession();
 
 // Authentication & Authorization
 app.UseAuthentication();
