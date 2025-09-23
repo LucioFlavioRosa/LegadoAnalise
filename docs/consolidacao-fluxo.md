@@ -2,7 +2,7 @@
 
 ## Diagrama Mermaid
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa página Consolidação] --> B[Componente Blazor Consolidação]
     B --> C[Injeta serviços de negócio]
@@ -54,7 +54,7 @@ flowchart TD
     style Y fill:#fff3e0
     style L fill:#fce4ec
     style Z fill:#f1f8e9
-
+```
 
 ## Descrição dos Fluxos
 
