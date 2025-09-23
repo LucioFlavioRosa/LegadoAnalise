@@ -104,7 +104,7 @@ O `ICargoLookupService` foi projetado para ser reutilizado em outras partes do s
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário] -->|Digite Código| B[Contact.razor]
     B -->|Validação| C{Código Válido?}
@@ -122,7 +122,7 @@ flowchart TD
     I --> L
     K --> L
     L --> A
-
+```
 
 ## Migração de Web Forms
 
