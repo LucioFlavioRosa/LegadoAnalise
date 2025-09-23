@@ -59,7 +59,7 @@ O modo `InteractiveAuto` permite:
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /about] --> B{Router Blazor}
     B --> C[About.razor]
@@ -73,7 +73,7 @@ flowchart TD
     
     J[Futuras Migrações] --> K[Seguem mesmo padrão]
     K --> I
-
+```
 
 ## Benefícios da Arquitetura
 
