@@ -2,8 +2,7 @@
 
 ## Diagrama de Alto Nível
 
-```
-mermaid
+```mermaid
 flowchart TD
     A[Usuário] --> B[Premissas.razor]
     B --> C[Premissas.razor.cs]
