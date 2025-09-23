@@ -8,7 +8,7 @@ O módulo de Eixos é responsável pelo gerenciamento completo dos eixos de aval
 
 ### Estrutura de Pastas
 
-
+```text
 Peers.Moderno/
 ├── Components/
 │   ├── Eixos.razor              # Interface Blazor
@@ -24,7 +24,7 @@ Peers.Moderno/
 │   └── Eixo.cs                  # Modelo da entidade
 └── docs/
     └── Eixos.md                 # Esta documentação
-
+```
 
 ### Componentes Principais
 
@@ -60,7 +60,7 @@ Peers.Moderno/
 
 ## Fluxo de Funcionamento
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /eixos] --> B[Eixos.razor carrega]
     B --> C[OnInitializedAsync]
@@ -88,7 +88,7 @@ flowchart TD
     W --> X[EixosService.InactivateAsync]
     X --> Y[Atualiza ATV = 0]
     Y --> Z[Recarrega lista]
-
+```
 
 ## Integração com Outros Módulos
 
