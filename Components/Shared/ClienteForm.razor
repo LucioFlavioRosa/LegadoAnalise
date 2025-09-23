@@ -1,0 +1,85 @@
+@using Peers.Moderno.Services.Clientes.Common
+@inject IClientesService ClientesService
+
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Dados do cliente</h4>
+        <EditForm Model="@FormModel" OnValidSubmit="@OnSubmitAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Cliente</label>
+                            <InputText @bind-Value="FormModel.Cliente" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Sócio Responsável</label>
+                            <InputSelect @bind-Value="FormModel.IdSocio" class="form-control">
+                                <option value="0">[Selecionar]</option>
+                                @foreach (var socio in Socios)
+                                {
+                                    <option value="@socio.IdAssociado">@socio.Nome</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <InputSelect @bind-Value="FormModel.Status" class="form-control">
+                                <option value="1">Ativo</option>
+                                <option value="0">Inativo</option>
+                            </InputSelect>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Gestor do Cliente</label>
+                            <InputText @bind-Value="FormModel.GestorCliente" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>E-mail do Cliente</label>
+                            <InputText @bind-Value="FormModel.Email" class="form-control" type="email" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Telefone do Cliente</label>
+                            <InputText @bind-Value="FormModel.Telefone" class="form-control" type="tel" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <div class="text-right">
+                    <button type="submit" class="btn btn-info" disabled="@IsLoading">
+                        @if (IsLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                            <span>Salvando...</span>
+                        }
+                        else
+                        {
+                            <span>Cadastrar/Salvar</span>
+                        }
+                    </button>
+                    @if (FormModel.IdCliente > 0)
+                    {
+                        <button type="button" class="btn btn-secondary" @onclick="OnCancelar">
+                            Cancelar
+                        </button>
+                    }
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</div>
