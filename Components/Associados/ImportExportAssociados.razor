@@ -1,0 +1,138 @@
+@using Peers.Moderno.Services.Associados.Common
+@inject ExcelService ExcelService
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveAuto
+
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <h4 class="card-title">Exportar e Importar Associados e Promoções</h4>
+        </div>
+        <div class="row">
+            <h6 class="card-subtitle">
+                Utilize os modelos de arquivos exportados para alterar ou adicionar projetos e associações.
+                <br />Linhas SEM um valor nas colunas IdAssociado e/ou IdPromocao serão consideradas inserções.
+                <br />NÃO altere a ordem e quantidade das colunas, a quantidade de abas dos arquivos ou coloque linhas acima da linha de títulos.
+            </h6>
+        </div>
+        <br />
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <h5>Associados</h5>
+                <button type="button" class="btn btn-info me-2" @onclick="ExportarAssociados">Exportar Associados</button>
+                <button type="button" class="btn btn-info me-2" @onclick="ImportarAssociados">Importar Associados</button>
+                <InputFile OnChange="@OnFileAssociadosSelected" accept=".xlsx" class="form-control mt-2" />
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Promoções</h5>
+                <button type="button" class="btn btn-info me-2" @onclick="ExportarPromocoes">Exportar Promoções</button>
+                <button type="button" class="btn btn-info me-2" @onclick="ImportarPromocoes">Importar Promoções</button>
+                <InputFile OnChange="@OnFilePromocoesSelected" accept=".xlsx" class="form-control mt-2" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(mensagem))
+{
+    <div class="alert alert-@(tipoMensagem) alert-dismissible fade show" role="alert">
+        @((MarkupString)mensagem)
+        <button type="button" class="btn-close" @onclick="@(() => mensagem = string.Empty)"></button>
+    </div>
+}
+
+@code {
+    private IBrowserFile? arquivoAssociados;
+    private IBrowserFile? arquivoPromocoes;
+    private string mensagem = string.Empty;
+    private string tipoMensagem = "info";
+
+    private void OnFileAssociadosSelected(InputFileChangeEventArgs e)
+    {
+        arquivoAssociados = e.File;
+    }
+
+    private void OnFilePromocoesSelected(InputFileChangeEventArgs e)
+    {
+        arquivoPromocoes = e.File;
+    }
+
+    private async Task ExportarAssociados()
+    {
+        try
+        {
+            var (bytes, fileName) = await ExcelService.ExportarAssociadosAsync();
+            var base64 = Convert.ToBase64String(bytes);
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+            ExibirMensagem("Associados exportados com sucesso!", "success");
+        }
+        catch (Exception ex)
+        {
+            ExibirMensagem($"Erro ao exportar associados: {ex.Message}", "danger");
+        }
+    }
+
+    private async Task ImportarAssociados()
+    {
+        if (arquivoAssociados == null)
+        {
+            ExibirMensagem("Nenhum arquivo selecionado", "warning");
+            return;
+        }
+
+        try
+        {
+            var resultado = await ExcelService.ImportarAssociadosAsync(arquivoAssociados);
+            ExibirMensagem($"Associados importados com sucesso<br>Inseridos: {resultado.Inseridos}<br>Alterados: {resultado.Alterados}<br>Desconsiderados: {resultado.Desconsiderados}", "success");
+        }
+        catch (Exception ex)
+        {
+            ExibirMensagem($"Erro ao importar associados: {ex.Message}", "danger");
+        }
+    }
+
+    private async Task ExportarPromocoes()
+    {
+        try
+        {
+            var (bytes, fileName) = await ExcelService.ExportarPromocoesAsync();
+            var base64 = Convert.ToBase64String(bytes);
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, base64);
+            ExibirMensagem("Promoções exportadas com sucesso!", "success");
+        }
+        catch (Exception ex)
+        {
+            ExibirMensagem($"Erro ao exportar promoções: {ex.Message}", "danger");
+        }
+    }
+
+    private async Task ImportarPromocoes()
+    {
+        if (arquivoPromocoes == null)
+        {
+            ExibirMensagem("Nenhum arquivo selecionado", "warning");
+            return;
+        }
+
+        try
+        {
+            var resultado = await ExcelService.ImportarPromocoesAsync(arquivoPromocoes);
+            ExibirMensagem($"Promoções importadas com sucesso<br>Inseridos: {resultado.Inseridos}<br>Alterados: {resultado.Alterados}<br>Desconsiderados: {resultado.Desconsiderados}", "success");
+        }
+        catch (Exception ex)
+        {
+            ExibirMensagem($"Erro ao importar promoções: {ex.Message}", "danger");
+        }
+    }
+
+    private void ExibirMensagem(string msg, string tipo)
+    {
+        mensagem = msg;
+        tipoMensagem = tipo;
+        StateHasChanged();
+    }
+}
