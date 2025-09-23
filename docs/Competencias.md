@@ -59,7 +59,7 @@ Este documento descreve a estrutura dos arquivos e componentes migrados do legad
 
 ## Diagrama de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Competencias.razor] --> B[CompetenciaFormDesempenho.razor]
     A --> C[CompetenciaFormLideranca.razor]
@@ -90,7 +90,7 @@ flowchart TD
     Q --> N
     R[appsettings.json] --> S[Configuration]
     S --> F
-
+```
 
 ## Como Executar
 
