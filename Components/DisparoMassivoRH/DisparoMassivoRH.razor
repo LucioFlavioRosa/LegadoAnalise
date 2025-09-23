@@ -1,0 +1,192 @@
+@page "/disparo-massivo-rh"
+@using Peers.Moderno.Services.DisparoMassivoRH.Common
+@using Peers.Moderno.Services.Common
+@rendermode InteractiveAuto
+@inject IDisparoMassivoRHService DisparoService
+@inject IMessageBoxService MessageBoxService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Disparo Massivo RH</PageTitle>
+
+<!-- Breadcrumb -->
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Comitê</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Disparo Massivo RH</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Container Principal -->
+<div class="page-content container-fluid">
+    <!-- Card Principal -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <h4 class="card-title">Disparo de e-mail de dados do RH importados</h4>
+                    </div>
+                    <div class="row">
+                        <h6 class="card-subtitle">As linhas abaixo foram identificadas como novos disparos a serem enviados por e-mail aos mentores de cada associado</h6>
+                    </div>
+                    <div class="row">
+                        <button type="button" 
+                                class="btn btn-danger" 
+                                @onclick="DispararTodos" 
+                                disabled="@(isProcessing || !novosDisparos.Any())">
+                            @if (isProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                <span>Processando...</span>
+                            }
+                            else
+                            {
+                                <span>Disparar todos</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card da Tabela -->
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Novos disparos</h4>
+            <div class="table-responsive">
+                @if (isLoading)
+                {
+                    <div class="text-center p-4">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="mt-2">Carregando disparos...</p>
+                    </div>
+                }
+                else if (!novosDisparos.Any())
+                {
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Não há novos disparos para serem enviados.
+                    </div>
+                }
+                else
+                {
+                    <table class="table table-striped border gridResultado">
+                        <thead>
+                            <tr>
+                                <th>IdLinha</th>
+                                <th>Período</th>
+                                <th>Associado</th>
+                                <th>Mentor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var disparo in novosDisparos)
+                            {
+                                <tr>
+                                    <td>@disparo.IdConsideracoesMentor</td>
+                                    <td>@disparo.Periodo</td>
+                                    <td>@disparo.Associado</td>
+                                    <td>@disparo.Mentor</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<DisparoMassivoRHItem> novosDisparos = new();
+    private bool isLoading = true;
+    private bool isProcessing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarNovosDisparos();
+    }
+
+    private async Task CarregarNovosDisparos()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            novosDisparos = await DisparoService.GetNovosDisparosAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError($"Erro ao carregar disparos: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DispararTodos()
+    {
+        if (!novosDisparos.Any())
+        {
+            MessageBoxService.ShowWarning("Não há disparos para serem enviados.");
+            return;
+        }
+
+        var confirmacao = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"Deseja realmente disparar {novosDisparos.Count} e-mails?");
+        
+        if (!confirmacao)
+            return;
+
+        try
+        {
+            isProcessing = true;
+            StateHasChanged();
+
+            var resultado = await DisparoService.DispararTodosAsync(novosDisparos);
+
+            if (resultado.Sucesso)
+            {
+                MessageBoxService.ShowSuccess(resultado.Mensagem);
+                
+                // Redirecionar para consolidação após sucesso
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/consolidacao");
+            }
+            else
+            {
+                var mensagemErro = resultado.Mensagem;
+                if (resultado.Erros.Any())
+                {
+                    mensagemErro += "\n\nDetalhes dos erros:\n" + string.Join("\n", resultado.Erros);
+                }
+                MessageBoxService.ShowError(mensagemErro);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError($"Erro ao disparar e-mails: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+}
