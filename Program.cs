@@ -160,6 +160,7 @@ builder.Services.AddScoped<IDisparoMassivoRHService, DisparoMassivoRHService>();
 
 // Avaliacoes Services - Novos serviços adicionados
 builder.Services.AddScoped<IEnvioAvaliacoesService, EnvioAvaliacoesService>();
+builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>();
 
 // Avaliacoes Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IEmailUtils, EmailUtils>();
