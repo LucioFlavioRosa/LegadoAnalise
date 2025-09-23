@@ -56,7 +56,7 @@ O Dashboard é o módulo principal de visualização de dados do Sistema de Aval
 
 ## Fluxo de Funcionamento
 
-mermaid
+```mermaid
 flowchart TD
     A[Dashboard.razor] --> B[Carrega Períodos]
     B --> C[Seleciona Período Atual]
@@ -91,7 +91,7 @@ flowchart TD
     
     A --> W[IMessageBoxService]
     W --> X[Notificações]
-
+```
 
 ## Integração com Outros Módulos
 
