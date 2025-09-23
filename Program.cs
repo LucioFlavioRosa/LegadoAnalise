@@ -78,8 +78,7 @@ builder.Services.AddScoped<IExportFileService, ExportFileService>();
 builder.Services.AddScoped<IPremissasService, PremissasService>();
 
 // Competencias Services
-builder.Services.AddScoped<Services.Competencias.ICompetenciasService, Services.Competencias.CompetenciasService>();
-builder.Services.AddScoped<Services.Competencias.Common.ICompetenciasValidator, Services.Competencias.Common.CompetenciasValidator>();
+builder.Services.AddScoped<Services.Competencias.Common.ICompetenciasService, Services.Competencias.CompetenciasService>();
 builder.Services.AddScoped<Services.Competencias.Common.CompetenciasImportExportUtil>();
 
 // Cargos Services
