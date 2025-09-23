@@ -25,6 +25,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<Promocao> Promocoes { get; set; }
     public DbSet<Perfil> Perfis { get; set; }
     public DbSet<Vertical> Verticais { get; set; }
+    
+    // Novo DbSet para Clientes
+    public DbSet<Cliente> Clientes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -196,6 +199,18 @@ public class ApplicationDbContext : DbContext
             entity.ToTable("VERTICAIS");
             entity.Property(e => e.Id).HasColumnName("IdVertical");
             entity.Property(e => e.Nome).HasColumnName("Descricao");
+        });
+
+        // Configuração da entidade Cliente
+        modelBuilder.Entity<Cliente>(entity =>
+        {
+            entity.HasKey(e => e.IdCliente);
+            entity.ToTable("CLIENTES");
+            
+            entity.HasOne(d => d.AssociadoResponsavel)
+                .WithMany()
+                .HasForeignKey(d => d.IdAssociadoResponsavel)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
