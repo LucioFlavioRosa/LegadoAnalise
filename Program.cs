@@ -80,6 +80,7 @@ builder.Services.AddScoped<IPremissasService, PremissasService>();
 // Competencias Services
 builder.Services.AddScoped<Services.Competencias.ICompetenciasService, Services.Competencias.CompetenciasService>();
 builder.Services.AddScoped<ICompetenciasImportExportUtil, CompetenciasImportExportUtil>();
+builder.Services.AddScoped<ICompetenciasValidator, CompetenciasValidator>();
 
 // Cargos Services
 builder.Services.AddScoped<Services.Cargos.ICargosService, Services.Cargos.CargosService>();
