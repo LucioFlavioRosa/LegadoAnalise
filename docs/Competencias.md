@@ -31,7 +31,7 @@ docs/
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[CompetenciasPage.razor] --> B[CompetenciasForm.razor]
     A --> C[CompetenciasList.razor]
@@ -65,7 +65,7 @@ flowchart TD
         O[Desempenho] --> P[Cargo + Eixo + SubCompetência + Dimensão]
         Q[Liderança] --> R[Cargo 96 + Eixo + Título + Escopo]
     end
-
+```
 
 ## Componentes Principais
 
