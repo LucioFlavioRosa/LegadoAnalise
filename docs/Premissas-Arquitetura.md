@@ -56,8 +56,7 @@ flowchart TD
 ```
 
 ## Fluxo de Operações
-```
-mermaid
+```mermaid
 sequenceDiagram
     participant U as Usuário
     participant UI as Premissas.razor
