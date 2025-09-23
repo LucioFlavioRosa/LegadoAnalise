@@ -7,6 +7,8 @@ using Peers.Moderno.Services.Associados.Common;
 using Peers.Moderno.Services.Common.Auth;
 using Peers.Moderno.Services.Cargos;
 using Peers.Moderno.Services.Cargos.Common;
+using Peers.Moderno.Services.Clientes;
+using Peers.Moderno.Services.Clientes.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -91,6 +93,10 @@ builder.Services.AddScoped<Services.Associados.Common.IDropdownService, Services
 builder.Services.AddScoped<Services.Associados.Common.DropdownService>();
 builder.Services.AddScoped<IPromocaoService, PromocaoService>();
 builder.Services.AddScoped<PromocaoService>();
+
+// Clientes Services
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<Services.Clientes.Common.IDropdownService, Services.Clientes.Common.DropdownService>();
 
 var app = builder.Build();
 
