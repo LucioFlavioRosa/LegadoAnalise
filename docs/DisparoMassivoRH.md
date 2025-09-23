@@ -122,10 +122,12 @@ flowchart TD
 ## Configuração
 
 ### Injeção de Dependência
+
+```text
 No `Program.cs`:
 csharp
 builder.Services.AddScoped<IDisparoMassivoRHService, DisparoMassivoRHService>();
-
+```
 
 ### Sessão
 Configuração necessária para compatibilidade:
