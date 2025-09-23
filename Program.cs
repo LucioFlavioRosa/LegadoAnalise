@@ -11,6 +11,8 @@ using Peers.Moderno.Services.Clientes;
 using Peers.Moderno.Services.Clientes.Common;
 using Peers.Moderno.Services.Competencias;
 using Peers.Moderno.Services.Competencias.Common;
+using Peers.Moderno.Services.Complexidades;
+using Peers.Moderno.Services.Complexidades.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -103,6 +105,9 @@ builder.Services.AddScoped<PromocaoService>();
 
 // Clientes Services
 builder.Services.AddScoped<Services.Clientes.Common.IClientesService, Services.Clientes.ClientesService>();
+
+// Complexidades Services
+builder.Services.AddScoped<IComplexidadeService, ComplexidadesService>();
 
 var app = builder.Build();
 

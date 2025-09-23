@@ -28,6 +28,9 @@ public class ApplicationDbContext : DbContext
     
     // Novo DbSet para Clientes
     public DbSet<Cliente> Clientes { get; set; }
+    
+    // Novo DbSet para Complexidades
+    public DbSet<ProjetoComplexidade> ProjetosComplexidades { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -211,6 +214,13 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(d => d.IdAssociacoResponsavel)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configuração da entidade ProjetoComplexidade
+        modelBuilder.Entity<ProjetoComplexidade>(entity =>
+        {
+            entity.HasKey(e => e.IdComplexidade);
+            entity.ToTable("PROJETOSCOMPLEXIDADES");
         });
     }
 }

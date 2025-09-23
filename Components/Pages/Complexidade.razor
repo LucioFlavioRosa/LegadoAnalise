@@ -1,0 +1,173 @@
+@page "/complexidades"
+@rendermode InteractiveAuto
+@inject IComplexidadeService ComplexidadeService
+@inject IMessageBoxService MessageBoxService
+@using Peers.Moderno.Services.Complexidades.Common
+@using Peers.Moderno.Services.Common
+
+<PageTitle>Complexidade</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Complexidade</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers / Cadastros Básicos de Projetos</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Complexidade</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <!-- Formulário de Cadastro/Edição -->
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Dados da Complexidade</h4>
+            <EditForm Model="@complexidadeAtual" OnValidSubmit="@SalvarComplexidade">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Complexidade</label>
+                                <InputText @bind-Value="complexidadeAtual.Complexidade" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <InputSelect @bind-Value="complexidadeAtual.ATV" class="form-control">
+                                    <option value="1">Ativo</option>
+                                    <option value="0">Inativo</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Peso</label>
+                                <InputNumber @bind-Value="complexidadeAtual.Peso" class="form-control" step="0.01" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Peso Ponderado</label>
+                                <InputNumber @bind-Value="complexidadeAtual.PesoPonderado" class="form-control" step="0.01" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>% Ponderação</label>
+                                <InputNumber @bind-Value="complexidadeAtual.Ponderacao" class="form-control" step="0.01" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>% Faixa Inicial de Ponderação</label>
+                                <InputNumber @bind-Value="complexidadeAtual.FaixaInicial" class="form-control" step="0.01" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>% Faixa Final de Ponderação</label>
+                                <InputNumber @bind-Value="complexidadeAtual.FaixaFinal" class="form-control" step="0.01" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <div class="text-right">
+                            <button type="submit" class="btn btn-info" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                }
+                                @(complexidadeAtual.IdComplexidade == 0 ? "Cadastrar" : "Salvar")
+                            </button>
+                            @if (complexidadeAtual.IdComplexidade != 0)
+                            {
+                                <button type="button" class="btn btn-secondary" @onclick="LimparFormulario">Cancelar</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <!-- Lista de Complexidades -->
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Lista de Complexidades</h4>
+            <h6 class="card-subtitle">Filtre as informações separadas por espaço para busca em qualquer coluna em qualquer ordem, completo ou parcial: <code>complexidade código</code>.</h6>
+            
+            @if (complexidades == null)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Carregando...</span>
+                    </div>
+                </div>
+            }
+            else if (!complexidades.Any())
+            {
+                <div class="alert alert-info">Nenhuma complexidade encontrada.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped border">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Complexidade</th>
+                                <th>Mínimo Fatores</th>
+                                <th>Status</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in complexidades)
+                            {
+                                <tr>
+                                    <td>@item.IdComplexidade</td>
+                                    <td>@item.Complexidade</td>
+                                    <td>@item.SomaMinimaFator</td>
+                                    <td>@item.StatusTexto</td>
+                                    <td>
+                                        <button class="btn btn-info btn-sm" @onclick="() => EditarComplexidade(item.IdComplexidade)">
+                                            Alterar
+                                        </button>
+                                        @if (item.Ativo)
+                                        {
+                                            <button class="btn btn-dark btn-sm" @onclick="() => InativarComplexidade(item.IdComplexidade)">
+                                                Inativar
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Seção de Fatores -->
+    <div class="card card-body">
+        <h4>Editar fatores de complexidades</h4>
+        <h5>Os fatores abaixo são exibidos para mensuração de cada projeto pelo gestor na página Gerenciar Projetos.</h5>
+        <div class="table-responsive">
+            <!-- Implementação futura dos fatores -->
+            <p class="text-muted">Funcionalidade de fatores será implementada em versão futura.</p>
+        </div>
+    </div>
+</div>
