@@ -1,0 +1,77 @@
+@using Peers.Moderno.Services.Common
+@inject IMessageBoxService MessageBoxService
+@implements IDisposable
+
+@if (ShowMessage)
+{
+    <div class="alert @GetAlertClass() alert-dismissible fade show" role="alert">
+        <strong>@GetAlertTitle()</strong> @CurrentMessage
+        <button type="button" class="btn-close" @onclick="HideMessage" aria-label="Close"></button>
+    </div>
+}
+
+@code {
+    [Parameter] public bool AutoHide { get; set; } = true;
+    [Parameter] public int AutoHideDelay { get; set; } = 5000;
+
+    private bool ShowMessage { get; set; } = false;
+    private string CurrentMessage { get; set; } = string.Empty;
+    private MessageBoxType CurrentType { get; set; } = MessageBoxType.Info;
+    private Timer? _autoHideTimer;
+
+    protected override void OnInitialized()
+    {
+        MessageBoxService.OnMessageReceived += HandleMessage;
+    }
+
+    private void HandleMessage(MessageBoxEventArgs args)
+    {
+        CurrentMessage = args.Message;
+        CurrentType = args.Type;
+        ShowMessage = true;
+        StateHasChanged();
+
+        if (AutoHide)
+        {
+            _autoHideTimer?.Dispose();
+            _autoHideTimer = new Timer((_) => InvokeAsync(HideMessage), null, AutoHideDelay, Timeout.Infinite);
+        }
+    }
+
+    private void HideMessage()
+    {
+        ShowMessage = false;
+        _autoHideTimer?.Dispose();
+        StateHasChanged();
+    }
+
+    private string GetAlertClass()
+    {
+        return CurrentType switch
+        {
+            MessageBoxType.Success => "alert-success",
+            MessageBoxType.Error => "alert-danger",
+            MessageBoxType.Warning => "alert-warning",
+            MessageBoxType.Info => "alert-info",
+            _ => "alert-info"
+        };
+    }
+
+    private string GetAlertTitle()
+    {
+        return CurrentType switch
+        {
+            MessageBoxType.Success => "Sucesso!",
+            MessageBoxType.Error => "Erro!",
+            MessageBoxType.Warning => "Atenção!",
+            MessageBoxType.Info => "Informação!",
+            _ => "Informação!"
+        };
+    }
+
+    public void Dispose()
+    {
+        MessageBoxService.OnMessageReceived -= HandleMessage;
+        _autoHideTimer?.Dispose();
+    }
+}
