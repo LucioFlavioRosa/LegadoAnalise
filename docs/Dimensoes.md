@@ -108,7 +108,7 @@ Models/
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /dimensoes] --> B[Dimensoes.razor carregado]
     B --> C[OnInitializedAsync chamado]
@@ -142,7 +142,7 @@ flowchart TD
     DD[Filtro em tempo real] --> EE[FiltrarDimensoes executado]
     EE --> FF[Aplicar filtro na lista local]
     FF --> GG[StateHasChanged para atualizar UI]
-
+```
 
 ## Benefícios da Migração
 
