@@ -65,7 +65,7 @@ csharp
 
 ## Fluxo de Integração
 
-mermaid
+```mermaid
 flowchart TD
     A[Startup: Program.cs] --> B[Add Application Insights]
     B --> C[Registra TelemetryService]
@@ -76,7 +76,7 @@ flowchart TD
     G[Exceções Automáticas] --> E
     H[Métricas de Performance] --> E
     I[Logs da Aplicação] --> E
-
+```
 
 ## Eventos Recomendados para Rastreamento
 
