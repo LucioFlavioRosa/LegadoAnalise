@@ -1,0 +1,61 @@
+@using Peers.Moderno.Services.Common
+
+@if (EvaluationItems?.Any() == true)
+{
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Avaliações</h4>
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @foreach (var item in GetBasicEvaluationItems())
+                            {
+                                <a href="@item.Url" class="@item.CssClass">@item.Title</a>
+                            }
+                            
+                            @if (VisibilityHelper.ShouldShowEvaluationOptions(UserProfileId))
+                            {
+                                <div>
+                                    @foreach (var item in GetAdvancedEvaluationItems())
+                                    {
+                                        <a href="@item.Url" class="@item.CssClass">@item.Title</a>
+                                    }
+                                    <br /><br />
+                                    @foreach (var item in GetResultEvaluationItems())
+                                    {
+                                        <a href="@item.Url" class="@item.CssClass">@item.Title</a>
+                                    }
+                                </div>
+                            }
+                            <br />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<EvaluationMenuItem> EvaluationItems { get; set; } = new();
+    [Parameter] public int UserProfileId { get; set; }
+
+    private List<EvaluationMenuItem> GetBasicEvaluationItems()
+    {
+        var basicItems = new[] { "autoAvaliacao", "evolucaoAssociado", "avaliacoesLideranca" };
+        return EvaluationItems?.Where(x => basicItems.Contains(x.Id) && x.IsVisible).ToList() ?? new List<EvaluationMenuItem>();
+    }
+
+    private List<EvaluationMenuItem> GetAdvancedEvaluationItems()
+    {
+        var advancedItems = new[] { "cegas", "gestor", "feedback" };
+        return EvaluationItems?.Where(x => advancedItems.Contains(x.Id) && x.IsVisible).ToList() ?? new List<EvaluationMenuItem>();
+    }
+
+    private List<EvaluationMenuItem> GetResultEvaluationItems()
+    {
+        var resultItems = new[] { "resultadoLideranca" };
+        return EvaluationItems?.Where(x => resultItems.Contains(x.Id) && x.IsVisible).ToList() ?? new List<EvaluationMenuItem>();
+    }
+}
