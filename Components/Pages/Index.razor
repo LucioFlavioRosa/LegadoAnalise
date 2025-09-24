@@ -1,0 +1,120 @@
+@page "/"
+@page "/index"
+@rendermode InteractiveAuto
+@inject IUserContextService UserContextService
+@inject IMenuService MenuService
+@inject IPasswordService PasswordService
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+@inject NavigationManager Navigation
+@inject IAssociadosService AssociadosService
+
+<PageTitle>Página Inicial - Sistema de Avaliação</PageTitle>
+
+<MessageBoxHandler />
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-6 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Página Inicial - Navegue nos Botões abaixo ou no Menu ao lado</h5>
+        </div>
+        <div class="col-lg-5 col-md-8 col-xs-5 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active">Página Inicial</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    @if (showPasswordChangePanel)
+    {
+        <ChangePasswordPanel OnPasswordChanged="HandlePasswordChanged" />
+    }
+    else
+    {
+        @if (showAdminMenu)
+        {
+            <Menu MenuItems="menuItems" />
+        }
+
+        <QuickAccess QuickAccessItems="quickAccessItems" />
+        
+        <EvaluationsPanel EvaluationItems="evaluationItems" ShowEvaluationActions="showEvaluationActions" />
+        
+        <MentorshipPanel MentorItems="mentorItems" MentoredItems="mentoredItems" ShowMentorActions="showMentorActions" />
+    }
+</div>
+
+@code {
+    private Associado? currentUser;
+    private bool showPasswordChangePanel;
+    private bool showAdminMenu;
+    private bool showEvaluationActions;
+    private bool showMentorActions;
+    
+    private List<MenuItem> menuItems = new();
+    private List<QuickAccessItem> quickAccessItems = new();
+    private List<EvaluationItem> evaluationItems = new();
+    private List<MentorshipItem> mentorItems = new();
+    private List<MentorshipItem> mentoredItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserDataAsync();
+        await LoadMenuDataAsync();
+        
+        TelemetryService.TrackPageView("Index", new Dictionary<string, string>
+        {
+            { "UserId", currentUser?.Id.ToString() ?? "0" },
+            { "UserProfile", currentUser?.IdPerfil.ToString() ?? "0" }
+        });
+    }
+
+    private async Task LoadUserDataAsync()
+    {
+        currentUser = UserContextService.GetUsuarioLogado();
+        
+        if (currentUser == null)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        showPasswordChangePanel = VisibilityHelper.ShouldShowPasswordChangePanel(currentUser);
+        showAdminMenu = VisibilityHelper.ShouldShowAdminMenu(currentUser);
+        showEvaluationActions = VisibilityHelper.ShouldShowEvaluationActions(currentUser);
+        
+        if (!showPasswordChangePanel)
+        {
+            var mentorados = await AssociadosService.ObterMentoradosAsync(currentUser.Id);
+            showMentorActions = VisibilityHelper.ShouldShowMentorActions(mentorados.ToList());
+        }
+    }
+
+    private async Task LoadMenuDataAsync()
+    {
+        if (currentUser == null || showPasswordChangePanel) return;
+
+        menuItems = await MenuService.GetMenuItemsAsync(currentUser.Id);
+        quickAccessItems = await MenuService.GetQuickAccessItemsAsync(currentUser.Id);
+        evaluationItems = await MenuService.GetEvaluationItemsAsync(currentUser.Id);
+        
+        var mentorshipItems = await MenuService.GetMentorshipItemsAsync(currentUser.Id);
+        mentorItems = mentorshipItems.Where(x => x.Action.Contains("mentor") || x.Action.Contains("resultado")).ToList();
+        mentoredItems = mentorshipItems.Where(x => x.Action.Contains("PDI") || x.Action.Contains("Avaliar")).ToList();
+    }
+
+    private async Task HandlePasswordChanged()
+    {
+        showPasswordChangePanel = false;
+        await LoadUserDataAsync();
+        await LoadMenuDataAsync();
+        StateHasChanged();
+        
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}
