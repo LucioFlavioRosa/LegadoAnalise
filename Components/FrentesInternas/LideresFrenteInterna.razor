@@ -11,187 +11,171 @@
     <br />
     <h4>Líderes da Alocação Interna</h4>
     
-    @if (isLoading)
+    @if (lideres?.Any() == true)
     {
-        <div class="text-center">
-            <div class="spinner-border" role="status">
-                <span class="sr-only">Carregando...</span>
-            </div>
-        </div>
+        <table class="table table-striped border">
+            <thead>
+                <tr>
+                    <th>IdAssociado</th>
+                    <th>Líder</th>
+                    <th>Status(Ativo/Inativo)</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var lider in lideres)
+                {
+                    <tr>
+                        <td>@lider.IdAssociado</td>
+                        <td>@lider.NomeAssociado</td>
+                        <td>@(lider.Ativo ? "Ativo" : "Inativo")</td>
+                        <td>
+                            @if (lider.Ativo)
+                            {
+                                <button class="btn btn-dark" @onclick="() => InativarLider(lider.Id)">
+                                    Inativar
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+                <tr>
+                    <td colspan="3">
+                        <select @bind="novoLiderIdAssociado" class="form-control">
+                            <option value="0">Selecione um associado</option>
+                            @if (associadosDisponiveis?.Any() == true)
+                            {
+                                @foreach (var associado in associadosDisponiveis)
+                                {
+                                    <option value="@associado.Id">@associado.Nome</option>
+                                }
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-dark" @onclick="AdicionarLider" disabled="@(novoLiderIdAssociado == 0)">
+                            Adicionar
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table table-striped border">
-                <thead>
-                    <tr>
-                        <th>IdAssociado</th>
-                        <th>Líder</th>
-                        <th>Status(Ativo/Inativo)</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (lideres?.Any() == true)
-                    {
-                        @foreach (var lider in lideres)
+        <div class="alert alert-info">
+            <p>Nenhum líder cadastrado para esta alocação interna.</p>
+            <div class="row">
+                <div class="col-md-9">
+                    <select @bind="novoLiderIdAssociado" class="form-control">
+                        <option value="0">Selecione um associado</option>
+                        @if (associadosDisponiveis?.Any() == true)
                         {
-                            <tr>
-                                <td>@lider.IdAssociado</td>
-                                <td>@lider.NomeAssociado</td>
-                                <td>@(lider.Ativo ? "Ativo" : "Inativo")</td>
-                                <td>
-                                    @if (lider.Ativo)
-                                    {
-                                        <button class="btn btn-dark btn-sm" @onclick="() => InativarLider(lider.IdLiderFrenteInterna)" disabled="@isProcessing">
-                                            Inativar
-                                        </button>
-                                    }
-                                </td>
-                            </tr>
+                            @foreach (var associado in associadosDisponiveis)
+                            {
+                                <option value="@associado.Id">@associado.Nome</option>
+                            }
                         }
-                    }
-                    <tr>
-                        <td colspan="3">
-                            <select @bind="novoLiderIdAssociado" class="form-control" disabled="@isProcessing">
-                                <option value="0">[Selecionar Associado]</option>
-                                @if (associadosDisponiveis?.Any() == true)
-                                {
-                                    @foreach (var associado in associadosDisponiveis)
-                                    {
-                                        <option value="@associado.Id">@associado.Nome</option>
-                                    }
-                                }
-                            </select>
-                        </td>
-                        <td>
-                            <button class="btn btn-dark btn-sm" @onclick="AdicionarLider" disabled="@(isProcessing || novoLiderIdAssociado == 0)">
-                                @if (isProcessing)
-                                {
-                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                }
-                                Adicionar
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-dark" @onclick="AdicionarLider" disabled="@(novoLiderIdAssociado == 0)">
+                        Adicionar
+                    </button>
+                </div>
+            </div>
         </div>
     }
 </div>
 
 @code {
     [Parameter] public int IdFrenteInterna { get; set; }
-    [Parameter] public EventCallback OnLideresChanged { get; set; }
+    [Parameter] public EventCallback OnLideresAtualizados { get; set; }
 
     private List<LiderFrenteInternaModel>? lideres;
     private List<Associado>? associadosDisponiveis;
     private int novoLiderIdAssociado = 0;
-    private bool isLoading = false;
-    private bool isProcessing = false;
 
     protected override async Task OnParametersSetAsync()
     {
         if (IdFrenteInterna > 0)
         {
-            await RefreshAsync();
+            await CarregarLideres();
+            await CarregarAssociadosDisponiveis();
         }
     }
 
-    public async Task RefreshAsync()
+    public async Task CarregarLideres()
     {
-        if (IdFrenteInterna <= 0) return;
-
         try
         {
-            isLoading = true;
+            lideres = await FrentesInternasService.ObterLideresFrenteInternaAsync(IdFrenteInterna);
             StateHasChanged();
-
-            lideres = await FrentesInternasService.ObterLideresPorFrenteInternaAsync(IdFrenteInterna);
-            associadosDisponiveis = await AssociadosService.ObterAssociadosAtivosAsync();
-
-            // Remover associados que já são líderes ativos
-            if (lideres?.Any() == true && associadosDisponiveis?.Any() == true)
-            {
-                var lideresAtivos = lideres.Where(l => l.Ativo).Select(l => l.IdAssociado).ToList();
-                associadosDisponiveis = associadosDisponiveis.Where(a => !lideresAtivos.Contains(a.Id)).ToList();
-            }
         }
         catch (Exception ex)
         {
-            TelemetryService.TrackException(ex);
             MessageBoxService.ShowError($"Erro ao carregar líderes: {ex.Message}");
+            TelemetryService.TrackException(ex);
         }
-        finally
+    }
+
+    private async Task CarregarAssociadosDisponiveis()
+    {
+        try
         {
-            isLoading = false;
+            associadosDisponiveis = await AssociadosService.ObterAssociadosAtivosAsync();
             StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError($"Erro ao carregar associados: {ex.Message}");
+            TelemetryService.TrackException(ex);
         }
     }
 
     private async Task AdicionarLider()
     {
-        if (novoLiderIdAssociado == 0 || isProcessing) return;
-
         try
         {
-            isProcessing = true;
-            StateHasChanged();
+            if (novoLiderIdAssociado == 0)
+            {
+                MessageBoxService.ShowWarning("Selecione um associado");
+                return;
+            }
 
-            await FrentesInternasService.AdicionarLiderFrenteInternaAsync(IdFrenteInterna, novoLiderIdAssociado);
-            
+            var novoLider = new LiderFrenteInternaModel
+            {
+                IdFrenteInterna = IdFrenteInterna,
+                IdAssociado = novoLiderIdAssociado,
+                Ativo = true
+            };
+
+            await FrentesInternasService.AdicionarLiderFrenteInternaAsync(novoLider);
+            await CarregarLideres();
             novoLiderIdAssociado = 0;
-            await RefreshAsync();
-            await OnLideresChanged.InvokeAsync();
-            
+            await OnLideresAtualizados.InvokeAsync();
             MessageBoxService.ShowSuccess("Líder adicionado com sucesso!");
-            TelemetryService.TrackEvent("LiderFrenteInterna_Adicionado", new Dictionary<string, string> 
-            { 
-                { "IdFrenteInterna", IdFrenteInterna.ToString() },
-                { "IdAssociado", novoLiderIdAssociado.ToString() }
-            });
         }
         catch (Exception ex)
         {
-            TelemetryService.TrackException(ex);
             MessageBoxService.ShowError($"Erro ao adicionar líder: {ex.Message}");
-        }
-        finally
-        {
-            isProcessing = false;
-            StateHasChanged();
+            TelemetryService.TrackException(ex);
         }
     }
 
     private async Task InativarLider(int idLiderFrenteInterna)
     {
-        if (isProcessing) return;
-
         try
         {
-            isProcessing = true;
-            StateHasChanged();
-
             await FrentesInternasService.InativarLiderFrenteInternaAsync(idLiderFrenteInterna);
-            
-            await RefreshAsync();
-            await OnLideresChanged.InvokeAsync();
-            
+            await CarregarLideres();
+            await OnLideresAtualizados.InvokeAsync();
             MessageBoxService.ShowSuccess("Líder inativado com sucesso!");
-            TelemetryService.TrackEvent("LiderFrenteInterna_Inativado", new Dictionary<string, string> 
-            { 
-                { "IdLiderFrenteInterna", idLiderFrenteInterna.ToString() }
-            });
         }
         catch (Exception ex)
         {
-            TelemetryService.TrackException(ex);
             MessageBoxService.ShowError($"Erro ao inativar líder: {ex.Message}");
-        }
-        finally
-        {
-            isProcessing = false;
-            StateHasChanged();
+            TelemetryService.TrackException(ex);
         }
     }
 }
