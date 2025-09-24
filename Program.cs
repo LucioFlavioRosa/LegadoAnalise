@@ -90,6 +90,11 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 builder.Services.AddScoped<IMessageBoxService, MessageBoxService>();
 
+// New Common Services - Index Page Migration
+builder.Services.AddScoped<IUserContextService, UserContextService>();
+builder.Services.AddScoped<IMenuService, MenuService>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
+
 // Auth Common Services
 builder.Services.AddScoped<ITokenDecoder, TokenDecoder>();
 builder.Services.AddScoped<IAuthCallbackService, AuthCallbackService>();
