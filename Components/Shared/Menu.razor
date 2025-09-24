@@ -1,0 +1,85 @@
+@using Peers.Moderno.Services.Common
+
+@if (MenuItems?.Any() == true)
+{
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Cadastro Básico de Associados</h4>
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @foreach (var item in GetMenuItemsByCategory("Cadastro Básico de Associados"))
+                            {
+                                <a href="@item.Url" class="@item.CssClass">@item.Title</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Cadastro Básico de Projetos</h4>
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @foreach (var item in GetMenuItemsByCategory("Cadastro Básico de Projetos"))
+                            {
+                                <a href="@item.Url" class="@item.CssClass">@item.Title</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Cadastro de Projetos</h4>
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @foreach (var item in GetMenuItemsByCategory("Cadastro de Projetos"))
+                            {
+                                <a href="@item.Url" class="@item.CssClass">@item.Title</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Envio de Avaliações</h4>
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            @foreach (var item in GetMenuItemsByCategory("Envio de Avaliações"))
+                            {
+                                <a href="@item.Url" class="@item.CssClass">@item.Title</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<MenuItem> MenuItems { get; set; } = new();
+
+    private List<MenuItem> GetMenuItemsByCategory(string category)
+    {
+        return MenuItems?.Where(x => x.Category == category && x.IsVisible).ToList() ?? new List<MenuItem>();
+    }
+}
