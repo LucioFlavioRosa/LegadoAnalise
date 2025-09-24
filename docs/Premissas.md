@@ -16,7 +16,7 @@ Este documento descreve a migração completa do módulo de Premissas do Radar d
 
 ### Estrutura de Pastas
 
-
+```text
 Peers.Moderno/
 ├── Models/
 │   └── PremissasRadar.cs
@@ -31,7 +31,7 @@ Peers.Moderno/
 │       └── Premissas.razor
 └── docs/
     └── premissas-migracao.md
-
+```
 
 ## Funcionalidades Implementadas
 
@@ -77,7 +77,7 @@ csharp
 
 As configurações específicas do módulo estão centralizadas no `appsettings.json` na seção `Premissas`:
 
-
+```json
 {
   "Premissas": {
     "MaxValorRadar": 100,
@@ -89,11 +89,11 @@ As configurações específicas do módulo estão centralizadas no `appsettings.
     }
   }
 }
-
+```
 
 ## Fluxo de Dados
 
-mermaid
+```mermaid
 flowchart TD
     A["Usuário acessa /premissas"] --> B["Premissas.razor carrega"]
     B --> C["OnInitializedAsync()"]
@@ -139,7 +139,7 @@ flowchart TD
     
     HH["StatusHelper.StatusRadar()"] --> II["Conversão 0='Inativo', 1='Ativo'"]
     JJ["StatusHelper.GetStatusClass()"] --> KK["CSS classes para badges"]
-
+```
 
 ## Benefícios da Migração
 
@@ -167,13 +167,13 @@ flowchart TD
 
 ### StatusHelper
 O `StatusHelper` foi projetado para ser reutilizado em outros módulos que trabalham com status ativo/inativo:
-
+```text
 csharp
 // Uso em outros componentes
 var statusText = StatusHelper.StatusRadar(premissa.ATV);
 var statusClass = StatusHelper.GetStatusClass(premissa.ATV);
 var isActive = StatusHelper.IsAtivo(premissa.ATV);
-
+```
 
 ### Serviços Base
 O padrão de implementação do `PremissasService` pode ser replicado para outros módulos:
