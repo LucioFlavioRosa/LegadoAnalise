@@ -1,0 +1,133 @@
+@using Peers.Moderno.Services.FrentesInternas
+@using Peers.Moderno.Services.FrentesInternas.Common
+@using Peers.Moderno.Services.Common
+@inject IFrentesInternasService FrentesInternasService
+@inject IExportHelper ExportHelper
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+@inject IJSRuntime JSRuntime
+
+@if (exibirSecaoExportacao)
+{
+    <div class="card card-body">
+        <h4 class="card-title">Exportar Avaliações de Alocações Internas</h4>
+        <div class="form-actions">
+            <button class="btn btn-facebook" @onclick="ExportarAvaliacoes" disabled="@isExporting">
+                @if (isExporting)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span>Exportando...</span>
+                }
+                else
+                {
+                    <span>Exportar</span>
+                }
+            </button>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(mensagemStatus))
+        {
+            <div class="alert alert-info mt-3" role="alert">
+                @mensagemStatus
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool exibirSecaoExportacao = false;
+    private bool isExporting = false;
+    private string mensagemStatus = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VerificarPermissaoExportacao();
+    }
+
+    private async Task VerificarPermissaoExportacao()
+    {
+        try
+        {
+            // TODO: Implementar verificação de usuário logado e permissões
+            // var usuarioLogado = await ObterUsuarioLogado();
+            // exibirSecaoExportacao = usuarioLogado.IdPerfil >= 3;
+            
+            // Por enquanto, simular verificação
+            exibirSecaoExportacao = await FrentesInternasService.UsuarioTemPermissaoExportacaoAsync();
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError($"Erro ao verificar permissões de exportação: {ex.Message}");
+            exibirSecaoExportacao = false;
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private async Task ExportarAvaliacoes()
+    {
+        if (isExporting) return;
+
+        try
+        {
+            isExporting = true;
+            mensagemStatus = "Preparando dados para exportação...";
+            StateHasChanged();
+
+            TelemetryService.TrackEvent("FrenteInterna_IniciarExportacao");
+
+            // Obter dados para exportação
+            var avaliacoes = await FrentesInternasService.ObterAvaliacoesParaExportacaoAsync();
+            
+            if (avaliacoes?.Any() != true)
+            {
+                MessageBoxService.ShowWarning("Não há dados disponíveis para exportação.");
+                return;
+            }
+
+            mensagemStatus = "Gerando arquivo Excel...";
+            StateHasChanged();
+
+            // Gerar arquivo Excel
+            var nomeArquivo = $"AvaliacoesAlocacaoInterna_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            var arquivoBytes = await ExportHelper.GerarExcelAvaliacoesAsync(avaliacoes, nomeArquivo);
+
+            mensagemStatus = "Iniciando download...";
+            StateHasChanged();
+
+            // Fazer download do arquivo
+            await JSRuntime.InvokeVoidAsync("downloadFileFromByteArray", new
+            {
+                ByteArray = arquivoBytes,
+                FileName = nomeArquivo,
+                ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            });
+
+            MessageBoxService.ShowSuccess("Exportação realizada com sucesso!");
+            TelemetryService.TrackEvent("FrenteInterna_ExportacaoConcluida", new Dictionary<string, string> 
+            { 
+                { "NomeArquivo", nomeArquivo },
+                { "TotalRegistros", avaliacoes.Count.ToString() }
+            });
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError($"Erro ao exportar avaliações: {ex.Message}");
+        }
+        finally
+        {
+            isExporting = false;
+            mensagemStatus = string.Empty;
+            StateHasChanged();
+        }
+    }
+
+    public async Task RefreshAsync()
+    {
+        await VerificarPermissaoExportacao();
+    }
+}
