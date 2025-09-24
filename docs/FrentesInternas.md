@@ -70,12 +70,13 @@ Helper reutilizável para exportação de dados:
 
 Componente orquestrador que utiliza `@rendermode InteractiveAuto` para otimização de performance:
 
+```text
 razor
 @rendermode InteractiveAuto
 @inject IFrentesInternasService FrentesInternasService
 @inject IMessageBoxService MessageBoxService
 @inject ITelemetryService TelemetryService
-
+```
 
 #### Subcomponentes Especializados
 
@@ -91,19 +92,19 @@ razor
 #### MessageBoxService
 
 Todos os componentes utilizam o serviço centralizado de mensagens:
-
+```text
 csharp
 @inject IMessageBoxService MessageBoxService
 
 // Uso
 MessageBoxService.ShowSuccess("Frente interna cadastrada com sucesso!");
 MessageBoxService.ShowError("Erro ao processar solicitação");
-
+```
 
 #### TelemetryService
 
 Integração com Application Insights para monitoramento:
-
+```text
 csharp
 @inject ITelemetryService TelemetryService
 
@@ -113,7 +114,7 @@ TelemetryService.TrackEvent("FrenteInterna_Criada", new Dictionary<string, strin
     { "IdFrente", frente.Id.ToString() },
     { "Usuario", usuarioLogado.Email }
 });
-
+```
 
 ### Configuração
 
