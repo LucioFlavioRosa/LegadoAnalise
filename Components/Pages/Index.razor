@@ -1,0 +1,174 @@
+@page "/"
+@rendermode InteractiveAuto
+@using Peers.Moderno.Services.Common
+@using Peers.Moderno.Models
+@inject IUserContextService UserContextService
+@inject IMenuService MenuService
+@inject IPasswordService PasswordService
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+@inject NavigationManager Navigation
+
+<PageTitle>Página Inicial - Sistema de Avaliação</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-6 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Página Inicial - Navegue nos Botões abaixo ou no Menu ao lado</h5>
+        </div>
+        <div class="col-lg-5 col-md-8 col-xs-5 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active">Página Inicial</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Carregando...</span>
+            </div>
+        </div>
+    }
+    else if (currentUser == null)
+    {
+        <div class="alert alert-danger" role="alert">
+            Usuário não autenticado. Redirecionando para login...
+        </div>
+    }
+    else if (requiresPasswordChange)
+    {
+        <ChangePasswordPanel OnPasswordChanged="HandlePasswordChanged" />
+    }
+    else
+    {
+        @if (VisibilityHelper.ShouldShowAdminMenu(currentUser.IdPerfil))
+        {
+            <Menu MenuItems="@menuItems" />
+        }
+
+        <QuickAccess QuickAccessItems="@quickAccessItems" />
+        
+        <EvaluationMenu EvaluationItems="@evaluationItems" UserProfileId="@currentUser.IdPerfil" />
+        
+        <MentorshipMenu MentorshipItems="@mentorshipItems" HasMentorados="@hasMentorados" />
+    }
+</div>
+
+@code {
+    private Associado? currentUser;
+    private bool isLoading = true;
+    private bool requiresPasswordChange = false;
+    private bool hasMentorados = false;
+    
+    private List<MenuItem> menuItems = new();
+    private List<QuickAccessItem> quickAccessItems = new();
+    private List<EvaluationMenuItem> evaluationItems = new();
+    private List<MentorshipMenuItem> mentorshipItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadUserContextAsync();
+            
+            if (currentUser != null)
+            {
+                await LoadMenuDataAsync();
+                
+                TelemetryService.TrackPageView("Index", new Dictionary<string, string>
+                {
+                    { "UserId", currentUser.Id.ToString() },
+                    { "UserProfile", currentUser.IdPerfil.ToString() }
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "OnInitializedAsync" },
+                { "Component", "Index" }
+            });
+            MessageBoxService.ShowError("Erro ao carregar a página inicial");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadUserContextAsync()
+    {
+        currentUser = await UserContextService.GetUsuarioLogadoAsync();
+        
+        if (currentUser == null)
+        {
+            Navigation.NavigateTo("/login", true);
+            return;
+        }
+
+        requiresPasswordChange = await PasswordService.RequiresPasswordChangeAsync(currentUser.Id);
+    }
+
+    private async Task LoadMenuDataAsync()
+    {
+        if (currentUser == null) return;
+
+        var tasks = new List<Task>
+        {
+            LoadMenuItemsAsync(),
+            LoadQuickAccessItemsAsync(),
+            LoadEvaluationItemsAsync(),
+            LoadMentorshipItemsAsync()
+        };
+
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task LoadMenuItemsAsync()
+    {
+        if (currentUser != null)
+        {
+            menuItems = await MenuService.GetMenuItemsAsync(currentUser.Id, currentUser.IdPerfil);
+        }
+    }
+
+    private async Task LoadQuickAccessItemsAsync()
+    {
+        if (currentUser != null)
+        {
+            quickAccessItems = await MenuService.GetQuickAccessItemsAsync(currentUser.Id, currentUser.IdPerfil);
+        }
+    }
+
+    private async Task LoadEvaluationItemsAsync()
+    {
+        if (currentUser != null)
+        {
+            evaluationItems = await MenuService.GetEvaluationMenuItemsAsync(currentUser.Id, currentUser.IdPerfil);
+        }
+    }
+
+    private async Task LoadMentorshipItemsAsync()
+    {
+        if (currentUser != null)
+        {
+            mentorshipItems = await MenuService.GetMentorshipMenuItemsAsync(currentUser.Id);
+            hasMentorados = mentorshipItems.Any(x => x.IsMentorSection);
+        }
+    }
+
+    private async Task HandlePasswordChanged()
+    {
+        requiresPasswordChange = false;
+        await LoadMenuDataAsync();
+        StateHasChanged();
+    }
+}
