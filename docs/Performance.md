@@ -8,7 +8,7 @@ O módulo Performance foi projetado para gerenciar as performances dos associado
 
 ### Estrutura de Pastas
 
-
+```text
 Peers.Moderno/
 ├── Models/
 │   └── Performance.cs
@@ -29,7 +29,7 @@ Peers.Moderno/
 │       └── Performance.razor.cs
 └── docs/
     └── Performance.md
-
+```
 
 ### Componentes Principais
 
@@ -70,7 +70,7 @@ Peers.Moderno/
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Performance.razor] -->|Injeção de Dependência| B[PerformanceService]
     A -->|Validação| C[PerformanceValidationUtil]
@@ -99,7 +99,7 @@ flowchart TD
     style E fill:#fff3e0
     style F fill:#e8f5e8
     style K fill:#ffebee
-
+```
 
 ## Integração com Outros Módulos
 
@@ -116,7 +116,7 @@ flowchart TD
 ## Configurações
 
 ### appsettings.json
-
+```json
 
 {
   "Performance": {
@@ -137,7 +137,7 @@ flowchart TD
     }
   }
 }
-
+```
 
 ## Funcionalidades Principais
 
@@ -223,7 +223,7 @@ csharp
 
 
 ### Cadastro de Performance
-
+```text
 csharp
 var performance = new Performance
 {
@@ -241,17 +241,18 @@ if (result.IsSuccess)
 {
     MessageBox.ShowSuccess("Performance inserida com sucesso!");
 }
-
+```
 
 ### Importação de Planilha
 
+```text
 csharp
 var importResult = await PerformanceService.ImportarPerformancesAsync(fileStream, fileName);
 if (importResult.IsSuccess)
 {
     MessageBox.ShowInfo($"Importação concluída: {importResult.RegistrosInseridos} inseridos, {importResult.RegistrosAlterados} alterados");
 }
-
+```
 
 ## Manutenção e Evolução
 
