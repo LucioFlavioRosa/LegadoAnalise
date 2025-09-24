@@ -1,0 +1,190 @@
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Projetos
+@using Peers.Moderno.Services.Common
+@inject IProjetosService ProjetosService
+@inject IMessageBoxService MessageBoxService
+@rendermode InteractiveAuto
+
+@if (IsVisible)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Cadastro de Tipo de Projeto</h4>
+                    <button type="button" class="close" @onclick="Close">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@tipoProjeto" OnValidSubmit="@SalvarTipoProjeto">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        
+                        <div class="form-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Nome do Tipo *</label>
+                                        <InputText @bind-Value="tipoProjeto.Nome" class="form-control" placeholder="Digite o nome do tipo de projeto" maxlength="500" />
+                                        <small class="form-text text-muted">Máximo 500 caracteres</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Descrição</label>
+                                        <InputTextArea @bind-Value="tipoProjeto.Descricao" class="form-control" rows="3" 
+                                                      placeholder="Descreva as características deste tipo de projeto" maxlength="1000" />
+                                        <small class="form-text text-muted">Máximo 1000 caracteres</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Código</label>
+                                        <InputText @bind-Value="tipoProjeto.Codigo" class="form-control" placeholder="Código identificador" maxlength="50" />
+                                        <small class="form-text text-muted">Código único para identificação</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <InputSelect @bind-Value="tipoProjeto.Ativo" class="form-control">
+                                            <option value="true">Ativo</option>
+                                            <option value="false">Inativo</option>
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="Close">Fechar</button>
+                            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                @if (isSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                                    <span>Salvando...</span>
+                                }
+                                else
+                                {
+                                    <span>Cadastrar</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<TipoProjeto> OnTipoProjetoCadastrado { get; set; }
+    
+    private TipoProjeto tipoProjeto = new();
+    private bool isSaving = false;
+    
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            LimparFormulario();
+        }
+    }
+    
+    private void LimparFormulario()
+    {
+        tipoProjeto = new TipoProjeto
+        {
+            Ativo = true,
+            DataCriacao = DateTime.Now
+        };
+    }
+    
+    private async Task SalvarTipoProjeto()
+    {
+        if (isSaving) return;
+        
+        try
+        {
+            isSaving = true;
+            
+            // Validações básicas
+            if (string.IsNullOrWhiteSpace(tipoProjeto.Nome))
+            {
+                MessageBoxService.ShowWarning("Nome do tipo é obrigatório");
+                return;
+            }
+            
+            if (tipoProjeto.Nome.Length > 500)
+            {
+                MessageBoxService.ShowWarning("Nome do tipo deve ter no máximo 500 caracteres");
+                return;
+            }
+            
+            if (!string.IsNullOrEmpty(tipoProjeto.Descricao) && tipoProjeto.Descricao.Length > 1000)
+            {
+                MessageBoxService.ShowWarning("Descrição deve ter no máximo 1000 caracteres");
+                return;
+            }
+            
+            if (!string.IsNullOrEmpty(tipoProjeto.Codigo) && tipoProjeto.Codigo.Length > 50)
+            {
+                MessageBoxService.ShowWarning("Código deve ter no máximo 50 caracteres");
+                return;
+            }
+            
+            // Verificar se já existe um tipo com o mesmo nome
+            var tipoExistente = await ProjetosService.ObterTipoProjetoPorNomeAsync(tipoProjeto.Nome);
+            if (tipoExistente != null)
+            {
+                MessageBoxService.ShowWarning("Já existe um tipo de projeto com este nome");
+                return;
+            }
+            
+            // Verificar se já existe um tipo com o mesmo código (se informado)
+            if (!string.IsNullOrEmpty(tipoProjeto.Codigo))
+            {
+                var tipoComCodigo = await ProjetosService.ObterTipoProjetoPorCodigoAsync(tipoProjeto.Codigo);
+                if (tipoComCodigo != null)
+                {
+                    MessageBoxService.ShowWarning("Já existe um tipo de projeto com este código");
+                    return;
+                }
+            }
+            
+            // Salvar tipo de projeto
+            var success = await ProjetosService.InserirTipoProjetoAsync(tipoProjeto);
+            
+            if (success)
+            {
+                MessageBoxService.ShowSuccess("Tipo de projeto cadastrado com sucesso!");
+                await OnTipoProjetoCadastrado.InvokeAsync(tipoProjeto);
+                await Close();
+            }
+            else
+            {
+                MessageBoxService.ShowError("Erro ao cadastrar tipo de projeto");
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError($"Erro ao cadastrar tipo de projeto: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+    
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}
