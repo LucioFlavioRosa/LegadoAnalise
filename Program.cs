@@ -37,6 +37,7 @@ using Peers.Moderno.Services.Premissas.Common;
 using Peers.Moderno.Services.Projetos;
 using Peers.Moderno.Services.Projetos.Common;
 using Peers.Moderno.Services.SubCompetencias;
+using Peers.Moderno.Services.SubCompetencias.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -127,8 +128,11 @@ builder.Services.AddScoped<IAvaliacoesService, AvaliacoesService>();
 builder.Services.AddScoped<IExportFileService, ExportFileService>();
 builder.Services.AddScoped<Services.Premissas.Common.IPremissasService, Services.Premissas.PremissasService>();
 
-// SubCompetencias Services - Novos serviços adicionados
+// SubCompetencias Services - Novos serviços adicionados conforme passo 8
 builder.Services.AddScoped<Services.SubCompetencias.ISubCompetenciasService, Services.SubCompetencias.SubCompetenciasService>();
+builder.Services.AddScoped<Services.SubCompetencias.Common.ISubCompetenciasValidator, Services.SubCompetencias.Common.SubCompetenciasValidator>();
+builder.Services.AddScoped<Services.SubCompetencias.Common.ISubCompetenciasExportService, Services.SubCompetencias.Common.SubCompetenciasExportService>();
+builder.Services.AddScoped<Services.SubCompetencias.Common.ISubCompetenciasImportService, Services.SubCompetencias.Common.SubCompetenciasImportService>();
 
 // Eixos Services
 builder.Services.AddScoped<Services.Eixos.IEixosService, Services.Eixos.EixosService>();
