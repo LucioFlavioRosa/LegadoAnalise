@@ -1,0 +1,151 @@
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.SubCompetencias
+@using Peers.Moderno.Services.Common
+@inject ISubCompetenciasService SubCompetenciasService
+@inject IMessageBoxService MessageBoxService
+@inject IJSRuntime JSRuntime
+
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Lista de sub competências</h4>
+        <h6 class="card-subtitle">Filtre as informações separadas por espaço para busca em qualquer coluna em qualquer ordem, completo ou parcial: <code>sub competência código</code>.</h6>
+        
+        @if (isLoading)
+        {
+            <div class="text-center p-4">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Carregando...</span>
+                </div>
+                <p class="mt-2">Carregando subcompetências...</p>
+            </div>
+        }
+        else if (subCompetencias == null || !subCompetencias.Any())
+        {
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-info-circle"></i> Nenhuma subcompetência encontrada.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped border dtInit" id="subcompetenciasTable">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Sub Competencia</th>
+                            <th>Status(Ativo/Inativo)</th>
+                            <th data-sort="0">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in subCompetencias)
+                        {
+                            <tr>
+                                <td>@item.IdSubCompetencia</td>
+                                <td>@item.Nome</td>
+                                <td>
+                                    <span class="badge @(item.Ativo ? "badge-success" : "badge-secondary")">
+                                        @(item.Ativo ? "Ativo" : "Inativo")
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-info btn-sm" @onclick="() => AlterarSubCompetencia(item)">
+                                        <i class="fas fa-edit"></i> Alterar
+                                    </button>
+                                    @if (item.Ativo)
+                                    {
+                                        <button class="btn btn-dark btn-sm ml-1" @onclick="() => InativarSubCompetencia(item)">
+                                            <i class="fas fa-ban"></i> Inativar
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Código</th>
+                            <th>Sub Competência</th>
+                            <th>Status(Ativo/Inativo)</th>
+                            <th data-sort="0">Ação</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<SubCompetencia> OnEditarSubCompetencia { get; set; }
+    [Parameter] public EventCallback OnDataChanged { get; set; }
+    
+    private List<SubCompetencia>? subCompetencias;
+    private bool isLoading = true;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarSubCompetencias();
+    }
+    
+    public async Task CarregarSubCompetencias()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+            
+            subCompetencias = await SubCompetenciasService.ListarSubCompetenciasAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError($"Erro ao carregar subcompetências: {ex.Message}");
+            subCompetencias = new List<SubCompetencia>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && subCompetencias?.Any() == true)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeDataTable", "#subcompetenciasTable");
+        }
+    }
+    
+    private async Task AlterarSubCompetencia(SubCompetencia subCompetencia)
+    {
+        await OnEditarSubCompetencia.InvokeAsync(subCompetencia);
+    }
+    
+    private async Task InativarSubCompetencia(SubCompetencia subCompetencia)
+    {
+        try
+        {
+            var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Deseja realmente inativar a subcompetência '{subCompetencia.Nome}'?");
+            
+            if (!confirmed) return;
+            
+            var success = await SubCompetenciasService.InativarSubCompetenciaAsync(subCompetencia.IdSubCompetencia);
+            
+            if (success)
+            {
+                MessageBoxService.ShowSuccess("Sub Competência inativada com sucesso !!");
+                await CarregarSubCompetencias();
+                await OnDataChanged.InvokeAsync();
+            }
+            else
+            {
+                MessageBoxService.ShowError("Erro ao inativar Sub Competência !!");
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError($"Erro inesperado: {ex.Message}");
+        }
+    }
+}

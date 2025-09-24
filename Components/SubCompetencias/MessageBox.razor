@@ -1,0 +1,83 @@
+@using Peers.Moderno.Services.Common
+@inject IMessageBoxService MessageBoxService
+@implements IDisposable
+
+@if (currentMessage != null)
+{
+    <div class="alert @GetAlertClass(currentMessage.Type) alert-dismissible fade show" role="alert">
+        <i class="@GetIconClass(currentMessage.Type)"></i>
+        @((MarkupString)currentMessage.Message)
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" @onclick="DismissMessage">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@code {
+    private MessageBoxEventArgs? currentMessage;
+    private Timer? dismissTimer;
+    
+    protected override void OnInitialized()
+    {
+        MessageBoxService.OnMessageReceived += HandleMessage;
+    }
+    
+    private void HandleMessage(MessageBoxEventArgs messageArgs)
+    {
+        currentMessage = messageArgs;
+        StateHasChanged();
+        
+        // Auto-dismiss após 5 segundos para mensagens de sucesso e info
+        if (messageArgs.Type == MessageBoxType.Success || messageArgs.Type == MessageBoxType.Info)
+        {
+            dismissTimer?.Dispose();
+            dismissTimer = new Timer(AutoDismiss, null, TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
+        }
+    }
+    
+    private void AutoDismiss(object? state)
+    {
+        InvokeAsync(() =>
+        {
+            currentMessage = null;
+            StateHasChanged();
+        });
+    }
+    
+    private void DismissMessage()
+    {
+        dismissTimer?.Dispose();
+        currentMessage = null;
+        StateHasChanged();
+    }
+    
+    private string GetAlertClass(MessageBoxType type)
+    {
+        return type switch
+        {
+            MessageBoxType.Success => "alert-success",
+            MessageBoxType.Error => "alert-danger",
+            MessageBoxType.Warning => "alert-warning",
+            MessageBoxType.Info => "alert-info",
+            _ => "alert-info"
+        };
+    }
+    
+    private string GetIconClass(MessageBoxType type)
+    {
+        return type switch
+        {
+            MessageBoxType.Success => "fas fa-check-circle",
+            MessageBoxType.Error => "fas fa-exclamation-triangle",
+            MessageBoxType.Warning => "fas fa-exclamation-circle",
+            MessageBoxType.Info => "fas fa-info-circle",
+            _ => "fas fa-info-circle"
+        };
+    }
+    
+    public void Dispose()
+    {
+        MessageBoxService.OnMessageReceived -= HandleMessage;
+        dismissTimer?.Dispose();
+    }
+}

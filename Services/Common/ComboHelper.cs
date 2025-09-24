@@ -34,7 +34,6 @@ public static class ComboHelper
     {
         return new List<ComboItem>
         {
-            new ComboItem { Value = "", Text = "[Selecionar]" },
             new ComboItem { Value = "1", Text = "Ativo" },
             new ComboItem { Value = "0", Text = "Inativo" }
         };
@@ -120,6 +119,36 @@ public static class ComboHelper
             
         var item = items.FirstOrDefault(i => i.Value == selectedValue);
         return item?.Text ?? "[Selecionar]";
+    }
+
+    // Métodos específicos para SubCompetências
+    public static List<ComboItem> GetSubCompetenciasStatusItems()
+    {
+        return new List<ComboItem>
+        {
+            new ComboItem { Value = "1", Text = "Ativo" },
+            new ComboItem { Value = "0", Text = "Inativo" }
+        };
+    }
+
+    public static List<ComboItem> GetTiposAvaliacaoSubCompetencias()
+    {
+        return new List<ComboItem>
+        {
+            new ComboItem { Value = "", Text = "[Selecionar]" },
+            new ComboItem { Value = "desempenho", Text = "Desempenho" },
+            new ComboItem { Value = "lideranca", Text = "Liderança" }
+        };
+    }
+
+    public static string GetStatusText(bool ativo)
+    {
+        return ativo ? "Ativo" : "Inativo";
+    }
+
+    public static string GetStatusBadgeClass(bool ativo)
+    {
+        return ativo ? "badge-success" : "badge-secondary";
     }
 }
 
