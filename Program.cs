@@ -32,6 +32,8 @@ using Peers.Moderno.Services.Performance;
 using Peers.Moderno.Services.Performance.Common;
 using Peers.Moderno.Services.Prazos;
 using Peers.Moderno.Services.Prazos.Common;
+using Peers.Moderno.Services.Premissas;
+using Peers.Moderno.Services.Premissas.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -120,7 +122,7 @@ builder.Services.AddScoped<ICargosService, CargosService>();
 builder.Services.AddScoped<ISubCompetenciasService, SubCompetenciasService>();
 builder.Services.AddScoped<IAvaliacoesService, AvaliacoesService>();
 builder.Services.AddScoped<IExportFileService, ExportFileService>();
-builder.Services.AddScoped<IPremissasService, PremissasService>();
+builder.Services.AddScoped<Services.Premissas.Common.IPremissasService, Services.Premissas.PremissasService>();
 
 // Eixos Services
 builder.Services.AddScoped<Services.Eixos.IEixosService, Services.Eixos.EixosService>();
