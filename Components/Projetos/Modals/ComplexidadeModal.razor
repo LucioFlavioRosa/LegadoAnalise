@@ -1,0 +1,220 @@
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Complexidades
+@using Peers.Moderno.Services.Common
+@inject IComplexidadeService ComplexidadeService
+@inject IMessageBoxService MessageBoxService
+@rendermode InteractiveAuto
+
+@if (IsVisible)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Cadastro de Complexidade</h4>
+                    <button type="button" class="close" @onclick="Close">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@complexidade" OnValidSubmit="@SalvarComplexidade">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        
+                        <div class="form-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Nome da Complexidade *</label>
+                                        <InputText @bind-Value="complexidade.Nome" class="form-control" placeholder="Digite o nome da complexidade" maxlength="500" />
+                                        <small class="form-text text-muted">Máximo 500 caracteres</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Código</label>
+                                        <InputText @bind-Value="complexidade.Codigo" class="form-control" placeholder="Código identificador" maxlength="100" />
+                                        <small class="form-text text-muted">Código único para identificação</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <InputSelect @bind-Value="complexidade.Ativo" class="form-control">
+                                            <option value="true">Ativo</option>
+                                            <option value="false">Inativo</option>
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Peso</label>
+                                        <InputNumber @bind-Value="complexidade.Peso" class="form-control" step="0.01" min="0.01" max="999.99" />
+                                        <small class="form-text text-muted">Valor entre 0,01 e 999,99</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Ponderação (%)</label>
+                                        <InputNumber @bind-Value="complexidade.Ponderacao" class="form-control" step="0.01" min="0.01" max="100.00" />
+                                        <small class="form-text text-muted">Percentual entre 0,01% e 100%</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Descrição</label>
+                                        <InputTextArea @bind-Value="complexidade.Descricao" class="form-control" rows="3" 
+                                                      placeholder="Descreva as características desta complexidade" maxlength="1000" />
+                                        <small class="form-text text-muted">Máximo 1000 caracteres</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="Close">Fechar</button>
+                            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                @if (isSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                                    <span>Salvando...</span>
+                                }
+                                else
+                                {
+                                    <span>Cadastrar</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<ProjetoComplexidade> OnComplexidadeCadastrada { get; set; }
+    
+    private ProjetoComplexidade complexidade = new();
+    private bool isSaving = false;
+    
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            LimparFormulario();
+        }
+    }
+    
+    private void LimparFormulario()
+    {
+        complexidade = new ProjetoComplexidade
+        {
+            Ativo = true,
+            Peso = 1.0m,
+            Ponderacao = 1.0m,
+            DataCriacao = DateTime.Now
+        };
+    }
+    
+    private async Task SalvarComplexidade()
+    {
+        if (isSaving) return;
+        
+        try
+        {
+            isSaving = true;
+            
+            // Validações básicas
+            if (string.IsNullOrWhiteSpace(complexidade.Nome))
+            {
+                MessageBoxService.ShowWarning("Nome da complexidade é obrigatório");
+                return;
+            }
+            
+            if (complexidade.Nome.Length > 500)
+            {
+                MessageBoxService.ShowWarning("Nome da complexidade deve ter no máximo 500 caracteres");
+                return;
+            }
+            
+            if (!string.IsNullOrEmpty(complexidade.Codigo) && complexidade.Codigo.Length > 100)
+            {
+                MessageBoxService.ShowWarning("Código deve ter no máximo 100 caracteres");
+                return;
+            }
+            
+            if (!string.IsNullOrEmpty(complexidade.Descricao) && complexidade.Descricao.Length > 1000)
+            {
+                MessageBoxService.ShowWarning("Descrição deve ter no máximo 1000 caracteres");
+                return;
+            }
+            
+            if (complexidade.Peso < 0.01m || complexidade.Peso > 999.99m)
+            {
+                MessageBoxService.ShowWarning("Peso deve estar entre 0,01 e 999,99");
+                return;
+            }
+            
+            if (complexidade.Ponderacao < 0.01m || complexidade.Ponderacao > 100.00m)
+            {
+                MessageBoxService.ShowWarning("Ponderação deve estar entre 0,01% e 100%");
+                return;
+            }
+            
+            // Verificar se já existe uma complexidade com o mesmo nome
+            var complexidadeExistente = await ComplexidadeService.ObterComplexidadePorNomeAsync(complexidade.Nome);
+            if (complexidadeExistente != null)
+            {
+                MessageBoxService.ShowWarning("Já existe uma complexidade com este nome");
+                return;
+            }
+            
+            // Verificar se já existe uma complexidade com o mesmo código (se informado)
+            if (!string.IsNullOrEmpty(complexidade.Codigo))
+            {
+                var complexidadeComCodigo = await ComplexidadeService.ObterComplexidadePorCodigoAsync(complexidade.Codigo);
+                if (complexidadeComCodigo != null)
+                {
+                    MessageBoxService.ShowWarning("Já existe uma complexidade com este código");
+                    return;
+                }
+            }
+            
+            // Salvar complexidade
+            var success = await ComplexidadeService.InserirComplexidadeAsync(complexidade);
+            
+            if (success)
+            {
+                MessageBoxService.ShowSuccess("Complexidade cadastrada com sucesso!");
+                await OnComplexidadeCadastrada.InvokeAsync(complexidade);
+                await Close();
+            }
+            else
+            {
+                MessageBoxService.ShowError("Erro ao cadastrar complexidade");
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError($"Erro ao cadastrar complexidade: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+    
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}
