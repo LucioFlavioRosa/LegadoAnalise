@@ -1,0 +1,197 @@
+@using Peers.Moderno.Services.FrentesInternas
+@using Peers.Moderno.Services.Associados
+@using Peers.Moderno.Services.Common
+@using Peers.Moderno.Models
+@inject IFrentesInternasService FrentesInternasService
+@inject IAssociadosService AssociadosService
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+
+<div class="form-body">
+    <br />
+    <h4>Participantes da Alocação Interna</h4>
+    
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Carregando...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped border">
+                <thead>
+                    <tr>
+                        <th>IdAssociado</th>
+                        <th>Participante</th>
+                        <th>Status(Ativo/Inativo)</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (participantes?.Any() == true)
+                    {
+                        @foreach (var participante in participantes)
+                        {
+                            <tr>
+                                <td>@participante.IdAssociado</td>
+                                <td>@participante.NomeAssociado</td>
+                                <td>@(participante.Ativo ? "Ativo" : "Inativo")</td>
+                                <td>
+                                    @if (participante.Ativo)
+                                    {
+                                        <button class="btn btn-dark btn-sm" @onclick="() => InativarParticipante(participante.IdParticipanteFrenteInterna)" disabled="@isProcessing">
+                                            Inativar
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    <tr>
+                        <td colspan="3">
+                            <select @bind="novoParticipanteIdAssociado" class="form-control p-0 select2" style="width: 100%" disabled="@isProcessing">
+                                <option value="0">[Selecionar Associado]</option>
+                                @if (associadosDisponiveis?.Any() == true)
+                                {
+                                    @foreach (var associado in associadosDisponiveis)
+                                    {
+                                        <option value="@associado.Id">@associado.Nome</option>
+                                    }
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn btn-dark btn-sm" @onclick="AdicionarParticipante" disabled="@(isProcessing || novoParticipanteIdAssociado == 0)">
+                                @if (isProcessing)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                }
+                                Adicionar
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int IdFrenteInterna { get; set; }
+    [Parameter] public EventCallback OnParticipantesChanged { get; set; }
+
+    private List<ParticipanteFrenteInternaModel>? participantes;
+    private List<Associado>? associadosDisponiveis;
+    private int novoParticipanteIdAssociado = 0;
+    private bool isLoading = false;
+    private bool isProcessing = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IdFrenteInterna > 0)
+        {
+            await RefreshAsync();
+        }
+    }
+
+    public async Task RefreshAsync()
+    {
+        if (IdFrenteInterna <= 0) return;
+
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            participantes = await FrentesInternasService.ObterParticipantesPorFrenteInternaAsync(IdFrenteInterna);
+            associadosDisponiveis = await AssociadosService.ObterAssociadosAtivosAsync();
+
+            // Remover associados que já são participantes ativos
+            if (participantes?.Any() == true && associadosDisponiveis?.Any() == true)
+            {
+                var participantesAtivos = participantes.Where(p => p.Ativo).Select(p => p.IdAssociado).ToList();
+                associadosDisponiveis = associadosDisponiveis.Where(a => !participantesAtivos.Contains(a.Id)).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError($"Erro ao carregar participantes: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task AdicionarParticipante()
+    {
+        if (novoParticipanteIdAssociado == 0 || isProcessing) return;
+
+        try
+        {
+            isProcessing = true;
+            StateHasChanged();
+
+            await FrentesInternasService.AdicionarParticipanteFrenteInternaAsync(IdFrenteInterna, novoParticipanteIdAssociado);
+            
+            novoParticipanteIdAssociado = 0;
+            await RefreshAsync();
+            await OnParticipantesChanged.InvokeAsync();
+            
+            MessageBoxService.ShowSuccess("Participante adicionado com sucesso!");
+            TelemetryService.TrackEvent("ParticipanteFrenteInterna_Adicionado", new Dictionary<string, string> 
+            { 
+                { "IdFrenteInterna", IdFrenteInterna.ToString() },
+                { "IdAssociado", novoParticipanteIdAssociado.ToString() }
+            });
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError($"Erro ao adicionar participante: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task InativarParticipante(int idParticipanteFrenteInterna)
+    {
+        if (isProcessing) return;
+
+        try
+        {
+            isProcessing = true;
+            StateHasChanged();
+
+            await FrentesInternasService.InativarParticipanteFrenteInternaAsync(idParticipanteFrenteInterna);
+            
+            await RefreshAsync();
+            await OnParticipantesChanged.InvokeAsync();
+            
+            MessageBoxService.ShowSuccess("Participante inativado com sucesso!");
+            TelemetryService.TrackEvent("ParticipanteFrenteInterna_Inativado", new Dictionary<string, string> 
+            { 
+                { "IdParticipanteFrenteInterna", idParticipanteFrenteInterna.ToString() }
+            });
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError($"Erro ao inativar participante: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+}
