@@ -1,0 +1,49 @@
+@inject NavigationManager Navigation
+
+@if (EvaluationItems != null && EvaluationItems.Any())
+{
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Avaliações</h4>
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @foreach (var item in EvaluationItems.Take(3))
+                            {
+                                <button class="@item.CssClass" @onclick="() => NavigateToPage(item.Action)">
+                                    @item.Text
+                                </button>
+                            }
+                            
+                            @if (ShowEvaluationActions && EvaluationItems.Count > 3)
+                            {
+                                <div>
+                                    @foreach (var item in EvaluationItems.Skip(3))
+                                    {
+                                        <button class="@item.CssClass" @onclick="() => NavigateToPage(item.Action)">
+                                            @item.Text
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<EvaluationItem> EvaluationItems { get; set; } = new();
+    [Parameter] public bool ShowEvaluationActions { get; set; }
+
+    private void NavigateToPage(string action)
+    {
+        if (!string.IsNullOrEmpty(action))
+        {
+            Navigation.NavigateTo($"/{action}");
+        }
+    }
+}
