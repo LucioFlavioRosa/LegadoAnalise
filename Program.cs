@@ -124,6 +124,9 @@ builder.Services.AddScoped<IPerguntasEncerramentoService, PerguntasEncerramentoS
 // TotalAvaliacao Services - Nova migração de Web Forms para Blazor
 builder.Services.AddScoped<ITotalAvaliacaoService, TotalAvaliacaoService>();
 
+// TotalizadorAvaliacao Services - Nova migração de Web Forms para Blazor
+builder.Services.AddScoped<ITotalizadorAvaliacaoService, TotalizadorAvaliacaoService>();
+
 // Business Services - Dependency Injection
 builder.Services.AddScoped<ICompetenciasService, CompetenciasService>();
 builder.Services.AddScoped<ICargosService, CargosService>();
