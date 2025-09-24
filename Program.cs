@@ -100,6 +100,9 @@ builder.Services.AddScoped<ITokenDecoder, TokenDecoder>();
 builder.Services.AddScoped<IAuthCallbackService, AuthCallbackService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// Auth Common Services - Logout Migration
+builder.Services.AddScoped<ILogoutService, LogoutService>();
+
 // Footer Services - Login Migration
 builder.Services.AddScoped<IFooterLinksService, FooterLinksService>();
 
