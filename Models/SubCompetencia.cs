@@ -1,28 +1,20 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Peers.Moderno.Models;
 
-[Table("SUBCOMPETENCIAS")]
 public class SubCompetencia
 {
-    [Key]
     public int IdSubCompetencia { get; set; }
-
-    [Required]
-    [MaxLength(500)]
-    [Column("SubCompetencia")]
     public string Nome { get; set; } = string.Empty;
-
-    [MaxLength(50)]
+    public bool ATV { get; set; } = true;
     public string? TipoAvaliacao { get; set; }
-
-    public bool Ativo { get; set; } = true;
-
-    public DateTime DHC { get; set; }
-
+    public DateTime DHC { get; set; } = DateTime.UtcNow;
     public int USR { get; set; }
+    public DateTime? DataAtualizacao { get; set; }
 
     // Navigation properties
     public virtual ICollection<Competencia> Competencias { get; set; } = new List<Competencia>();
+
+    // Computed properties
+    public bool Ativo => ATV;
+    public string StatusTexto => ATV ? "Ativo" : "Inativo";
+    public string TipoAvaliacaoTexto => TipoAvaliacao ?? "Não definido";
 }

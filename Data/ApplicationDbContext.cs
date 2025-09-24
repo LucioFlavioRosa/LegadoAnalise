@@ -97,7 +97,15 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.IdSubCompetencia);
             entity.ToTable("SUBCOMPETENCIAS");
-            entity.Property(e => e.Nome).HasColumnName("SubCompetencia");
+            entity.Property(e => e.Nome).HasColumnName("SubCompetencia").HasMaxLength(500).IsRequired();
+            entity.Property(e => e.ATV).HasColumnName("ATV").HasDefaultValue(true);
+            entity.Property(e => e.TipoAvaliacao).HasColumnName("TipoAvaliacao").HasMaxLength(50);
+            entity.Property(e => e.DHC).HasColumnName("DHC").HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.USR).HasColumnName("USR").IsRequired();
+            entity.Property(e => e.DataAtualizacao).HasColumnName("DataAtualizacao");
+            
+            entity.HasIndex(e => e.Nome).HasDatabaseName("IX_SUBCOMPETENCIAS_Nome");
+            entity.HasIndex(e => e.TipoAvaliacao).HasDatabaseName("IX_SUBCOMPETENCIAS_TipoAvaliacao");
         });
 
         modelBuilder.Entity<Dimensao>(entity =>
