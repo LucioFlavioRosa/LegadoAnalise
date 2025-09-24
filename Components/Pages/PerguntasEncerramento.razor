@@ -1,0 +1,189 @@
+@page "/perguntas-encerramento"
+@rendermode InteractiveAuto
+@inject IPerguntasEncerramentoService PerguntasService
+@inject IMessageBoxService MessageBoxService
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Common
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Perguntas de Encerramento</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers / Cadastro Básico de Projetos</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Perguntas de Encerramento</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Dados de Perguntas de Encerramento</h4>
+            <EditForm Model="@perguntaAtual" OnValidSubmit="@SalvarPergunta">
+                <DataAnnotationsValidator />
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Código</label>
+                                <InputText @bind-Value="perguntaAtual.Codigo" class="form-control" placeholder="Digite o código" />
+                                <ValidationMessage For="@(() => perguntaAtual.Codigo)" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Pergunta de Encerramento</label>
+                                <InputText @bind-Value="perguntaAtual.Descricao" class="form-control" placeholder="Digite a pergunta" />
+                                <ValidationMessage For="@(() => perguntaAtual.Descricao)" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Possui comentário?</label>
+                                <InputSelect @bind-Value="perguntaAtual.PossuiComentario" class="form-control p-0">
+                                    <option value="false">NÃO</option>
+                                    <option value="true">SIM</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-info" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span>Processando...</span>
+                            }
+                            else
+                            {
+                                <span>@(modoEdicao ? "Atualizar" : "Cadastrar")</span>
+                            }
+                        </button>
+                        <button type="button" class="btn btn-dark" @onclick="LimparFormulario" disabled="@isLoading">
+                            Limpar
+                        </button>
+                        @if (modoEdicao)
+                        {
+                            <button type="button" class="btn btn-secondary" @onclick="CancelarEdicao" disabled="@isLoading">
+                                Cancelar
+                            </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Lista de Perguntas de Encerramento</h4>
+            <h6 class="card-subtitle">Filtre as informações separadas por espaço para busca em qualquer coluna em qualquer ordem, completo ou parcial: <code>pergunta de encerramento código</code>.</h6>
+            
+            @if (isLoadingList)
+            {
+                <div class="text-center p-4">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Carregando...</span>
+                    </div>
+                    <p class="mt-2">Carregando perguntas...</p>
+                </div>
+            }
+            else if (perguntas.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped border dtInit">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Pergunta de Encerramento</th>
+                                <th>Possui comentário?</th>
+                                <th data-sort="0">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pergunta in perguntasFiltradas)
+                            {
+                                <tr>
+                                    <td>@pergunta.Codigo</td>
+                                    <td>@pergunta.Descricao</td>
+                                    <td>@(pergunta.PossuiComentario ? "SIM" : "NÃO")</td>
+                                    <td>
+                                        <button type="button" class="btn btn-info btn-outline btn-circle btn-lg m-r-5" 
+                                                @onclick="() => EditarPergunta(pergunta)" 
+                                                disabled="@isLoading"
+                                                title="Editar">
+                                            <i class="ti-pencil-alt"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-dark btn-outline btn-circle btn-lg m-r-5" 
+                                                @onclick="() => RemoverPergunta(pergunta.Id)" 
+                                                disabled="@isLoading"
+                                                title="Remover"
+                                                @onclick:preventDefault="true">
+                                            <i class="ti-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Código</th>
+                                <th>Pergunta de Encerramento</th>
+                                <th>Possui comentário?</th>
+                                <th>Ação</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center p-4">
+                    <p class="text-muted">Nenhuma pergunta de encerramento cadastrada.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (showDeleteConfirmation)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Exclusão</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja remover esta pergunta de encerramento?</p>
+                    <p><strong>Código:</strong> @perguntaParaRemover?.Codigo</p>
+                    <p><strong>Descrição:</strong> @perguntaParaRemover?.Descricao</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarRemocao" disabled="@isLoading">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmarRemocao" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span>Removendo...</span>
+                        }
+                        else
+                        {
+                            <span>Confirmar Remoção</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
