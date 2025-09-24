@@ -8,7 +8,7 @@ O sistema de gestão de projetos é responsável pelo cadastro, edição, listag
 
 ### Estrutura de Pastas
 
-
+```text
 Services/
   Projetos/
     ProjetosService.cs              # Serviço principal de negócio
@@ -37,7 +37,7 @@ Models/
   AssociadoProjeto.cs           # Modelo de alocação
   TipoProjeto.cs                # Tipos de projeto
   ProjetoComplexidade.cs        # Complexidades
-
+```
 
 ### Serviços Reutilizados
 
@@ -46,6 +46,7 @@ Models/
 - **Propósito**: Centralizar exibição de mensagens de sucesso, erro, aviso e informação
 - **Uso**: Injetado nos serviços de negócio para feedback ao usuário
 
+```text
 csharp
 // Exemplo de uso
 public class ProjetosService
@@ -67,13 +68,14 @@ public class ProjetosService
         }
     }
 }
-
+```
 
 #### TelemetryService
 - **Localização**: `Services/Common/TelemetryService.cs`
 - **Propósito**: Rastreamento de eventos, exceções e métricas para observabilidade
 - **Uso**: Monitoramento de operações críticas e debugging
 
+```text
 csharp
 // Exemplo de uso
 public async Task<List<Projeto>> ObterProjetosAsync()
@@ -105,13 +107,13 @@ public async Task<List<Projeto>> ObterProjetosAsync()
         _telemetryService.TrackDependency("Database", "ObterProjetos", "SELECT", startTime, duration, true);
     }
 }
-
+```
 
 #### UserContextService
 - **Localização**: `Services/Common/UserContextService.cs`
 - **Propósito**: Gerenciar contexto do usuário logado, permissões e sessão
 - **Uso**: Controle de acesso e auditoria
-
+```text
 csharp
 // Exemplo de uso
 public async Task<bool> PodeEditarProjetoAsync(int projetoId)
@@ -127,13 +129,13 @@ public async Task<bool> PodeEditarProjetoAsync(int projetoId)
     return projeto?.IdAssociadoResponsavel == usuario.Id || 
            projeto?.IdAssociadoGestor == usuario.Id;
 }
-
+```
 
 #### ComboHelper (Expandido)
 - **Localização**: `Services/Common/ComboHelper.cs`
 - **Propósito**: Utilitários genéricos para criação e manipulação de combos
 - **Expansões**: Métodos específicos para projetos e criação dinâmica de combos
-
+```text
 csharp
 // Novos métodos adicionados
 var statusItems = ComboHelper.GetStatusProjetoItems();
@@ -142,13 +144,13 @@ var comboFromList = ComboHelper.CreateComboFromList(
     c => c.IdCliente.ToString(), 
     c => c.Nome
 );
-
+```
 
 ## Configurações
 
 ### appsettings.json - Seção Projetos
 
-
+```json
 {
   "Projetos": {
     "MaxProjetoLength": 500,
@@ -168,11 +170,11 @@ var comboFromList = ComboHelper.CreateComboFromList(
     }
   }
 }
-
+```
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     Start([Usuário Acessa Sistema]) --> Auth{Usuário Autenticado?}
     Auth -->|Não| Login[Página de Login]
@@ -226,14 +228,14 @@ flowchart TD
     Login --> Auth
     AccessDenied --> End([Fim])
     MainPage --> End
-
+```
 
 ## Padrões de Implementação
 
 ### 1. Injeção de Dependência
 
 Todos os serviços devem ser registrados no `Program.cs`:
-
+```text
 csharp
 // Projetos Services
 builder.Services.AddScoped<IProjetosService, ProjetosService>();
@@ -243,10 +245,10 @@ builder.Services.AddScoped<IProjetosComboHelper, ProjetosComboHelper>();
 builder.Services.AddScoped<IMessageBoxService, MessageBoxService>();
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 builder.Services.AddScoped<IUserContextService, UserContextService>();
-
+```
 
 ### 2. Tratamento de Erros
-
+```text
 csharp
 public async Task<OperationResult<Projeto>> InserirProjetoAsync(Projeto projeto)
 {
@@ -280,10 +282,10 @@ public async Task<OperationResult<Projeto>> InserirProjetoAsync(Projeto projeto)
         return OperationResult<Projeto>.Error("Erro interno");
     }
 }
-
+```
 
 ### 3. Validações
-
+```text
 csharp
 public async Task<ValidationResult> ValidarProjetoAsync(Projeto projeto)
 {
@@ -301,12 +303,12 @@ public async Task<ValidationResult> ValidarProjetoAsync(Projeto projeto)
         
     return ValidationResult.Success();
 }
-
+```
 
 ## Componentes Blazor
 
 ### ProjetoForm.razor
-
+```text
 razor
 @page "/projetos/novo"
 @page "/projetos/editar/{id:int}"
@@ -362,7 +364,7 @@ razor
         }
     }
 }
-
+```
 
 ## Integração com Sistema Legado
 
@@ -389,7 +391,7 @@ razor
 
 ### Logs Estruturados
 
-
+```json
 {
   "Logging": {
     "LogLevel": {
@@ -397,7 +399,7 @@ razor
     }
   }
 }
-
+```
 
 ## Testes
 
