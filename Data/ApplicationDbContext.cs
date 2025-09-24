@@ -34,6 +34,9 @@ public class ApplicationDbContext : DbContext
     
     // Novo DbSet para Performance
     public DbSet<Performance> Performances { get; set; }
+    
+    // Novo DbSet para Perguntas de Encerramento
+    public DbSet<PerguntaEncerramento> PerguntasEncerramento { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -256,6 +259,24 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(d => d.NotaPadraoAvaliacaoGestor)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configuração da entidade PerguntaEncerramento
+        modelBuilder.Entity<PerguntaEncerramento>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("PERGUNTAS_ENCERRAMENTO");
+            
+            entity.Property(e => e.Codigo)
+                .HasMaxLength(50)
+                .IsRequired();
+                
+            entity.Property(e => e.Descricao)
+                .HasMaxLength(1000)
+                .IsRequired();
+                
+            entity.Property(e => e.DataCriacao)
+                .HasDefaultValueSql("GETUTCDATE()");
         });
     }
 }
