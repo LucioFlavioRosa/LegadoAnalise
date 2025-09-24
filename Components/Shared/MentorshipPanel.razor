@@ -1,0 +1,57 @@
+@inject NavigationManager Navigation
+
+@if ((MentorItems != null && MentorItems.Any()) || (MentoredItems != null && MentoredItems.Any()))
+{
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Mentoria</h4>
+            <div class="form-body">
+                @if (ShowMentorActions && MentorItems != null && MentorItems.Any())
+                {
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                @foreach (var item in MentorItems)
+                                {
+                                    <button class="@item.CssClass" @onclick="() => NavigateToPage(item.Action)">
+                                        @item.Text
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+                
+                @if (MentoredItems != null && MentoredItems.Any())
+                {
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                @foreach (var item in MentoredItems)
+                                {
+                                    <button class="@item.CssClass" @onclick="() => NavigateToPage(item.Action)">
+                                        @item.Text
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<MentorshipItem> MentorItems { get; set; } = new();
+    [Parameter] public List<MentorshipItem> MentoredItems { get; set; } = new();
+    [Parameter] public bool ShowMentorActions { get; set; }
+
+    private void NavigateToPage(string action)
+    {
+        if (!string.IsNullOrEmpty(action))
+        {
+            Navigation.NavigateTo($"/{action}");
+        }
+    }
+}
