@@ -113,7 +113,7 @@ Este documento descreve a migração completa da página inicial do sistema de a
 
 ## Fluxo de Funcionamento
 
-mermaid
+```mermaid
 flowchart TD
     Start([Usuário acessa Página Inicial])
     Start --> CheckAuth{Usuário autenticado?}
@@ -139,19 +139,19 @@ flowchart TD
     ShowMentorship --> TelemetryLog[TelemetryService: Registra acesso]
     ShowBasicMentorship --> TelemetryLog
     TelemetryLog --> End([Página carregada])
-
+```
 
 ## Integração dos Serviços
 
 ### Injeção de Dependência
 Todos os serviços são registrados no `Program.cs` como `Scoped`, garantindo que uma instância seja criada por requisição HTTP.
-
+```text
 csharp
 // New Common Services - Index Page Migration
 builder.Services.AddScoped<IUserContextService, UserContextService>();
 builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
-
+```
 
 ### Comunicação entre Componentes
 - **Parent → Child**: Parâmetros (`[Parameter]`)
