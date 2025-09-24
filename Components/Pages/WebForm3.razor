@@ -1,0 +1,154 @@
+@page "/webform3"
+@rendermode InteractiveAuto
+@using Peers.Moderno.Services.Common
+@inject ITelemetryService TelemetryService
+@inject IMessageBoxService MessageBoxService
+
+<PageTitle>WebForm3</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-file-alt me-2"></i>
+                        Página Migrada: WebForm3
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Esta página foi migrada do Web Forms para Blazor Híbrido (.NET 9).
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Características da Migração:</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Renderização Automática (Híbrida)</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Compatível com .NET 9</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Preparada para Serviços Reutilizáveis</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Injeção de Dependência Configurada</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Próximos Passos:</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>Adicionar lógica de negócio conforme necessário</li>
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>Utilizar serviços da pasta Services/Common</li>
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>Implementar funcionalidades específicas</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button class="btn btn-primary" @onclick="HandleTestAction">
+                            <i class="fas fa-play me-2"></i>
+                            Testar Funcionalidade
+                        </button>
+                        <button class="btn btn-outline-secondary ms-2" @onclick="HandleLogAction">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Registrar Telemetria
+                        </button>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(statusMessage))
+                    {
+                        <div class="alert alert-@(isSuccess ? "success" : "warning") mt-3" role="alert">
+                            <i class="fas fa-@(isSuccess ? "check-circle" : "exclamation-triangle") me-2"></i>
+                            @statusMessage
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string statusMessage = string.Empty;
+    private bool isSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            TelemetryService.TrackPageView("WebForm3", new Dictionary<string, string>
+            {
+                { "MigrationType", "WebForms to Blazor" },
+                { "RenderMode", "InteractiveAuto" },
+                { "Framework", ".NET 9" }
+            });
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Component", "WebForm3" },
+                { "Method", "OnInitializedAsync" }
+            });
+        }
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task HandleTestAction()
+    {
+        try
+        {
+            statusMessage = "Funcionalidade testada com sucesso! Componente Blazor funcionando corretamente.";
+            isSuccess = true;
+            
+            MessageBoxService.ShowSuccess("Teste executado com sucesso!");
+            
+            TelemetryService.TrackEvent("WebForm3TestAction", new Dictionary<string, string>
+            {
+                { "ActionType", "Test" },
+                { "Result", "Success" }
+            });
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Erro ao executar teste: {ex.Message}";
+            isSuccess = false;
+            
+            MessageBoxService.ShowError("Erro ao executar teste");
+            TelemetryService.TrackException(ex);
+            
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleLogAction()
+    {
+        try
+        {
+            TelemetryService.TrackEvent("WebForm3LogAction", new Dictionary<string, string>
+            {
+                { "ActionType", "Manual Log" },
+                { "Timestamp", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") },
+                { "Component", "WebForm3" }
+            });
+            
+            statusMessage = "Telemetria registrada com sucesso!";
+            isSuccess = true;
+            
+            MessageBoxService.ShowInfo("Evento de telemetria registrado");
+            
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Erro ao registrar telemetria: {ex.Message}";
+            isSuccess = false;
+            
+            MessageBoxService.ShowError("Erro ao registrar telemetria");
+            TelemetryService.TrackException(ex);
+            
+            StateHasChanged();
+        }
+    }
+}
