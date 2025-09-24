@@ -46,24 +46,24 @@ A página `TotalAvaliacao.aspx` foi completamente migrada para um componente Bla
 ## Integração com o Sistema
 
 ### Injeção de Dependência
-
+```text
 csharp
 // Program.cs
 builder.Services.AddScoped<ITotalAvaliacaoService, TotalAvaliacaoService>();
-
+```
 
 ### Uso em Componentes
-
+```text
 razor
 @inject Peers.Moderno.Services.Common.Avaliacoes.ITotalAvaliacaoService TotalAvaliacaoService
-
+```
 
 ### Configuração de Rota
-
+```text
 razor
 @page "/total-avaliacao"
 @rendermode InteractiveAuto
-
+```
 
 ## Reutilização
 
@@ -85,7 +85,7 @@ Todos os métodos do serviço registram eventos de telemetria:
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[TotalAvaliacao.razor] -->|Injeta| B[ITotalAvaliacaoService]
     B -->|Implementa| C[TotalAvaliacaoService]
@@ -115,7 +115,7 @@ flowchart TD
     C -.->|Suporta| M
     C -.->|Suporta| N
     C -.->|Suporta| O
-
+```
 
 ## Benefícios da Migração
 
