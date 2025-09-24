@@ -1,0 +1,140 @@
+@page "/perfis"
+@rendermode InteractiveAuto
+@using Peers.Moderno.Services.Perfis
+@using Peers.Moderno.Services.Perfis.Common
+@using Peers.Moderno.Services.Common
+@inject IPerfisService PerfisService
+@inject IMessageBoxService MessageBoxService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Perfis de Acesso</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Perfis de acesso</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Cadastros Básicos de Usuário / Perfis de acesso</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <MessageBox />
+    
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Dados do perfil</h4>
+            <EditForm Model="@perfilAtual" OnValidSubmit="@SalvarPerfil">
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Perfil</label>
+                                <InputText @bind-Value="perfilAtual.Nome" class="form-control" placeholder="Digite o nome do perfil" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <InputSelect @bind-Value="perfilAtual.Ativo" class="form-control">
+                                    @foreach (var option in statusOptions)
+                                    {
+                                        <option value="@option.Value">@option.Text</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-info" disabled="@isProcessing">
+                            @if (isProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span>Processando...</span>
+                            }
+                            else
+                            {
+                                <span>@(isEditMode ? "Alterar" : "Cadastrar")</span>
+                            }
+                        </button>
+                        @if (isEditMode)
+                        {
+                            <button type="button" class="btn btn-secondary ml-2" @onclick="CancelarEdicao">
+                                Cancelar
+                            </button>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Lista de perfis de acesso</h4>
+            <h6 class="card-subtitle">Filtre as informações separadas por espaço para busca em qualquer coluna em qualquer ordem, completo ou parcial: <code>perfil código</code>.</h6>
+            
+            @if (isLoading)
+            {
+                <div class="text-center p-4">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Carregando...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped border dtInit">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Perfil</th>
+                                <th>Status(Ativo/Inativo)</th>
+                                <th data-sort="0">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var perfil in perfis)
+                            {
+                                <tr>
+                                    <td>@perfil.Id</td>
+                                    <td>@perfil.Nome</td>
+                                    <td>@perfil.StatusTexto</td>
+                                    <td>
+                                        <button class="btn btn-info btn-sm" @onclick="() => EditarPerfil(perfil.Id)">
+                                            Alterar
+                                        </button>
+                                        @if (perfil.Ativo)
+                                        {
+                                            <button class="btn btn-dark btn-sm ml-1" @onclick="() => InativarPerfil(perfil.Id)">
+                                                Inativar
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Código</th>
+                                <th>Perfil</th>
+                                <th>Status(Ativo/Inativo)</th>
+                                <th data-sort="0">Ação</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
