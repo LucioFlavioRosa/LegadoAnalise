@@ -1,11 +1,10 @@
 @page "/frentes-internas"
+@rendermode InteractiveAuto
 @using Peers.Moderno.Services.FrentesInternas
 @using Peers.Moderno.Services.Common
-@using Peers.Moderno.Models
 @inject IFrentesInternasService FrentesInternasService
 @inject IMessageBoxService MessageBoxService
 @inject ITelemetryService TelemetryService
-@rendermode InteractiveAuto
 
 <PageTitle>Alocações Internas</PageTitle>
 
@@ -34,7 +33,7 @@
     <!-- Lista de Frentes Internas -->
     <ListaFrentesInternas @ref="listaRef" 
                          OnEditarFrenteInterna="OnEditarFrenteInterna" 
-                         OnInativarFrenteInterna="OnInativarFrenteInterna" />
+                         OnExcluirFrenteInterna="OnExcluirFrenteInterna" />
 
     <!-- Seção de Avaliação -->
     <AvaliarFrenteInterna @ref="avaliarRef" />
@@ -51,86 +50,39 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            TelemetryService.TrackPageView("FrentesInternas");
-            await Task.CompletedTask;
-        }
-        catch (Exception ex)
-        {
-            TelemetryService.TrackException(ex);
-            MessageBoxService.ShowError($"Erro ao carregar página: {ex.Message}");
-        }
+        TelemetryService.TrackPageView("FrentesInternas");
+        await base.OnInitializedAsync();
     }
 
     private async Task OnFrenteInternaSalva()
     {
-        try
-        {
-            MessageBoxService.ShowSuccess("Frente interna cadastrada com sucesso!");
-            await RefreshLista();
-            TelemetryService.TrackEvent("FrenteInterna_Cadastrada");
-        }
-        catch (Exception ex)
-        {
-            TelemetryService.TrackException(ex);
-            MessageBoxService.ShowError($"Erro ao processar cadastro: {ex.Message}");
-        }
+        await listaRef!.AtualizarLista();
+        MessageBoxService.ShowSuccess("Frente interna salva com sucesso!");
     }
 
     private async Task OnFrenteInternaEditada()
     {
-        try
-        {
-            MessageBoxService.ShowSuccess("Frente interna atualizada com sucesso!");
-            await RefreshLista();
-            TelemetryService.TrackEvent("FrenteInterna_Atualizada");
-        }
-        catch (Exception ex)
-        {
-            TelemetryService.TrackException(ex);
-            MessageBoxService.ShowError($"Erro ao processar atualização: {ex.Message}");
-        }
+        await listaRef!.AtualizarLista();
+        MessageBoxService.ShowSuccess("Frente interna atualizada com sucesso!");
     }
 
-    private async Task OnEditarFrenteInterna(FrenteInternaModel frenteInterna)
+    private async Task OnEditarFrenteInterna(int idFrenteInterna)
     {
-        try
-        {
-            if (editorRef != null)
-            {
-                await editorRef.EditarFrenteInterna(frenteInterna);
-            }
-            TelemetryService.TrackEvent("FrenteInterna_IniciarEdicao", new Dictionary<string, string> { { "Id", frenteInterna.IdFrenteInterna.ToString() } });
-        }
-        catch (Exception ex)
-        {
-            TelemetryService.TrackException(ex);
-            MessageBoxService.ShowError($"Erro ao iniciar edição: {ex.Message}");
-        }
+        await editorRef!.EditarFrenteInterna(idFrenteInterna);
     }
 
-    private async Task OnInativarFrenteInterna(int idFrenteInterna)
+    private async Task OnExcluirFrenteInterna(int idFrenteInterna)
     {
         try
         {
             await FrentesInternasService.InativarFrenteInternaAsync(idFrenteInterna);
+            await listaRef!.AtualizarLista();
             MessageBoxService.ShowSuccess("Frente interna inativada com sucesso!");
-            await RefreshLista();
-            TelemetryService.TrackEvent("FrenteInterna_Inativada", new Dictionary<string, string> { { "Id", idFrenteInterna.ToString() } });
         }
         catch (Exception ex)
         {
-            TelemetryService.TrackException(ex);
             MessageBoxService.ShowError($"Erro ao inativar frente interna: {ex.Message}");
-        }
-    }
-
-    private async Task RefreshLista()
-    {
-        if (listaRef != null)
-        {
-            await listaRef.RefreshAsync();
+            TelemetryService.TrackException(ex);
         }
     }
 }
