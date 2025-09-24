@@ -32,6 +32,9 @@ public class ApplicationDbContext : DbContext
     // Novo DbSet para Complexidades
     public DbSet<ProjetoComplexidade> ProjetosComplexidades { get; set; }
 
+    // Novo DbSet para Performance
+    public DbSet<Performance> Performances { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -221,6 +224,24 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.IdComplexidade);
             entity.ToTable("PROJETOSCOMPLEXIDADES");
+        });
+
+        // Configuração da entidade Performance
+        modelBuilder.Entity<Performance>(entity =>
+        {
+            entity.HasKey(e => e.IdPerformance);
+            entity.ToTable("PERFORMANCES");
+            entity.Property(e => e.Nome).HasColumnName("Performance");
+            
+            entity.HasOne(d => d.Cargo)
+                .WithMany()
+                .HasForeignKey(d => d.IdCargo)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.CargoNivel)
+                .WithMany()
+                .HasForeignKey(d => d.IdNivel)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
