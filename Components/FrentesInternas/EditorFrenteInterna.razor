@@ -8,8 +8,7 @@
 <div class="card">
     <div class="card-body">
         <h4>Dados da Alocação Interna</h4>
-        
-        <EditForm Model="@frenteInternaModel" OnValidSubmit="@HandleValidSubmit">
+        <EditForm Model="@frenteInterna" OnValidSubmit="@SalvarFrenteInterna">
             <DataAnnotationsValidator />
             <ValidationSummary />
             
@@ -18,14 +17,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Nome</label>
-                            <InputText @bind-Value="frenteInternaModel.Nome" class="form-control" />
-                            <ValidationMessage For="@(() => frenteInternaModel.Nome)" />
+                            <InputText @bind-Value="frenteInterna.Nome" class="form-control" />
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Status</label>
-                            <InputSelect @bind-Value="frenteInternaModel.Status" class="form-control">
+                            <InputSelect @bind-Value="frenteInterna.Ativo" class="form-control">
                                 <option value="true">Ativo</option>
                                 <option value="false">Inativo</option>
                             </InputSelect>
@@ -34,35 +32,27 @@
                 </div>
             </div>
 
-            @if (isEditMode && frenteInternaModel.IdFrenteInterna > 0)
+            @if (modoEdicao && frenteInterna.Id > 0)
             {
-                <!-- Líderes da Alocação Interna -->
+                <!-- Líderes da Frente Interna -->
                 <LideresFrenteInterna @ref="lideresRef" 
-                                     IdFrenteInterna="frenteInternaModel.IdFrenteInterna" 
-                                     OnLideresChanged="OnLideresChanged" />
+                                     IdFrenteInterna="frenteInterna.Id" 
+                                     OnLideresAtualizados="OnLideresAtualizados" />
 
-                <!-- Participantes da Alocação Interna -->
+                <!-- Participantes da Frente Interna -->
                 <ParticipantesFrenteInterna @ref="participantesRef" 
-                                           IdFrenteInterna="frenteInternaModel.IdFrenteInterna" 
-                                           OnParticipantesChanged="OnParticipantesChanged" />
+                                           IdFrenteInterna="frenteInterna.Id" 
+                                           OnParticipantesAtualizados="OnParticipantesAtualizados" />
             }
 
             <div class="form-actions">
                 <div class="text-right">
-                    <button type="submit" class="btn btn-info" disabled="@isLoading">
-                        @if (isLoading)
-                        {
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            <span>Processando...</span>
-                        }
-                        else
-                        {
-                            @(isEditMode ? "Alterar" : "Cadastrar")
-                        }
+                    <button type="submit" class="btn btn-info">
+                        @(modoEdicao ? "Alterar" : "Cadastrar")
                     </button>
-                    @if (isEditMode)
+                    @if (modoEdicao)
                     {
-                        <button type="button" class="btn btn-secondary ml-2" @onclick="CancelarEdicao">
+                        <button type="button" class="btn btn-secondary ml-2" @onclick="LimparFormulario">
                             Cancelar
                         </button>
                     }
@@ -76,108 +66,77 @@
     [Parameter] public EventCallback OnFrenteInternaSalva { get; set; }
     [Parameter] public EventCallback OnFrenteInternaEditada { get; set; }
 
-    private FrenteInternaEditModel frenteInternaModel = new();
-    private bool isEditMode = false;
-    private bool isLoading = false;
+    private FrenteInternaModel frenteInterna = new();
+    private bool modoEdicao = false;
     private LideresFrenteInterna? lideresRef;
     private ParticipantesFrenteInterna? participantesRef;
 
-    private async Task HandleValidSubmit()
+    public async Task EditarFrenteInterna(int idFrenteInterna)
     {
-        if (isLoading) return;
-
         try
         {
-            isLoading = true;
-            StateHasChanged();
-
-            if (string.IsNullOrWhiteSpace(frenteInternaModel.Nome))
+            var frente = await FrentesInternasService.ObterFrenteInternaPorIdAsync(idFrenteInterna);
+            if (frente != null)
             {
-                MessageBoxService.ShowWarning("Preencha o campo Frente Interna");
+                frenteInterna = frente;
+                modoEdicao = true;
+                StateHasChanged();
+                
+                await Task.Delay(100); // Aguarda renderização dos componentes filhos
+                await lideresRef?.CarregarLideres()!;
+                await participantesRef?.CarregarParticipantes()!;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError($"Erro ao carregar frente interna: {ex.Message}");
+            TelemetryService.TrackException(ex);
+        }
+    }
+
+    private async Task SalvarFrenteInterna()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(frenteInterna.Nome))
+            {
+                MessageBoxService.ShowWarning("Preencha o campo Nome");
                 return;
             }
 
-            if (isEditMode)
+            if (modoEdicao)
             {
-                await FrentesInternasService.AtualizarFrenteInternaAsync(frenteInternaModel);
+                await FrentesInternasService.AtualizarFrenteInternaAsync(frenteInterna);
                 await OnFrenteInternaEditada.InvokeAsync();
             }
             else
             {
-                var novaFrenteInterna = await FrentesInternasService.CriarFrenteInternaAsync(frenteInternaModel);
-                frenteInternaModel.IdFrenteInterna = novaFrenteInterna.IdFrenteInterna;
+                await FrentesInternasService.CriarFrenteInternaAsync(frenteInterna);
                 await OnFrenteInternaSalva.InvokeAsync();
+                LimparFormulario();
             }
-
-            LimparFormulario();
         }
         catch (Exception ex)
         {
-            TelemetryService.TrackException(ex);
             MessageBoxService.ShowError($"Erro ao salvar frente interna: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-            StateHasChanged();
-        }
-    }
-
-    public async Task EditarFrenteInterna(FrenteInternaModel frenteInterna)
-    {
-        try
-        {
-            var frenteCompleta = await FrentesInternasService.ObterFrenteInternaPorIdAsync(frenteInterna.IdFrenteInterna);
-            
-            frenteInternaModel = new FrenteInternaEditModel
-            {
-                IdFrenteInterna = frenteCompleta.IdFrenteInterna,
-                Nome = frenteCompleta.Nome,
-                Status = frenteCompleta.Status
-            };
-
-            isEditMode = true;
-            StateHasChanged();
-
-            await Task.Delay(100); // Aguarda renderização
-            
-            if (lideresRef != null)
-            {
-                await lideresRef.RefreshAsync();
-            }
-            if (participantesRef != null)
-            {
-                await participantesRef.RefreshAsync();
-            }
-        }
-        catch (Exception ex)
-        {
             TelemetryService.TrackException(ex);
-            MessageBoxService.ShowError($"Erro ao carregar dados para edição: {ex.Message}");
         }
-    }
-
-    private void CancelarEdicao()
-    {
-        LimparFormulario();
     }
 
     private void LimparFormulario()
     {
-        frenteInternaModel = new FrenteInternaEditModel();
-        isEditMode = false;
+        frenteInterna = new FrenteInternaModel();
+        modoEdicao = false;
         StateHasChanged();
     }
 
-    private async Task OnLideresChanged()
+    private async Task OnLideresAtualizados()
     {
-        await Task.CompletedTask;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private async Task OnParticipantesChanged()
+    private async Task OnParticipantesAtualizados()
     {
-        await Task.CompletedTask;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 }
