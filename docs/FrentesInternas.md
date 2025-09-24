@@ -8,7 +8,7 @@ Este documento descreve a arquitetura e integração dos serviços e componentes
 
 ### Estrutura de Pastas
 
-
+``text
 Services/FrentesInternas/
 ├── IFrentesInternasService.cs          # Interface principal do serviço
 ├── FrentesInternasService.cs           # Implementação do serviço principal
@@ -31,7 +31,7 @@ Models/
 ├── FrenteInternaModel.cs               # Modelo principal
 ├── LiderFrenteInternaModel.cs          # Modelo para líderes
 └── ParticipanteFrenteInternaModel.cs   # Modelo para participantes
-
+```
 
 ### Serviços Principais
 
@@ -119,7 +119,7 @@ TelemetryService.TrackEvent("FrenteInterna_Criada", new Dictionary<string, strin
 
 #### appsettings.json
 
-
+```text
 "FrentesInternas": {
   "MaxFrenteInternaLength": 500,
   "MaxExportRecords": 50000,
@@ -137,9 +137,9 @@ TelemetryService.TrackEvent("FrenteInterna_Criada", new Dictionary<string, strin
   "EnableLiderPermissions": true
 }
 
-
+```
 #### Injeção de Dependência (Program.cs)
-
+```text
 csharp
 // FrentesInternas Services
 builder.Services.AddScoped<IFrentesInternasService, FrentesInternasService>();
@@ -147,12 +147,12 @@ builder.Services.AddScoped<IFrentesInternasService, FrentesInternasService>();
 // FrentesInternas Common Services
 builder.Services.AddScoped<IStatusHelper, StatusHelper>();
 builder.Services.AddScoped<IExportHelper, ExportHelper>();
-
+```
 
 ### Modelos de Dados
 
 #### FrenteInternaModel
-
+```text
 csharp
 public class FrenteInternaModel
 {
@@ -163,10 +163,10 @@ public class FrenteInternaModel
     public int ATV { get; set; }
     public bool Ativo => ATV == 1;
 }
-
+```
 
 #### LiderFrenteInternaModel
-
+```text
 csharp
 public class LiderFrenteInternaModel
 {
@@ -178,11 +178,11 @@ public class LiderFrenteInternaModel
     public DateTime DHC { get; set; }
     public int USR { get; set; }
 }
-
+```
 
 ### Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     UI[Blazor: FrentesInternas.razor]
     
@@ -233,7 +233,7 @@ flowchart TD
     ExportHelper --> Config
     StatusHelper --> Config
     FrentesService --> Config
-
+```
 
 ### Benefícios da Arquitetura
 
