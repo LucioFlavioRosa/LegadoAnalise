@@ -2,200 +2,288 @@
 
 ## Visão Geral
 
-O módulo Performance foi modernizado seguindo os padrões estabelecidos no projeto Peers.Moderno, com foco na reutilização de código e separação de responsabilidades. Os utilitários comuns foram criados na pasta `Services/Performance/Common/` para facilitar a manutenção e permitir reutilização em outros módulos.
+O módulo Performance foi projetado para gerenciar as performances dos associados no sistema de avaliação interna da empresa. Este módulo permite o cadastro, edição, importação e exportação de performances, incluindo configurações de notas padrão para diferentes tipos de avaliação (auto-avaliação, avaliação às cegas e avaliação do gestor).
 
 ## Arquitetura
 
 ### Estrutura de Pastas
 
 
-Services/Performance/Common/
-├── PerformanceImportExportUtil.cs    # Utilitário para import/export Excel
-├── PerformanceValidationUtil.cs      # Validações de regras de negócio
-└── PerformanceComboHelper.cs         # Helper para combos e dropdowns
+Peers.Moderno/
+├── Models/
+│   └── Performance.cs
+├── Services/
+│   └── Performance/
+│       ├── IPerformanceService.cs
+│       ├── PerformanceService.cs
+│       └── Common/
+│           ├── IPerformanceImportExportUtil.cs
+│           ├── PerformanceImportExportUtil.cs
+│           ├── IPerformanceValidationUtil.cs
+│           ├── PerformanceValidationUtil.cs
+│           ├── IPerformanceComboHelper.cs
+│           └── PerformanceComboHelper.cs
+├── Components/
+│   └── Performance/
+│       ├── Performance.razor
+│       └── Performance.razor.cs
+└── docs/
+    └── Performance.md
 
 
 ### Componentes Principais
 
-#### 1. PerformanceImportExportUtil
-- **Responsabilidade**: Gerenciar importação e exportação de planilhas Excel
-- **Tecnologia**: EPPlus para manipulação de arquivos Excel
-- **Funcionalidades**:
-  - Exportação de performances para Excel com formatação
-  - Importação com validação de estrutura
-  - Parsing de dados com tratamento de erros
-  - Integração com telemetria
+#### 1. PerformanceService
+- **Responsabilidade**: Lógica principal de negócio para operações CRUD de Performance
+- **Métodos principais**:
+  - `InserirPerformanceAsync()`: Inserção de nova performance
+  - `AlterarPerformanceAsync()`: Alteração de performance existente
+  - `ExcluirPerformanceAsync()`: Inativação de performance
+  - `ObterPerformanceAsync()`: Busca de performance por ID
+  - `ObterListaPerformancesAsync()`: Listagem de performances
+  - `ImportarPerformancesAsync()`: Importação via planilha Excel
+  - `ExportarPerformancesAsync()`: Exportação para planilha Excel
 
-#### 2. PerformanceValidationUtil
-- **Responsabilidade**: Centralizar todas as validações de regras de negócio
+#### 2. PerformanceImportExportUtil
+- **Responsabilidade**: Utilitário para importação e exportação de planilhas Excel
 - **Funcionalidades**:
-  - Validação de campos obrigatórios
-  - Validação de regras de negócio (tamanhos, formatos)
-  - Validação de consistência entre inputs e notas padrão
-  - Validações específicas para inserção, alteração e exclusão
+  - Leitura de arquivos Excel (.xlsx, .xls)
+  - Validação de estrutura de planilha
+  - Geração de arquivos Excel para exportação
+  - Tratamento de erros de importação
 
-#### 3. PerformanceComboHelper
-- **Responsabilidade**: Gerenciar dados para combos e dropdowns
+#### 3. PerformanceValidationUtil
+- **Responsabilidade**: Validação de regras de negócio
+- **Validações**:
+  - Campos obrigatórios
+  - Consistência de notas padrão
+  - Validação de tipos de avaliação
+  - Verificação de duplicatas
+
+#### 4. PerformanceComboHelper
+- **Responsabilidade**: Helper para combos e dropdowns
 - **Funcionalidades**:
-  - Carregamento de cargos
-  - Opções de status (Ativo/Inativo)
-  - Opções de abrangência (Individual/Coletivo)
-  - Carregamento de notas padrão
-  - Formatação de textos para exibição
+  - Lista de cargos
+  - Lista de status (Ativo/Inativo)
+  - Lista de abrangências (Individual/Coletivo)
+  - Lista de notas de avaliação
 
 ## Fluxo de Alto Nível
 
 mermaid
 flowchart TD
-    UI[Performance UI Component]
+    A[Performance.razor] -->|Injeção de Dependência| B[PerformanceService]
+    A -->|Validação| C[PerformanceValidationUtil]
+    A -->|Combos/Dropdowns| D[PerformanceComboHelper]
+    A -->|Import/Export| E[PerformanceImportExportUtil]
     
-    UI -->|Import/Export| ImportExportUtil[PerformanceImportExportUtil]
-    UI -->|Validation| ValidationUtil[PerformanceValidationUtil]
-    UI -->|Combos/Dropdowns| ComboHelper[PerformanceComboHelper]
+    B -->|CRUD Operations| F[ApplicationDbContext]
+    B -->|Validação| C
+    B -->|Import/Export| E
+    B -->|Telemetria| G[TelemetryService]
+    B -->|Mensagens| H[MessageBoxService]
     
-    ImportExportUtil -->|Excel Processing| EPPlus[EPPlus Library]
-    ImportExportUtil -->|Validation| ValidationUtil
-    ImportExportUtil -->|Telemetry| TelemetryService[ITelemetryService]
+    C -->|Configurações| I[appsettings.json]
+    E -->|EPPlus| J[Excel Files]
+    E -->|Configurações| I
     
-    ValidationUtil -->|Business Rules| BusinessLogic[Business Rules Engine]
-    ValidationUtil -->|Combo Validation| ComboHelper
-    ValidationUtil -->|Telemetry| TelemetryService
+    F -->|Entity Framework| K[(SQL Server Database)]
     
-    ComboHelper -->|Cargos| CargosService[ICargosService]
-    ComboHelper -->|Notas| AvaliacoesService[IAvaliacoesService]
-    ComboHelper -->|Telemetry| TelemetryService
+    G -->|Application Insights| L[Azure Application Insights]
+    H -->|UI Feedback| A
     
-    ImportExportUtil -->|Data Models| Models[Performance Models]
-    ValidationUtil -->|Data Models| Models
-    ComboHelper -->|Data Models| Models
-    
-    Models -->|Entity Framework| Database[(Database)]
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#fff3e0
+    style D fill:#fff3e0
+    style E fill:#fff3e0
+    style F fill:#e8f5e8
+    style K fill:#ffebee
 
 
-## Integração
+## Integração com Outros Módulos
 
-### Injeção de Dependência
+### Dependências
+- **Cargos**: Para listagem de cargos disponíveis
+- **Associados**: Para validação de usuários e permissões
+- **Common Services**: Para telemetria, mensagens e contexto de usuário
 
-Os serviços devem ser registrados no `Program.cs`:
+### Serviços Reutilizados
+- `ITelemetryService`: Para rastreamento de eventos e exceções
+- `IMessageBoxService`: Para exibição de mensagens ao usuário
+- `IUserContextService`: Para contexto do usuário logado
 
-csharp
-// Performance Common Services
-builder.Services.AddScoped<IPerformanceImportExportUtil, PerformanceImportExportUtil>();
-builder.Services.AddScoped<IPerformanceValidationUtil, PerformanceValidationUtil>();
-builder.Services.AddScoped<IPerformanceComboHelper, PerformanceComboHelper>();
+## Configurações
+
+### appsettings.json
 
 
-### Uso nos Componentes
-
-csharp
-public class PerformanceComponent : ComponentBase
 {
-    [Inject] private IPerformanceImportExportUtil ImportExportUtil { get; set; }
-    [Inject] private IPerformanceValidationUtil ValidationUtil { get; set; }
-    [Inject] private IPerformanceComboHelper ComboHelper { get; set; }
-    
-    // Implementação do componente
+  "Performance": {
+    "MaxPerformanceLength": 500,
+    "MaxDescricaoLength": 2000,
+    "MaxExportRecords": 50000,
+    "MaxImportRecords": 10000,
+    "MaxFileSizeMB": 10,
+    "AllowedFileExtensions": [".xlsx", ".xls"],
+    "ExportTempPath": "temp/exports",
+    "ImportTempPath": "temp/imports",
+    "EnableValidation": true,
+    "DefaultStatus": 1,
+    "DefaultAbrangencia": "Individual",
+    "ValidationMessages": {
+      "CargoObrigatorio": "Selecione o campo Cargo",
+      "PerformanceObrigatoria": "Preencha o campo Performance"
+    }
+  }
 }
 
 
-## Reutilização
+## Funcionalidades Principais
 
-### Padrões de Reutilização Implementados
+### 1. Cadastro de Performance
+- Formulário com campos obrigatórios:
+  - Cargo
+  - Performance (descrição)
+  - Descrição Abaixo do Esperado
+  - Descrição Esperado
+  - Descrição Acima do Esperado
+  - Status (Ativo/Inativo)
+  - Abrangência (Individual/Coletivo)
 
-1. **Validação Centralizada**: Todas as validações ficam no `PerformanceValidationUtil`, permitindo reutilização em diferentes fluxos (inserção, alteração, importação)
+### 2. Configuração de Inputs de Avaliação
+- **Auto-avaliação**: Checkbox para habilitar/desabilitar input do usuário
+- **Avaliação às Cegas**: Checkbox para habilitar/desabilitar input do usuário
+- **Avaliação do Gestor**: Checkbox para habilitar/desabilitar input do usuário
+- **Notas Padrão**: Quando input desabilitado, permite definir nota padrão
 
-2. **Import/Export Padronizado**: O `PerformanceImportExportUtil` segue o mesmo padrão usado em outros módulos, facilitando manutenção
+### 3. Importação/Exportação
+- **Exportação**: Gera arquivo Excel com todas as performances
+- **Importação**: Permite importar performances via planilha Excel
+- **Validação**: Verifica estrutura e dados da planilha
+- **Relatório**: Mostra quantidades de registros inseridos, alterados e desconsiderados
 
-3. **Combos Centralizados**: O `PerformanceComboHelper` centraliza toda a lógica de carregamento de dados para dropdowns
-
-4. **Modelos de Dados**: Uso de modelos específicos para import/export que podem ser reutilizados
-
-### Extensibilidade
-
-- **Novos Tipos de Validação**: Facilmente adicionáveis no `PerformanceValidationUtil`
-- **Novos Formatos de Export**: Extensível no `PerformanceImportExportUtil`
-- **Novos Combos**: Facilmente adicionáveis no `PerformanceComboHelper`
+### 4. Listagem e Gerenciamento
+- Grid com performances cadastradas
+- Filtros de busca
+- Ações de editar e inativar
+- Paginação e ordenação
 
 ## Segurança
 
-### Validação de Dados
-- Validação de estrutura de arquivos Excel
+### Validações de Entrada
 - Sanitização de dados de entrada
-- Validação de tipos de dados
-- Tratamento de exceções com telemetria
+- Validação de tipos de arquivo para upload
+- Limite de tamanho de arquivo
+- Validação de estrutura de planilha
 
-### Telemetria
-- Rastreamento de operações de import/export
-- Logging de erros de validação
-- Métricas de performance
-
-## Configuração
-
-### Constantes e Configurações
-
-csharp
-public static class PerformanceComboConstants
-{
-    public static class DefaultValues
-    {
-        public const int DefaultStatus = Status.Ativo;
-        public const string DefaultAbrangencia = Abrangencia.Individual;
-        public const bool DefaultInputAutoAvaliacao = Input.Habilitado;
-    }
-}
-
-
-### Limites e Validações
-
-- **MAX_PERFORMANCE_LENGTH**: 500 caracteres
-- **MAX_DESCRICAO_LENGTH**: 2000 caracteres
-- Validação de abrangência: Individual ou Coletivo
-- Validação de status: 0 (Inativo) ou 1 (Ativo)
+### Controle de Acesso
+- Verificação de perfil de usuário
+- Validação de permissões para operações
+- Log de auditoria via Application Insights
 
 ## Tratamento de Erros
 
-### Estratégias Implementadas
-
-1. **Validação Preventiva**: Validações antes de operações críticas
-2. **Tratamento de Exceções**: Try-catch com logging via telemetria
-3. **Mensagens Amigáveis**: Retorno de mensagens claras para o usuário
-4. **Rollback Automático**: Em caso de erro durante importação
+### Estratégias
+- Try-catch em todos os métodos críticos
+- Log de exceções via TelemetryService
+- Mensagens amigáveis ao usuário via MessageBoxService
+- Rollback automático em operações de banco de dados
 
 ### Tipos de Erro
+- **Validação**: Campos obrigatórios, formatos inválidos
+- **Negócio**: Regras de negócio violadas
+- **Sistema**: Erros de banco de dados, arquivo não encontrado
+- **Importação**: Estrutura de planilha inválida, dados inconsistentes
 
-- **Erros de Validação**: Campos obrigatórios, formatos inválidos
-- **Erros de Negócio**: Inconsistências de dados, regras violadas
-- **Erros de Sistema**: Problemas de acesso a dados, falhas de rede
-- **Erros de Arquivo**: Estrutura inválida, formato não suportado
+## Performance e Otimização
 
-## Performance
+### Estratégias Implementadas
+- Cache de configurações (15 minutos)
+- Paginação de resultados
+- Lazy loading de relacionamentos
+- Compressão opcional de arquivos de exportação
+- Processamento assíncrono de importações grandes
 
-### Otimizações Implementadas
-
-1. **Carregamento Assíncrono**: Operações de I/O são assíncronas
-2. **Cache de Combos**: Dados de combos podem ser cacheados
-3. **Validação em Lote**: Importações validam múltiplos registros eficientemente
-4. **Streaming de Arquivos**: Processamento de arquivos grandes sem carregar tudo na memória
-
-### Métricas
-
-- Tempo de processamento de importação/exportação
-- Número de registros processados
-- Taxa de erro por operação
+### Métricas Monitoradas
+- Tempo de resposta das operações
+- Taxa de sucesso de importações
 - Uso de memória durante processamento
+- Quantidade de registros processados
 
-## Manutenção
+## Exemplos de Uso
 
-### Pontos de Atenção
+### Injeção de Dependência no Componente
 
-1. **Dependências**: EPPlus, Entity Framework, serviços de telemetria
-2. **Versionamento**: Compatibilidade com versões anteriores dos arquivos Excel
-3. **Testes**: Cobertura de testes para todos os cenários de validação
-4. **Documentação**: Manter documentação atualizada com mudanças
+csharp
+@inject IPerformanceService PerformanceService
+@inject IPerformanceValidationUtil ValidationUtil
+@inject IPerformanceComboHelper ComboHelper
+@inject IMessageBoxService MessageBox
 
-### Evolução Futura
 
-- Suporte a outros formatos de arquivo (CSV, JSON)
-- Validações mais sofisticadas com IA
-- Cache distribuído para ambientes de alta disponibilidade
-- Processamento assíncrono para importações grandes
+### Cadastro de Performance
+
+csharp
+var performance = new Performance
+{
+    IdCargo = selectedCargoId,
+    PerformanceDescricao = txtPerformance,
+    PerformanceAbaixo = txtAbaixo,
+    PerformanceEsperado = txtEsperado,
+    PerformanceAcima = txtAcima,
+    Status = 1,
+    Abrangencia = "Individual"
+};
+
+var result = await PerformanceService.InserirPerformanceAsync(performance);
+if (result.IsSuccess)
+{
+    MessageBox.ShowSuccess("Performance inserida com sucesso!");
+}
+
+
+### Importação de Planilha
+
+csharp
+var importResult = await PerformanceService.ImportarPerformancesAsync(fileStream, fileName);
+if (importResult.IsSuccess)
+{
+    MessageBox.ShowInfo($"Importação concluída: {importResult.RegistrosInseridos} inseridos, {importResult.RegistrosAlterados} alterados");
+}
+
+
+## Manutenção e Evolução
+
+### Pontos de Extensão
+- Novos tipos de avaliação podem ser adicionados via configuração
+- Validações customizadas podem ser implementadas no ValidationUtil
+- Novos formatos de exportação podem ser adicionados no ImportExportUtil
+
+### Monitoramento
+- Logs estruturados via Application Insights
+- Métricas de performance e uso
+- Alertas para falhas críticas
+- Dashboard de monitoramento de importações
+
+### Testes
+- Testes unitários para todos os serviços
+- Testes de integração para fluxos completos
+- Testes de performance para importações grandes
+- Testes de UI com bUnit para componentes Blazor
+
+## Considerações Futuras
+
+### Melhorias Planejadas
+- Integração com IA para sugestão de descrições
+- Versionamento de performances
+- Histórico de alterações
+- API REST para integração externa
+- Processamento em background para importações grandes
+
+### Migração Cloud-Native
+- Uso de Azure Blob Storage para arquivos temporários
+- Azure Service Bus para processamento assíncrono
+- Azure Key Vault para configurações sensíveis
+- Containerização com Docker
+- Deploy automatizado com Azure DevOps
