@@ -109,6 +109,9 @@ builder.Services.AddScoped<ILogoutService, LogoutService>();
 // Footer Services - Login Migration
 builder.Services.AddScoped<IFooterLinksService, FooterLinksService>();
 
+// Perguntas Encerramento Services - Nova funcionalidade
+builder.Services.AddScoped<IPerguntasEncerramentoService, PerguntasEncerramentoService>();
+
 // Business Services - Dependency Injection
 builder.Services.AddScoped<ICompetenciasService, CompetenciasService>();
 builder.Services.AddScoped<ICargosService, CargosService>();
