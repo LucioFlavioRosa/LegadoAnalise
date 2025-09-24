@@ -4,7 +4,7 @@
 @inject IFrentesInternasService FrentesInternasService
 @inject IMessageBoxService MessageBoxService
 @inject ITelemetryService TelemetryService
-@inject NavigationManager NavigationManager
+@inject NavigationManager Navigation
 
 @if (exibirSecaoAvaliacao)
 {
@@ -12,16 +12,8 @@
         <h4>Avaliar</h4>
         <h5>Siga o botão abaixo para avaliar os associados das alocações internas que você for líder no período de @periodoAtual</h5>
         <div class="form-actions">
-            <button class="btn btn-facebook" style="width:20%" @onclick="RedirecionarParaAvaliacao" disabled="@isProcessing">
-                @if (isProcessing)
-                {
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    <span>Carregando...</span>
-                }
-                else
-                {
-                    <span>Avaliar</span>
-                }
+            <button class="btn btn-facebook" @onclick="RedirecionarParaAvaliacao" style="width:20%">
+                Avaliar
             </button>
         </div>
     </div>
@@ -30,7 +22,7 @@
 @code {
     private bool exibirSecaoAvaliacao = false;
     private string periodoAtual = string.Empty;
-    private bool isProcessing = false;
+    private int usuarioLogadoId = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -41,63 +33,35 @@
     {
         try
         {
-            // TODO: Implementar verificação de usuário logado e suas frentes lideradas
-            // var usuarioLogado = await ObterUsuarioLogado();
-            // var frentesLideradas = await FrentesInternasService.ObterFrentesLideradasPorUsuarioAsync(usuarioLogado.Id);
+            // TODO: Implementar obtenção do usuário logado via serviço de autenticação
+            // usuarioLogadoId = await AuthService.ObterUsuarioLogadoId();
             
-            // Por enquanto, simular verificação
-            var temFrentesLideradas = await FrentesInternasService.UsuarioTemFrentesLideradasAsync();
+            // Verificar se o usuário é líder de alguma frente interna
+            var frentesLideradas = await FrentesInternasService.ObterFrentesLideradasPorUsuarioAsync(usuarioLogadoId);
             
-            if (temFrentesLideradas)
+            if (frentesLideradas?.Any() == true)
             {
                 exibirSecaoAvaliacao = true;
                 periodoAtual = await FrentesInternasService.ObterPeriodoAtualAsync();
             }
-            else
-            {
-                exibirSecaoAvaliacao = false;
-            }
         }
         catch (Exception ex)
         {
-            TelemetryService.TrackException(ex);
             MessageBoxService.ShowError($"Erro ao verificar permissões de avaliação: {ex.Message}");
-            exibirSecaoAvaliacao = false;
-        }
-        finally
-        {
-            StateHasChanged();
+            TelemetryService.TrackException(ex);
         }
     }
 
-    private async Task RedirecionarParaAvaliacao()
+    private void RedirecionarParaAvaliacao()
     {
-        if (isProcessing) return;
-
         try
         {
-            isProcessing = true;
-            StateHasChanged();
-
-            TelemetryService.TrackEvent("FrenteInterna_IniciarAvaliacao");
-            
-            // Redirecionar para página de avaliação
-            NavigationManager.NavigateTo("/avaliacao-frentes-internas");
+            Navigation.NavigateTo("/avaliacao-frentes-internas");
         }
         catch (Exception ex)
         {
-            TelemetryService.TrackException(ex);
             MessageBoxService.ShowError($"Erro ao redirecionar para avaliação: {ex.Message}");
+            TelemetryService.TrackException(ex);
         }
-        finally
-        {
-            isProcessing = false;
-            StateHasChanged();
-        }
-    }
-
-    public async Task RefreshAsync()
-    {
-        await VerificarPermissaoAvaliacao();
     }
 }
