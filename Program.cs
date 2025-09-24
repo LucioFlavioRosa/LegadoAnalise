@@ -208,6 +208,9 @@ builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>(
 builder.Services.AddScoped<IEmailUtils, EmailUtils>();
 builder.Services.AddScoped<IWorkflowUtils, WorkflowUtils>();
 
+// AutoAvaliacao Services - Novos serviços para migração de Web Forms
+builder.Services.AddScoped<IAutoAvaliacaoService, AutoAvaliacaoService>();
+
 // FrentesInternas Services - Novos serviços adicionados
 builder.Services.AddScoped<IFrentesInternasService, FrentesInternasService>();
 
