@@ -25,7 +25,7 @@ Este documento descreve a migração da página `TotalizadorAvaliacao.aspx` de W
 
 ## Estrutura de Pastas
 
-
+```text
 Components/
   Pages/
     TotalizadorAvaliacao.razor
@@ -44,7 +44,7 @@ Models/
   AssociadoFormModel.cs
 docs/
   TotalizadorAvaliacao.md
-
+```
 
 ## Funcionalidades Implementadas
 
@@ -107,7 +107,7 @@ Helper para criação de combos padronizados:
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /totalizador-avaliacao] --> B[TotalizadorAvaliacao.razor]
     B --> C[OnInitializedAsync]
@@ -135,7 +135,7 @@ flowchart TD
     V[Parâmetro Id presente] --> W[CarregarAssociadoParaEdicao]
     W --> X[TotalizadorAvaliacaoService.ObterAssociadoParaEdicaoAsync]
     X --> Y[Preencher formulário com dados existentes]
-
+```
 
 ## Benefícios da Migração
 
@@ -171,20 +171,22 @@ flowchart TD
 - Visual Studio 2022 ou VS Code
 
 ### Configuração do Banco
-
+```json
 {
   "ConnectionStrings": {
     "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=SistemaAvaliacao;Trusted_Connection=true;MultipleActiveResultSets=true"
   }
 }
 
-
+```
 ### Registro de Serviços (Program.cs)
+
+```text
 csharp
 builder.Services.AddScoped<ITotalizadorAvaliacaoService, TotalizadorAvaliacaoService>();
 builder.Services.AddScoped<IMessageBoxService, MessageBoxService>();
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
-
+```
 
 ## Monitoramento e Telemetria
 
