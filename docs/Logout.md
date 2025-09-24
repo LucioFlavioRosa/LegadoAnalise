@@ -14,14 +14,14 @@ O sistema de logout foi migrado de Web Forms para Blazor Híbrido .NET 9, centra
 
 ### Localização dos Arquivos
 
-
+```text
 Services/Common/Auth/
 ├── ILogoutService.cs
 └── LogoutService.cs
 
 Components/Pages/
 └── Logout.razor
-
+```
 
 ## Como Funciona
 
@@ -37,7 +37,7 @@ Components/Pages/
 ## Integração
 
 ### Uso Básico
-
+```text
 csharp
 @inject ILogoutService LogoutService
 @inject NavigationManager Navigation
@@ -45,13 +45,13 @@ csharp
 // Em um método ou evento
 var logoutUrl = await LogoutService.LogoutAsync();
 Navigation.NavigateTo(logoutUrl, forceLoad: true);
-
+```
 
 ### Configuração Necessária
 
 O serviço utiliza as seguintes configurações do `appsettings.json`:
 
-
+```text
 {
   "Authentication": {
     "AzureAd": {
@@ -61,15 +61,16 @@ O serviço utiliza as seguintes configurações do `appsettings.json`:
     }
   }
 }
-
+```
 
 ### Injeção de Dependência
 
 O serviço está registrado no `Program.cs`:
 
+```text
 csharp
 builder.Services.AddScoped<ILogoutService, LogoutService>();
-
+```
 
 ## Reutilização
 
@@ -81,7 +82,7 @@ O `ILogoutService` pode ser reutilizado em:
 - **APIs**: Endpoints que precisam invalidar sessões
 
 ### Exemplo de Uso em Menu
-
+```text
 csharp
 @inject ILogoutService LogoutService
 
@@ -96,7 +97,7 @@ csharp
         Navigation.NavigateTo(logoutUrl, forceLoad: true);
     }
 }
-
+```
 
 ## Tratamento de Erros
 
@@ -115,7 +116,7 @@ csharp
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /logout] --> B[Logout.razor]
     B --> C[OnInitializedAsync]
@@ -140,7 +141,7 @@ flowchart TD
     style J fill:#fff3e0
     style K fill:#e8f5e8
     style P fill:#ffebee
-
+```
 
 ## Considerações de Segurança
 
