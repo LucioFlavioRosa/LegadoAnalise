@@ -3,52 +3,42 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using Peers.Moderno.Models;
 using Peers.Moderno.Services.Performance;
+using Peers.Moderno.Services.Common;
 using Peers.Moderno.Services.Cargos;
 using Peers.Moderno.Services.Avaliacoes;
-using Peers.Moderno.Services.Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace Peers.Moderno.Components.Performance;
 
-public partial class Performance : ComponentBase
+public partial class PerformanceBase : ComponentBase
 {
-    [Inject] private IPerformanceService PerformanceService { get; set; } = default!;
-    [Inject] private ICargosService CargosService { get; set; } = default!;
-    [Inject] private IAvaliacoesService AvaliacoesService { get; set; } = default!;
-    [Inject] private IMessageBoxService MessageBoxService { get; set; } = default!;
-    [Inject] private ITelemetryService TelemetryService { get; set; } = default!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Inject] protected IPerformanceService PerformanceService { get; set; } = null!;
+    [Inject] protected ICargosService CargosService { get; set; } = null!;
+    [Inject] protected IAvaliacoesService AvaliacoesService { get; set; } = null!;
+    [Inject] protected IMessageBoxService MessageBoxService { get; set; } = null!;
+    [Inject] protected ITelemetryService TelemetryService { get; set; } = null!;
+    [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
+    [Inject] protected IUserContextService UserContextService { get; set; } = null!;
 
-    private List<Cargo> Cargos = new();
-    private List<Models.Performance> Performances = new();
-    private List<AvaliacaoPerformanceNota> NotasPerformance = new();
-    private IBrowserFile? SelectedFile;
-
-    private int SelectedCargoId = 0;
-    private int SelectedStatus = 1;
-    private string PerformanceText = string.Empty;
-    private string SelectedAbrangencia = "Individual";
-    private string DescricaoAbaixo = string.Empty;
-    private string DescricaoEsperado = string.Empty;
-    private string DescricaoAcima = string.Empty;
-    private bool InputAutoAvaliacao = true;
-    private bool InputAvaliacaoAsCegas = true;
-    private bool InputAvaliacaoGestor = true;
-    private int NotaPadraoAutoAvaliacaoId = 0;
-    private int NotaPadraoAvaliacaoAsCegasId = 0;
-    private int NotaPadraoAvaliacaoGestorId = 0;
-    private int EditingPerformanceId = 0;
-
-    private bool IsProcessing = false;
-    private bool ShowMessageBox = false;
-    private string MessageBoxText = string.Empty;
-    private MessageBoxType MessageBoxType = MessageBoxType.Info;
+    protected PerformanceModel CurrentPerformance { get; set; } = new();
+    protected List<Models.Performance> Performances { get; set; } = new();
+    protected List<Cargo> Cargos { get; set; } = new();
+    protected List<AvaliacaoPerformanceNota> NotasPerformance { get; set; } = new();
+    
+    protected bool IsLoading { get; set; }
+    protected bool IsLoadingList { get; set; }
+    protected bool IsExporting { get; set; }
+    protected bool IsEditing { get; set; }
+    protected int? EditingId { get; set; }
+    
+    protected InputFile? fileUploadInput;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            await LoadInitialData();
-            MessageBoxService.OnMessageReceived += OnMessageReceived;
+            TelemetryService.TrackEvent("PerformancePageLoaded");
+            await LoadInitialDataAsync();
         }
         catch (Exception ex)
         {
@@ -57,21 +47,34 @@ public partial class Performance : ComponentBase
                 { "Method", "OnInitializedAsync" },
                 { "Component", "Performance" }
             });
-            ShowMessage("Erro ao carregar dados iniciais", MessageBoxType.Error);
+            MessageBoxService.ShowError("Erro ao carregar a página: " + ex.Message);
         }
     }
 
-    private async Task LoadInitialData()
+    protected async Task LoadInitialDataAsync()
     {
-        await Task.WhenAll(
-            LoadCargos(),
-            LoadPerformances(),
-            LoadNotasPerformance()
-        );
-        LimparCampos();
+        IsLoadingList = true;
+        StateHasChanged();
+
+        try
+        {
+            var tasks = new List<Task>
+            {
+                LoadCargosAsync(),
+                LoadNotasPerformanceAsync(),
+                LoadPerformancesAsync()
+            };
+
+            await Task.WhenAll(tasks);
+        }
+        finally
+        {
+            IsLoadingList = false;
+            StateHasChanged();
+        }
     }
 
-    private async Task LoadCargos()
+    protected async Task LoadCargosAsync()
     {
         try
         {
@@ -81,14 +84,31 @@ public partial class Performance : ComponentBase
         {
             TelemetryService.TrackException(ex, new Dictionary<string, string>
             {
-                { "Method", "LoadCargos" },
+                { "Method", "LoadCargosAsync" },
                 { "Component", "Performance" }
             });
-            Cargos = new List<Cargo>();
+            MessageBoxService.ShowError("Erro ao carregar cargos");
         }
     }
 
-    private async Task LoadPerformances()
+    protected async Task LoadNotasPerformanceAsync()
+    {
+        try
+        {
+            NotasPerformance = await AvaliacoesService.ObterNotasPerformanceAsync();
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "LoadNotasPerformanceAsync" },
+                { "Component", "Performance" }
+            });
+            MessageBoxService.ShowError("Erro ao carregar notas de performance");
+        }
+    }
+
+    protected async Task LoadPerformancesAsync()
     {
         try
         {
@@ -98,356 +118,412 @@ public partial class Performance : ComponentBase
         {
             TelemetryService.TrackException(ex, new Dictionary<string, string>
             {
-                { "Method", "LoadPerformances" },
+                { "Method", "LoadPerformancesAsync" },
                 { "Component", "Performance" }
             });
-            Performances = new List<Models.Performance>();
+            MessageBoxService.ShowError("Erro ao carregar performances");
         }
     }
 
-    private async Task LoadNotasPerformance()
+    protected async Task HandleSubmit()
     {
-        try
-        {
-            NotasPerformance = await AvaliacoesService.ListaNotasPerformancesAsync();
-        }
-        catch (Exception ex)
-        {
-            TelemetryService.TrackException(ex, new Dictionary<string, string>
-            {
-                { "Method", "LoadNotasPerformance" },
-                { "Component", "Performance" }
-            });
-            NotasPerformance = new List<AvaliacaoPerformanceNota>();
-        }
-    }
+        if (IsLoading) return;
 
-    private void LimparCampos()
-    {
-        SelectedCargoId = 0;
-        SelectedStatus = 1;
-        PerformanceText = string.Empty;
-        SelectedAbrangencia = "Individual";
-        DescricaoAbaixo = string.Empty;
-        DescricaoEsperado = string.Empty;
-        DescricaoAcima = string.Empty;
-        InputAutoAvaliacao = true;
-        InputAvaliacaoAsCegas = true;
-        InputAvaliacaoGestor = true;
-        NotaPadraoAutoAvaliacaoId = 0;
-        NotaPadraoAvaliacaoAsCegasId = 0;
-        NotaPadraoAvaliacaoGestorId = 0;
-        EditingPerformanceId = 0;
-    }
-
-    private async Task CadastrarSalvar()
-    {
-        if (IsProcessing) return;
+        IsLoading = true;
+        StateHasChanged();
 
         try
         {
-            IsProcessing = true;
-            StateHasChanged();
-
-            var validationResult = ValidateForm();
+            var validationResult = ValidatePerformance();
             if (!validationResult.IsValid)
             {
-                ShowMessage(validationResult.ErrorMessage, MessageBoxType.Warning);
+                MessageBoxService.ShowWarning(validationResult.ErrorMessage);
                 return;
             }
 
-            var performance = new Models.Performance
+            var usuario = await UserContextService.GetUsuarioLogadoAsync();
+            if (usuario == null)
             {
-                IdCargo = SelectedCargoId,
-                Nome = PerformanceText,
-                PerformanceAbaixo = DescricaoAbaixo,
-                PerformanceEsperado = DescricaoEsperado,
-                PerformanceAcima = DescricaoAcima,
-                Abrangencia = SelectedAbrangencia,
-                Ativo = SelectedStatus == 1,
-                InputAutoavaliacao = InputAutoAvaliacao,
-                InputAvaliacaoAsCegas = InputAvaliacaoAsCegas,
-                InputAvaliacaoGestor = InputAvaliacaoGestor,
-                NotaPadraoAutoAvaliacao = InputAutoAvaliacao ? null : (NotaPadraoAutoAvaliacaoId == 0 ? null : NotaPadraoAutoAvaliacaoId),
-                NotaPadraoAvaliacaoAsCegas = InputAvaliacaoAsCegas ? null : (NotaPadraoAvaliacaoAsCegasId == 0 ? null : NotaPadraoAvaliacaoAsCegasId),
-                NotaPadraoAvaliacaoGestor = InputAvaliacaoGestor ? null : (NotaPadraoAvaliacaoGestorId == 0 ? null : NotaPadraoAvaliacaoGestorId)
-            };
+                MessageBoxService.ShowError("Usuário não autenticado");
+                return;
+            }
 
-            if (EditingPerformanceId == 0)
+            var performance = MapToPerformanceEntity();
+            performance.IdEmpresa = 1; // TODO: Obter da sessão
+            performance.USR = usuario.Id;
+            performance.DHC = DateTime.Now;
+
+            bool success;
+            string successMessage;
+
+            if (IsEditing && EditingId.HasValue)
             {
-                await PerformanceService.InserirPerformanceAsync(performance);
-                ShowMessage("Performance inserida com sucesso!", MessageBoxType.Success);
+                performance.IdPerformance = EditingId.Value;
+                success = await PerformanceService.AlterarPerformanceAsync(performance);
+                successMessage = "Performance alterada com sucesso!";
             }
             else
             {
-                performance.IdPerformance = EditingPerformanceId;
-                await PerformanceService.AlterarPerformanceAsync(performance);
-                ShowMessage("Performance alterada com sucesso!", MessageBoxType.Success);
+                success = await PerformanceService.InserirPerformanceAsync(performance);
+                successMessage = "Performance inserida com sucesso!";
             }
 
-            await LoadPerformances();
-            LimparCampos();
+            if (success)
+            {
+                MessageBoxService.ShowSuccess(successMessage);
+                await ClearFormAsync();
+                await LoadPerformancesAsync();
+                
+                TelemetryService.TrackEvent(IsEditing ? "PerformanceUpdated" : "PerformanceCreated", new Dictionary<string, string>
+                {
+                    { "PerformanceId", performance.IdPerformance.ToString() },
+                    { "UserId", usuario.Id.ToString() }
+                });
+            }
+            else
+            {
+                MessageBoxService.ShowError("Erro ao salvar performance");
+            }
         }
         catch (Exception ex)
         {
             TelemetryService.TrackException(ex, new Dictionary<string, string>
             {
-                { "Method", "CadastrarSalvar" },
-                { "Component", "Performance" },
-                { "PerformanceId", EditingPerformanceId.ToString() }
+                { "Method", "HandleSubmit" },
+                { "Component", "Performance" }
             });
-            ShowMessage("Erro ao salvar performance", MessageBoxType.Error);
+            MessageBoxService.ShowError("Erro ao salvar: " + ex.Message);
         }
         finally
         {
-            IsProcessing = false;
+            IsLoading = false;
             StateHasChanged();
         }
     }
 
-    private ValidationResult ValidateForm()
+    protected ValidationResult ValidatePerformance()
     {
-        if (SelectedCargoId == 0)
+        if (CurrentPerformance.IdCargo == 0)
             return ValidationResult.Error("Selecione o campo Cargo");
 
-        if (string.IsNullOrWhiteSpace(PerformanceText))
+        if (string.IsNullOrWhiteSpace(CurrentPerformance.Nome))
             return ValidationResult.Error("Preencha o campo Performance");
 
-        if (string.IsNullOrWhiteSpace(DescricaoAbaixo))
+        if (string.IsNullOrWhiteSpace(CurrentPerformance.PerformanceAbaixo))
             return ValidationResult.Error("Preencha o campo Performance Abaixo");
 
-        if (string.IsNullOrWhiteSpace(DescricaoEsperado))
+        if (string.IsNullOrWhiteSpace(CurrentPerformance.PerformanceEsperado))
             return ValidationResult.Error("Preencha o campo Performance Esperado");
 
-        if (string.IsNullOrWhiteSpace(DescricaoAcima))
+        if (string.IsNullOrWhiteSpace(CurrentPerformance.PerformanceAcima))
             return ValidationResult.Error("Preencha o campo Performance Acima");
 
-        if (!InputAutoAvaliacao && NotaPadraoAutoAvaliacaoId == 0)
+        // Validar notas padrão quando input está desabilitado
+        if (!CurrentPerformance.InputAutoavaliacao && !CurrentPerformance.NotaPadraoAutoAvaliacao.HasValue)
             return ValidationResult.Error("Selecione a nota padrão para auto avaliação");
 
-        if (!InputAvaliacaoAsCegas && NotaPadraoAvaliacaoAsCegasId == 0)
-            return ValidationResult.Error("Selecione a nota padrão para avaliação as cegas");
+        if (!CurrentPerformance.InputAvaliacaoAsCegas && !CurrentPerformance.NotaPadraoAvaliacaoAsCegas.HasValue)
+            return ValidationResult.Error("Selecione a nota padrão para avaliação às cegas");
 
-        if (!InputAvaliacaoGestor && NotaPadraoAvaliacaoGestorId == 0)
+        if (!CurrentPerformance.InputAvaliacaoGestor && !CurrentPerformance.NotaPadraoAvaliacaoGestor.HasValue)
             return ValidationResult.Error("Selecione a nota padrão para avaliação do gestor");
 
         return ValidationResult.Success();
     }
 
-    private async Task AlterarPerformance(int performanceId)
+    protected Models.Performance MapToPerformanceEntity()
+    {
+        return new Models.Performance
+        {
+            IdPerformance = EditingId ?? 0,
+            IdCargo = CurrentPerformance.IdCargo,
+            IdNivel = 1, // TODO: Implementar seleção de nível
+            Nome = CurrentPerformance.Nome?.Trim() ?? string.Empty,
+            PerformanceAbaixo = CurrentPerformance.PerformanceAbaixo?.Trim() ?? string.Empty,
+            PerformanceEsperado = CurrentPerformance.PerformanceEsperado?.Trim() ?? string.Empty,
+            PerformanceAcima = CurrentPerformance.PerformanceAcima?.Trim() ?? string.Empty,
+            Abrangencia = CurrentPerformance.Abrangencia ?? "Individual",
+            InputAutoavaliacao = CurrentPerformance.InputAutoavaliacao,
+            NotaPadraoAutoAvaliacao = CurrentPerformance.InputAutoavaliacao ? null : CurrentPerformance.NotaPadraoAutoAvaliacao,
+            InputAvaliacaoAsCegas = CurrentPerformance.InputAvaliacaoAsCegas,
+            NotaPadraoAvaliacaoAsCegas = CurrentPerformance.InputAvaliacaoAsCegas ? null : CurrentPerformance.NotaPadraoAvaliacaoAsCegas,
+            InputAvaliacaoGestor = CurrentPerformance.InputAvaliacaoGestor,
+            NotaPadraoAvaliacaoGestor = CurrentPerformance.InputAvaliacaoGestor ? null : CurrentPerformance.NotaPadraoAvaliacaoGestor,
+            ATV = CurrentPerformance.ATV
+        };
+    }
+
+    protected async Task EditPerformance(int performanceId)
     {
         try
         {
             var performance = await PerformanceService.ObterPerformanceAsync(performanceId);
             if (performance == null)
             {
-                ShowMessage("Performance não encontrada", MessageBoxType.Warning);
+                MessageBoxService.ShowError("Performance não encontrada");
                 return;
             }
 
-            EditingPerformanceId = performance.IdPerformance;
-            SelectedCargoId = performance.IdCargo;
-            SelectedStatus = performance.Ativo ? 1 : 0;
-            PerformanceText = performance.Nome;
-            SelectedAbrangencia = performance.Abrangencia;
-            DescricaoAbaixo = performance.PerformanceAbaixo;
-            DescricaoEsperado = performance.PerformanceEsperado;
-            DescricaoAcima = performance.PerformanceAcima;
-            InputAutoAvaliacao = performance.InputAutoavaliacao;
-            InputAvaliacaoAsCegas = performance.InputAvaliacaoAsCegas;
-            InputAvaliacaoGestor = performance.InputAvaliacaoGestor;
-            NotaPadraoAutoAvaliacaoId = performance.NotaPadraoAutoAvaliacao ?? 0;
-            NotaPadraoAvaliacaoAsCegasId = performance.NotaPadraoAvaliacaoAsCegas ?? 0;
-            NotaPadraoAvaliacaoGestorId = performance.NotaPadraoAvaliacaoGestor ?? 0;
+            CurrentPerformance = new PerformanceModel
+            {
+                IdCargo = performance.IdCargo,
+                Nome = performance.Nome,
+                PerformanceAbaixo = performance.PerformanceAbaixo,
+                PerformanceEsperado = performance.PerformanceEsperado,
+                PerformanceAcima = performance.PerformanceAcima,
+                Abrangencia = performance.Abrangencia ?? "Individual",
+                InputAutoavaliacao = performance.InputAutoavaliacao,
+                NotaPadraoAutoAvaliacao = performance.NotaPadraoAutoAvaliacao,
+                InputAvaliacaoAsCegas = performance.InputAvaliacaoAsCegas,
+                NotaPadraoAvaliacaoAsCegas = performance.NotaPadraoAvaliacaoAsCegas,
+                InputAvaliacaoGestor = performance.InputAvaliacaoGestor,
+                NotaPadraoAvaliacaoGestor = performance.NotaPadraoAvaliacaoGestor,
+                ATV = performance.ATV
+            };
 
+            IsEditing = true;
+            EditingId = performanceId;
             StateHasChanged();
+
+            // Scroll para o topo do formulário
+            await JSRuntime.InvokeVoidAsync("window.scrollTo", 0, 0);
         }
         catch (Exception ex)
         {
             TelemetryService.TrackException(ex, new Dictionary<string, string>
             {
-                { "Method", "AlterarPerformance" },
+                { "Method", "EditPerformance" },
                 { "Component", "Performance" },
                 { "PerformanceId", performanceId.ToString() }
             });
-            ShowMessage("Erro ao carregar performance para edição", MessageBoxType.Error);
+            MessageBoxService.ShowError("Erro ao carregar performance para edição");
         }
     }
 
-    private async Task InativarPerformance(int performanceId)
+    protected async Task InactivatePerformance(int performanceId)
     {
         try
         {
+            var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Tem certeza que deseja inativar esta performance?");
+            if (!confirmed) return;
+
             var success = await PerformanceService.ExcluirPerformanceAsync(performanceId);
             if (success)
             {
-                ShowMessage("Performance inativada com sucesso!", MessageBoxType.Success);
-                await LoadPerformances();
+                MessageBoxService.ShowSuccess("Performance inativada com sucesso!");
+                await LoadPerformancesAsync();
+                
+                TelemetryService.TrackEvent("PerformanceInactivated", new Dictionary<string, string>
+                {
+                    { "PerformanceId", performanceId.ToString() }
+                });
             }
             else
             {
-                ShowMessage("Erro ao inativar performance", MessageBoxType.Warning);
+                MessageBoxService.ShowError("Erro ao inativar performance");
             }
         }
         catch (Exception ex)
         {
             TelemetryService.TrackException(ex, new Dictionary<string, string>
             {
-                { "Method", "InativarPerformance" },
+                { "Method", "InactivatePerformance" },
                 { "Component", "Performance" },
                 { "PerformanceId", performanceId.ToString() }
             });
-            ShowMessage("Erro ao inativar performance", MessageBoxType.Error);
+            MessageBoxService.ShowError("Erro ao inativar performance");
         }
     }
 
-    private async Task ExportarPerformances()
+    protected async Task CancelEdit()
     {
-        if (IsProcessing) return;
+        await ClearFormAsync();
+    }
+
+    protected async Task ClearFormAsync()
+    {
+        CurrentPerformance = new PerformanceModel();
+        IsEditing = false;
+        EditingId = null;
+        StateHasChanged();
+        await Task.CompletedTask;
+    }
+
+    protected void OnInputCheckboxChanged(int inputType, bool isChecked)
+    {
+        switch (inputType)
+        {
+            case 0: // Auto Avaliação
+                CurrentPerformance.InputAutoavaliacao = isChecked;
+                if (isChecked)
+                    CurrentPerformance.NotaPadraoAutoAvaliacao = null;
+                break;
+            case 1: // Avaliação às Cegas
+                CurrentPerformance.InputAvaliacaoAsCegas = isChecked;
+                if (isChecked)
+                    CurrentPerformance.NotaPadraoAvaliacaoAsCegas = null;
+                break;
+            case 2: // Avaliação do Gestor
+                CurrentPerformance.InputAvaliacaoGestor = isChecked;
+                if (isChecked)
+                    CurrentPerformance.NotaPadraoAvaliacaoGestor = null;
+                break;
+        }
+        StateHasChanged();
+    }
+
+    protected string GetNotaPadraoLabelStyle(bool inputEnabled)
+    {
+        return inputEnabled ? "display: none; font-style: italic; color: gray;" : "display: inline; font-style: italic; color: gray;";
+    }
+
+    protected string GetNotaPadraoDivStyle(bool inputEnabled)
+    {
+        return inputEnabled ? "margin-left:-140px; margin-top:-6px; display:none" : "margin-left:-140px; margin-top:-6px; display:block";
+    }
+
+    protected async Task ExportPerformances()
+    {
+        if (IsExporting) return;
+
+        IsExporting = true;
+        StateHasChanged();
 
         try
         {
-            IsProcessing = true;
-            StateHasChanged();
-
             var fileBytes = await PerformanceService.ExportarPerformancesAsync();
             var fileName = $"Performance_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-
-            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, Convert.ToBase64String(fileBytes));
-            ShowMessage("Arquivo exportado com sucesso!", MessageBoxType.Success);
+            
+            await JSRuntime.InvokeVoidAsync("downloadFile", fileName, fileBytes);
+            
+            MessageBoxService.ShowSuccess("Arquivo exportado com sucesso!");
+            
+            TelemetryService.TrackEvent("PerformancesExported", new Dictionary<string, string>
+            {
+                { "FileName", fileName },
+                { "RecordCount", Performances.Count.ToString() }
+            });
         }
         catch (Exception ex)
         {
             TelemetryService.TrackException(ex, new Dictionary<string, string>
             {
-                { "Method", "ExportarPerformances" },
+                { "Method", "ExportPerformances" },
                 { "Component", "Performance" }
             });
-            ShowMessage("Erro ao exportar performances", MessageBoxType.Error);
+            MessageBoxService.ShowError("Erro ao exportar arquivo: " + ex.Message);
         }
         finally
         {
-            IsProcessing = false;
+            IsExporting = false;
             StateHasChanged();
         }
     }
 
-    private async Task ImportarPerformances()
+    protected async Task TriggerFileUpload()
     {
-        if (IsProcessing || SelectedFile == null) return;
+        if (fileUploadInput != null)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", $"document.querySelector('input[type=file]').click()");
+        }
+    }
+
+    protected async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        if (e.FileCount == 0) return;
+
+        var file = e.File;
+        if (file == null) return;
+
+        if (!file.Name.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+        {
+            MessageBoxService.ShowWarning("Apenas arquivos .xlsx são permitidos");
+            return;
+        }
+
+        const long maxFileSize = 10 * 1024 * 1024; // 10MB
+        if (file.Size > maxFileSize)
+        {
+            MessageBoxService.ShowWarning("Arquivo muito grande. Tamanho máximo: 10MB");
+            return;
+        }
+
+        IsLoading = true;
+        StateHasChanged();
 
         try
         {
-            IsProcessing = true;
-            StateHasChanged();
-
-            using var stream = SelectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-            var result = await PerformanceService.ImportarPerformancesAsync(stream);
-
-            ShowMessage($"Performances importadas com sucesso<br>Inseridas: {result.Inseridas}<br>Alteradas: {result.Alteradas}<br>Desconsideradas: {result.Desconsideradas}", MessageBoxType.Success);
-            await LoadPerformances();
-            SelectedFile = null;
+            using var stream = file.OpenReadStream(maxFileSize);
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            
+            var result = await PerformanceService.ImportarPerformancesAsync(memoryStream.ToArray());
+            
+            if (result.Success)
+            {
+                MessageBoxService.ShowSuccess($"Performances importadas com sucesso!<br>Inseridas: {result.Inserted}<br>Alteradas: {result.Updated}<br>Desconsideradas: {result.Skipped}");
+                await LoadPerformancesAsync();
+                
+                TelemetryService.TrackEvent("PerformancesImported", new Dictionary<string, string>
+                {
+                    { "FileName", file.Name },
+                    { "Inserted", result.Inserted.ToString() },
+                    { "Updated", result.Updated.ToString() },
+                    { "Skipped", result.Skipped.ToString() }
+                });
+            }
+            else
+            {
+                MessageBoxService.ShowError(result.ErrorMessage ?? "Erro ao importar arquivo");
+            }
         }
         catch (Exception ex)
         {
             TelemetryService.TrackException(ex, new Dictionary<string, string>
             {
-                { "Method", "ImportarPerformances" },
-                { "Component", "Performance" }
+                { "Method", "HandleFileUpload" },
+                { "Component", "Performance" },
+                { "FileName", file.Name }
             });
-            ShowMessage("Erro ao importar performances", MessageBoxType.Error);
+            MessageBoxService.ShowError("Erro ao importar arquivo: " + ex.Message);
         }
         finally
         {
-            IsProcessing = false;
+            IsLoading = false;
             StateHasChanged();
         }
     }
+}
 
-    private void OnFileSelected(InputFileChangeEventArgs e)
-    {
-        SelectedFile = e.File;
-        StateHasChanged();
-    }
-
-    private void OnInputAutoAvaliacaoChanged()
-    {
-        if (InputAutoAvaliacao)
-        {
-            NotaPadraoAutoAvaliacaoId = 0;
-        }
-        StateHasChanged();
-    }
-
-    private void OnInputAvaliacaoAsCegasChanged()
-    {
-        if (InputAvaliacaoAsCegas)
-        {
-            NotaPadraoAvaliacaoAsCegasId = 0;
-        }
-        StateHasChanged();
-    }
-
-    private void OnInputAvaliacaoGestorChanged()
-    {
-        if (InputAvaliacaoGestor)
-        {
-            NotaPadraoAvaliacaoGestorId = 0;
-        }
-        StateHasChanged();
-    }
-
-    private string GetNotaPadraoLabelStyle(bool show)
-    {
-        return show ? "display: inline; font-style: italic; color: gray;" : "display: none;";
-    }
-
-    private string GetNotaPadraoDropdownStyle(bool show)
-    {
-        return show ? "display: block;" : "display: none;";
-    }
-
-    private void OnMessageReceived(MessageBoxEventArgs args)
-    {
-        MessageBoxText = args.Message;
-        MessageBoxType = args.Type;
-        ShowMessageBox = true;
-        StateHasChanged();
-    }
-
-    private void ShowMessage(string message, MessageBoxType type)
-    {
-        MessageBoxText = message;
-        MessageBoxType = type;
-        ShowMessageBox = true;
-        StateHasChanged();
-    }
-
-    private void CloseMessageBox()
-    {
-        ShowMessageBox = false;
-        StateHasChanged();
-    }
-
-    private string GetMessageBoxTitle()
-    {
-        return MessageBoxType switch
-        {
-            MessageBoxType.Success => "Sucesso",
-            MessageBoxType.Error => "Erro",
-            MessageBoxType.Warning => "Aviso",
-            MessageBoxType.Info => "Informação",
-            _ => "Mensagem"
-        };
-    }
-
-    public void Dispose()
-    {
-        if (MessageBoxService != null)
-        {
-            MessageBoxService.OnMessageReceived -= OnMessageReceived;
-        }
-    }
+public class PerformanceModel
+{
+    [Required(ErrorMessage = "Cargo é obrigatório")]
+    public int IdCargo { get; set; }
+    
+    [Required(ErrorMessage = "Performance é obrigatória")]
+    [StringLength(500, ErrorMessage = "Performance deve ter no máximo 500 caracteres")]
+    public string Nome { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "Performance Abaixo é obrigatória")]
+    [StringLength(2000, ErrorMessage = "Performance Abaixo deve ter no máximo 2000 caracteres")]
+    public string PerformanceAbaixo { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "Performance Esperado é obrigatória")]
+    [StringLength(2000, ErrorMessage = "Performance Esperado deve ter no máximo 2000 caracteres")]
+    public string PerformanceEsperado { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "Performance Acima é obrigatória")]
+    [StringLength(2000, ErrorMessage = "Performance Acima deve ter no máximo 2000 caracteres")]
+    public string PerformanceAcima { get; set; } = string.Empty;
+    
+    public string Abrangencia { get; set; } = "Individual";
+    public bool InputAutoavaliacao { get; set; } = true;
+    public int? NotaPadraoAutoAvaliacao { get; set; }
+    public bool InputAvaliacaoAsCegas { get; set; } = true;
+    public int? NotaPadraoAvaliacaoAsCegas { get; set; }
+    public bool InputAvaliacaoGestor { get; set; } = true;
+    public int? NotaPadraoAvaliacaoGestor { get; set; }
+    public int ATV { get; set; } = 1;
 }
 
 public class ValidationResult

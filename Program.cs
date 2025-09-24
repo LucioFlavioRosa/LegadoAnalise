@@ -29,6 +29,7 @@ using Peers.Moderno.Services.FrentesInternas;
 using Peers.Moderno.Services.FrentesInternas.Common;
 using Peers.Moderno.Services.Perfis;
 using Peers.Moderno.Services.Performance;
+using Peers.Moderno.Services.Performance.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -194,6 +195,11 @@ builder.Services.AddScoped<IPerfisService, PerfisService>();
 
 // Performance Services - Novos serviços adicionados
 builder.Services.AddScoped<IPerformanceService, PerformanceService>();
+
+// Performance Common Services - Novos serviços adicionados
+builder.Services.AddScoped<IPerformanceImportExportUtil, PerformanceImportExportUtil>();
+builder.Services.AddScoped<IPerformanceValidationUtil, PerformanceValidationUtil>();
+builder.Services.AddScoped<IPerformanceComboHelper, PerformanceComboHelper>();
 
 var app = builder.Build();
 
