@@ -8,7 +8,7 @@ Este documento descreve a migração da funcionalidade de gestão de prazos do s
 
 ### Estrutura de Pastas
 
-
+```text
 Peers.Moderno/
 ├── Components/
 │   └── Pages/
@@ -29,7 +29,7 @@ Peers.Moderno/
 │   └── Prazos.md
 ├── appsettings.json (atualizado)
 └── Program.cs (atualizado)
-
+```
 
 ### Componentes Principais
 
@@ -118,7 +118,7 @@ Peers.Moderno/
 
 ### appsettings.json - Seção Prazos
 
-
+```json
 "Prazos": {
   "MaxNomeDisparoLength": 500,
   "MinDuracao": 1,
@@ -138,22 +138,22 @@ Peers.Moderno/
     "AvaliacaoAsCegas": [...]
   }
 }
-
+```
 
 ## Injeção de Dependências
 
 ### Program.cs - Registros
-
+```text
 csharp
 // Prazos Services
 builder.Services.AddScoped<IPrazosService, PrazosService>();
 builder.Services.AddScoped<IPrazosValidationHelper, PrazosValidationHelper>();
-
+```
 
 ## Exemplos de Uso
 
 ### 1. Cadastrar Novo Prazo
-
+```text
 csharp
 var formModel = new PrazoFormModel
 {
@@ -169,10 +169,10 @@ if (result.IsSuccess)
 {
     MessageBoxService.ShowSuccess(result.Message);
 }
-
+```
 
 ### 2. Validar Formulário
-
+```text
 csharp
 var validation = ValidationHelper.ValidatePrazo(formModel);
 
@@ -181,18 +181,18 @@ if (!validation.IsValid)
     MessageBoxService.ShowError(validation.ErrorMessage);
     return;
 }
-
+```
 
 ### 3. Obter Opções de Gatilho
-
+```text
 csharp
 var opcoes = ValidationHelper.GetGatilhoOptions(TipoGatilho.Feedback);
 // Retorna opções específicas para o tipo Feedback
-
+```
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /prazos] --> B[Prazos.razor carrega]
     B --> C[OnInitializedAsync]
@@ -222,7 +222,7 @@ flowchart TD
     Z --> AA[PrazosService.InativarPrazoAsync]
     AA --> BB[MessageBoxService.ShowSuccess]
     BB --> S
-
+```
 
 ## Benefícios da Migração
 
