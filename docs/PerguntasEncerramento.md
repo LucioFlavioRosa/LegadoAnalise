@@ -15,7 +15,7 @@ Este módulo implementa o sistema completo de gerenciamento de **Perguntas de En
 
 ### Estrutura de Arquivos
 
-
+```text
 Peers.Moderno/
 ├── Models/
 │   └── PerguntaEncerramento.cs
@@ -30,7 +30,7 @@ Peers.Moderno/
 │   └── ApplicationDbContext.cs (modificado)
 └── docs/
     └── PerguntasEncerramento.md
-
+```
 
 ## Funcionalidades
 
@@ -59,18 +59,18 @@ Peers.Moderno/
 ### Injeção de Dependência
 
 O serviço é registrado no `Program.cs`:
-
+```text
 csharp
 builder.Services.AddScoped<IPerguntasEncerramentoService, PerguntasEncerramentoService>();
-
+```
 
 ### Entity Framework
 
 A entidade é mapeada no `ApplicationDbContext`:
-
+```text
 csharp
 public DbSet<PerguntaEncerramento> PerguntasEncerramento { get; set; }
-
+```
 
 ### Blazor Component
 
@@ -111,7 +111,7 @@ A interface `IPerguntasEncerramentoService` permite fácil substituição e test
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário] --> B[Blazor Component]
     B --> C{Ação do Usuário}
@@ -142,7 +142,7 @@ flowchart TD
     Q --> B
     
     K --> B
-
+```
 
 ## Configuração de Banco de Dados
 
