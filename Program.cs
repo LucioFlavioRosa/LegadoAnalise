@@ -95,9 +95,13 @@ builder.Services.AddScoped<IUserContextService, UserContextService>();
 builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 
-// Auth Common Services
+// Auth Common Services - Login Migration
 builder.Services.AddScoped<ITokenDecoder, TokenDecoder>();
 builder.Services.AddScoped<IAuthCallbackService, AuthCallbackService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Footer Services - Login Migration
+builder.Services.AddScoped<IFooterLinksService, FooterLinksService>();
 
 // Business Services - Dependency Injection
 builder.Services.AddScoped<ICompetenciasService, CompetenciasService>();
