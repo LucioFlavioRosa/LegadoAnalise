@@ -1,0 +1,296 @@
+@page "/performance"
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Performance
+@using Peers.Moderno.Services.Cargos
+@using Peers.Moderno.Services.Avaliacoes
+@using Peers.Moderno.Services.Common
+@inject IPerformanceService PerformanceService
+@inject ICargosService CargosService
+@inject IAvaliacoesService AvaliacoesService
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Performance</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Performance</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers / Cadastro Básico de Projetos</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Performance</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <!-- Formulário de Performance -->
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Dados da performance</h4>
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Cargo</label>
+                            <select @bind="SelectedCargoId" class="form-control p-0 select2" style="width: 100%">
+                                <option value="0">[Selecionar]</option>
+                                @foreach (var cargo in Cargos)
+                                {
+                                    <option value="@cargo.IdCargo">@cargo.Nome</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select @bind="SelectedStatus" class="form-control" style="width: 100%">
+                                <option value="1">Ativo</option>
+                                <option value="0">Inativo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm">
+                        <div class="form-group">
+                            <label>Performance</label>
+                            <input @bind="PerformanceText" class="form-control" type="text" />
+                        </div>
+                    </div>
+                    <div class="col-sm">
+                        <div class="form-group">
+                            <label>Abrangência</label>
+                            <select @bind="SelectedAbrangencia" class="form-control" style="width: 100%">
+                                <option value="Individual">Individual</option>
+                                <option value="Coletivo">Coletivo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Abaixo</label>
+                            <input @bind="DescricaoAbaixo" class="form-control" type="text" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Esperado</label>
+                            <input @bind="DescricaoEsperado" class="form-control" type="text" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Acima</label>
+                            <input @bind="DescricaoAcima" class="form-control" type="text" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Input auto-avaliação</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Input avaliação as cegas</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Input avaliação do gestor</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top:-16px">
+                    <!-- INPUT E NOTA PADRÃO -- AUTO AVALIAÇÃO -->
+                    <div class="col-sm">
+                        <div class="form-group">
+                            <input type="checkbox" @bind="InputAutoAvaliacao" style="transform: scale(2.1); margin-left:7px" @onchange="OnInputAutoAvaliacaoChanged" />
+                        </div>
+                    </div>
+                    <div class="col-sm">
+                        <div class="form-group" style="margin-left:-100px">
+                            <label style="@GetNotaPadraoLabelStyle(!InputAutoAvaliacao)">Nota padrão:</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-group" style="margin-left:-140px;margin-top:-6px;@GetNotaPadraoDropdownStyle(!InputAutoAvaliacao)">
+                            <select @bind="NotaPadraoAutoAvaliacaoId" class="form-control" style="width: 100%">
+                                <option value="0">[Selecionar]</option>
+                                @foreach (var nota in NotasPerformance)
+                                {
+                                    <option value="@nota.IdNota">@nota.CodigoNota</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <!-- INPUT E NOTA PADRÃO -- AVALIAÇÃO AS CEGAS -->
+                    <div class="col-sm">
+                        <div class="form-group">
+                            <input type="checkbox" @bind="InputAvaliacaoAsCegas" style="transform: scale(2.1); margin-left:7px" @onchange="OnInputAvaliacaoAsCegasChanged" />
+                        </div>
+                    </div>
+                    <div class="col-sm">
+                        <div class="form-group" style="margin-left:-100px">
+                            <label style="@GetNotaPadraoLabelStyle(!InputAvaliacaoAsCegas)">Nota padrão:</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-group" style="margin-left:-140px;margin-top:-6px;@GetNotaPadraoDropdownStyle(!InputAvaliacaoAsCegas)">
+                            <select @bind="NotaPadraoAvaliacaoAsCegasId" class="form-control" style="width: 100%">
+                                <option value="0">[Selecionar]</option>
+                                @foreach (var nota in NotasPerformance)
+                                {
+                                    <option value="@nota.IdNota">@nota.CodigoNota</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <!-- INPUT E NOTA PADRÃO -- AVALIAÇÃO GESTOR -->
+                    <div class="col-sm">
+                        <div class="form-group">
+                            <input type="checkbox" @bind="InputAvaliacaoGestor" style="transform: scale(2.1); margin-left:7px" @onchange="OnInputAvaliacaoGestorChanged" />
+                        </div>
+                    </div>
+                    <div class="col-sm">
+                        <div class="form-group" style="margin-left:-100px">
+                            <label style="@GetNotaPadraoLabelStyle(!InputAvaliacaoGestor)">Nota padrão:</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-group" style="margin-left:-140px;margin-top:-6px;@GetNotaPadraoDropdownStyle(!InputAvaliacaoGestor)">
+                            <select @bind="NotaPadraoAvaliacaoGestorId" class="form-control" style="width: 100%">
+                                <option value="0">[Selecionar]</option>
+                                @foreach (var nota in NotasPerformance)
+                                {
+                                    <option value="@nota.IdNota">@nota.CodigoNota</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <div class="text-right">
+                        <button @onclick="CadastrarSalvar" class="btn btn-info" disabled="@IsProcessing">
+                            @if (IsProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <text> Processando...</text>
+                            }
+                            else
+                            {
+                                <text>Cadastrar/Salvar</text>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EXPORT E IMPORT -->
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Exportar e Importar Performances</h4>
+            <h6 class="card-subtitle">Utilize o modelo de arquivo exportado para alterar ou adicionar competências.</h6>
+            <h6 class="card-subtitle">Mantenha uma linha SEM um valor na coluna IdPerformance para adicionar uma nova performance.</h6>
+            <h6 class="card-subtitle">O cargo deve ser identificado pelo ID.</h6>
+            <h6 class="card-subtitle">Para fazer com que uma etapa possua uma nota padrão sem preenchimento do usuário, indique a coluna INPUT da etapa com o valor 0 e identifique o IdNotaPadrao na próxima coluna.</h6>
+            <h6 class="card-subtitle">NÃO altere a ordem e quantidade das colunas, a quantidade de abas do arquivo ou coloque linhas acima da linha de títulos.</h6>
+            <button @onclick="ExportarPerformances" class="btn btn-info" disabled="@IsProcessing">Exportar</button>
+            <button @onclick="ImportarPerformances" class="btn btn-info" disabled="@IsProcessing">Importar</button>
+            <InputFile OnChange="OnFileSelected" accept=".xlsx" class="btn btn-danger" />
+        </div>
+    </div>
+
+    <!-- Lista de Performance -->
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Lista de Performance</h4>
+            <h6 class="card-subtitle">Filtre as informações separadas por espaço para busca em qualquer coluna em qualquer ordem, completo ou parcial: <code>performance código</code>.</h6>
+            <div class="table-responsive">
+                @if (Performances.Any())
+                {
+                    <table class="table table-striped border dtInit">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Performance</th>
+                                <th>Cargo</th>
+                                <th>Nível</th>
+                                <th>Status(Ativo/Inativo)</th>
+                                <th data-sort="0">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var performance in Performances)
+                            {
+                                <tr>
+                                    <td>@performance.IdPerformance</td>
+                                    <td>@performance.Nome</td>
+                                    <td>@performance.Cargo?.Nome</td>
+                                    <td>@performance.CargoNivel?.Nivel</td>
+                                    <td>@(performance.Ativo ? "Ativo" : "Inativo")</td>
+                                    <td>
+                                        <button @onclick="() => AlterarPerformance(performance.IdPerformance)" class="btn btn-info">Alterar</button>
+                                        @if (performance.Ativo)
+                                        {
+                                            <button @onclick="() => InativarPerformance(performance.IdPerformance)" class="btn btn-dark">Inativar</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Código</th>
+                                <th>Performance</th>
+                                <th>Cargo</th>
+                                <th>Nível</th>
+                                <th>Status(Ativo/Inativo)</th>
+                                <th data-sort="0">Ação</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Nenhuma performance encontrada.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (ShowMessageBox)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@GetMessageBoxTitle()</h5>
+                    <button type="button" class="btn-close" @onclick="CloseMessageBox"></button>
+                </div>
+                <div class="modal-body">
+                    @((MarkupString)MessageBoxText)
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseMessageBox">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
