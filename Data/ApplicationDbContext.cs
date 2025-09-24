@@ -37,6 +37,9 @@ public class ApplicationDbContext : DbContext
     
     // Novo DbSet para Perguntas de Encerramento
     public DbSet<PerguntaEncerramento> PerguntasEncerramento { get; set; }
+    
+    // Novo DbSet para Prazos
+    public DbSet<Prazo> Prazos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -276,6 +279,20 @@ public class ApplicationDbContext : DbContext
                 .IsRequired();
                 
             entity.Property(e => e.DataCriacao)
+                .HasDefaultValueSql("GETUTCDATE()");
+        });
+
+        // Configuração da entidade Prazo
+        modelBuilder.Entity<Prazo>(entity =>
+        {
+            entity.HasKey(e => e.IdPrazo);
+            entity.ToTable("PRAZOS");
+            
+            entity.Property(e => e.NomeDisparo)
+                .HasMaxLength(500)
+                .IsRequired();
+                
+            entity.Property(e => e.DHC)
                 .HasDefaultValueSql("GETUTCDATE()");
         });
     }
