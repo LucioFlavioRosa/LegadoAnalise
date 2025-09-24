@@ -1,0 +1,59 @@
+@inject IMessageBoxService MessageBoxService
+@implements IDisposable
+
+@if (showMessage)
+{
+    <div class="alert @GetAlertClass() alert-dismissible fade show" role="alert">
+        @currentMessage
+        <button type="button" class="close" @onclick="HideMessage">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@code {
+    private bool showMessage = false;
+    private string currentMessage = string.Empty;
+    private MessageBoxType currentType = MessageBoxType.Info;
+
+    protected override void OnInitialized()
+    {
+        MessageBoxService.OnMessageReceived += HandleMessage;
+    }
+
+    private void HandleMessage(MessageBoxEventArgs args)
+    {
+        currentMessage = args.Message;
+        currentType = args.Type;
+        showMessage = true;
+        StateHasChanged();
+        
+        Task.Delay(5000).ContinueWith(_ => InvokeAsync(() =>
+        {
+            showMessage = false;
+            StateHasChanged();
+        }));
+    }
+
+    private void HideMessage()
+    {
+        showMessage = false;
+    }
+
+    private string GetAlertClass()
+    {
+        return currentType switch
+        {
+            MessageBoxType.Success => "alert-success",
+            MessageBoxType.Error => "alert-danger",
+            MessageBoxType.Warning => "alert-warning",
+            MessageBoxType.Info => "alert-info",
+            _ => "alert-info"
+        };
+    }
+
+    public void Dispose()
+    {
+        MessageBoxService.OnMessageReceived -= HandleMessage;
+    }
+}
