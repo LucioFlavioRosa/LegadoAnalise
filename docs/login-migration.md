@@ -55,7 +55,7 @@ Este documento descreve a migração completa da funcionalidade de login do sist
 
 ## Fluxo de Autenticação
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /login] --> B{Já autenticado?}
     B -- Sim --> C[Redireciona para /]
@@ -80,7 +80,7 @@ flowchart TD
     U --> V[Permanece na tela de login]
     T --> W[FooterLinks.razor carregado]
     V --> W
-
+```
 
 ## Integração com Serviços Existentes
 
@@ -103,7 +103,7 @@ flowchart TD
 ## Configuração
 
 ### appsettings.json
-
+```text
 {
   "Authentication": {
     "AzureAd": {
@@ -117,9 +117,10 @@ flowchart TD
   },
   "AppVersion": "2.0.0"
 }
-
+```
 
 ### Program.cs
+```text
 csharp
 // Auth Common Services - Login Migration
 builder.Services.AddScoped<ITokenDecoder, TokenDecoder>();
@@ -128,7 +129,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Footer Services - Login Migration
 builder.Services.AddScoped<IFooterLinksService, FooterLinksService>();
-
+```
 
 ## Vantagens da Nova Arquitetura
 
