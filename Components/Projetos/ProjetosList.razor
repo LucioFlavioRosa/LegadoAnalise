@@ -1,0 +1,374 @@
+@page "/projetos"
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Projetos
+@using Peers.Moderno.Services.Common
+@inject IProjetosService ProjetosService
+@inject IMessageBoxService MessageBoxService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveAuto
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Projetos</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active">Cadastros de Projetos</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="card-title mb-0">Lista de projetos</h4>
+                <button type="button" class="btn btn-primary" @onclick="NovoProjeto">
+                    <i class="fa fa-plus"></i> Novo Projeto
+                </button>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Filtrar projetos:</label>
+                        <input type="text" class="form-control" @bind="filtro" @bind:event="oninput" @onkeyup="FiltrarProjetos" 
+                               placeholder="Digite para filtrar por projeto, cliente, responsável..." />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Status:</label>
+                        <select class="form-control" @bind="filtroStatus" @onchange="FiltrarProjetos">
+                            <option value="">Todos</option>
+                            <option value="true">Ativo</option>
+                            <option value="false">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <div>
+                            <button type="button" class="btn btn-secondary" @onclick="LimparFiltros">
+                                <i class="fa fa-times"></i> Limpar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            @if (isLoading)
+            {
+                <div class="text-center p-4">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Carregando...</span>
+                    </div>
+                    <p class="mt-2">Carregando projetos...</p>
+                </div>
+            }
+            else if (projetosFiltrados?.Any() == true)
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped border">
+                        <thead>
+                            <tr>
+                                <th @onclick="() => OrdenarPor(nameof(Projeto.Nome))" style="cursor: pointer;">
+                                    Projeto 
+                                    @if (campoOrdenacao == nameof(Projeto.Nome))
+                                    {
+                                        <i class="fa @(ordemCrescente ? "fa-sort-up" : "fa-sort-down")"></i>
+                                    }
+                                </th>
+                                <th @onclick="() => OrdenarPor(nameof(Projeto.DataInicio))" style="cursor: pointer;">
+                                    Data Início 
+                                    @if (campoOrdenacao == nameof(Projeto.DataInicio))
+                                    {
+                                        <i class="fa @(ordemCrescente ? "fa-sort-up" : "fa-sort-down")"></i>
+                                    }
+                                </th>
+                                <th @onclick="() => OrdenarPor(nameof(Projeto.DataFim))" style="cursor: pointer;">
+                                    Data Término 
+                                    @if (campoOrdenacao == nameof(Projeto.DataFim))
+                                    {
+                                        <i class="fa @(ordemCrescente ? "fa-sort-up" : "fa-sort-down")"></i>
+                                    }
+                                </th>
+                                <th>Cliente</th>
+                                <th>Responsável</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var projeto in projetosFiltrados)
+                            {
+                                <tr>
+                                    <td>@projeto.Nome</td>
+                                    <td>@projeto.DataInicio.ToString("dd/MM/yyyy")</td>
+                                    <td>@projeto.DataFim?.ToString("dd/MM/yyyy")</td>
+                                    <td>@projeto.Cliente?.Nome</td>
+                                    <td>@projeto.AssociadoResponsavel?.Nome</td>
+                                    <td>
+                                        <span class="badge @(projeto.Ativo ? "badge-success" : "badge-secondary")">
+                                            @(projeto.Ativo ? "Ativo" : "Inativo")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-primary" 
+                                                    @onclick="() => EditarProjeto(projeto.Id)" title="Editar">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-info" 
+                                                    @onclick="() => GerenciarAssociados(projeto.Id)" title="Gerenciar Associados">
+                                                <i class="fa fa-users"></i>
+                                            </button>
+                                            @if (projeto.Ativo)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-warning" 
+                                                        @onclick="() => InativarProjeto(projeto.Id)" title="Inativar">
+                                                    <i class="fa fa-pause"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-success" 
+                                                        @onclick="() => AtivarProjeto(projeto.Id)" title="Ativar">
+                                                    <i class="fa fa-play"></i>
+                                                </button>
+                                            }
+                                            <button type="button" class="btn btn-sm btn-danger" 
+                                                    @onclick="() => ExcluirProjeto(projeto.Id)" title="Excluir">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <small class="text-muted">
+                            Exibindo @projetosFiltrados.Count() de @(projetos?.Count() ?? 0) projetos
+                        </small>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center p-4">
+                    <i class="fa fa-folder-open fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Nenhum projeto encontrado</h5>
+                    <p class="text-muted">@(string.IsNullOrEmpty(filtro) ? "Não há projetos cadastrados." : "Nenhum projeto corresponde aos filtros aplicados.")</p>
+                    <button type="button" class="btn btn-primary" @onclick="NovoProjeto">
+                        <i class="fa fa-plus"></i> Cadastrar Primeiro Projeto
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Projeto>? projetos;
+    private IEnumerable<Projeto>? projetosFiltrados;
+    private string filtro = string.Empty;
+    private string filtroStatus = string.Empty;
+    private bool isLoading = true;
+    private string campoOrdenacao = nameof(Projeto.Nome);
+    private bool ordemCrescente = true;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarProjetos();
+    }
+    
+    private async Task CarregarProjetos()
+    {
+        try
+        {
+            isLoading = true;
+            projetos = await ProjetosService.ObterProjetosAsync();
+            AplicarFiltros();
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError($"Erro ao carregar projetos: {ex.Message}");
+            projetos = new List<Projeto>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private void FiltrarProjetos()
+    {
+        AplicarFiltros();
+    }
+    
+    private void AplicarFiltros()
+    {
+        if (projetos == null)
+        {
+            projetosFiltrados = new List<Projeto>();
+            return;
+        }
+        
+        var query = projetos.AsEnumerable();
+        
+        if (!string.IsNullOrWhiteSpace(filtro))
+        {
+            var filtroLower = filtro.ToLower();
+            query = query.Where(p => 
+                (p.Nome?.ToLower().Contains(filtroLower) == true) ||
+                (p.Codigo?.ToLower().Contains(filtroLower) == true) ||
+                (p.Cliente?.Nome?.ToLower().Contains(filtroLower) == true) ||
+                (p.AssociadoResponsavel?.Nome?.ToLower().Contains(filtroLower) == true) ||
+                (p.AssociadoGestor?.Nome?.ToLower().Contains(filtroLower) == true)
+            );
+        }
+        
+        if (!string.IsNullOrEmpty(filtroStatus))
+        {
+            var statusFiltro = bool.Parse(filtroStatus);
+            query = query.Where(p => p.Ativo == statusFiltro);
+        }
+        
+        query = OrdenarQuery(query);
+        projetosFiltrados = query.ToList();
+    }
+    
+    private IEnumerable<Projeto> OrdenarQuery(IEnumerable<Projeto> query)
+    {
+        return campoOrdenacao switch
+        {
+            nameof(Projeto.Nome) => ordemCrescente ? query.OrderBy(p => p.Nome) : query.OrderByDescending(p => p.Nome),
+            nameof(Projeto.DataInicio) => ordemCrescente ? query.OrderBy(p => p.DataInicio) : query.OrderByDescending(p => p.DataInicio),
+            nameof(Projeto.DataFim) => ordemCrescente ? query.OrderBy(p => p.DataFim) : query.OrderByDescending(p => p.DataFim),
+            _ => ordemCrescente ? query.OrderBy(p => p.Nome) : query.OrderByDescending(p => p.Nome)
+        };
+    }
+    
+    private void OrdenarPor(string campo)
+    {
+        if (campoOrdenacao == campo)
+        {
+            ordemCrescente = !ordemCrescente;
+        }
+        else
+        {
+            campoOrdenacao = campo;
+            ordemCrescente = true;
+        }
+        
+        AplicarFiltros();
+    }
+    
+    private void LimparFiltros()
+    {
+        filtro = string.Empty;
+        filtroStatus = string.Empty;
+        AplicarFiltros();
+    }
+    
+    private void NovoProjeto()
+    {
+        Navigation.NavigateTo("/projetos/form");
+    }
+    
+    private void EditarProjeto(int id)
+    {
+        Navigation.NavigateTo($"/projetos/form/{id}");
+    }
+    
+    private void GerenciarAssociados(int id)
+    {
+        Navigation.NavigateTo($"/projetos/{id}/associados");
+    }
+    
+    private async Task InativarProjeto(int id)
+    {
+        var confirmado = await JSRuntime.InvokeAsync<bool>("confirm", "Deseja realmente inativar este projeto?");
+        if (confirmado)
+        {
+            try
+            {
+                var success = await ProjetosService.InativarProjetoAsync(id);
+                if (success)
+                {
+                    MessageBoxService.ShowSuccess("Projeto inativado com sucesso!");
+                    await CarregarProjetos();
+                }
+                else
+                {
+                    MessageBoxService.ShowError("Erro ao inativar projeto");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBoxService.ShowError($"Erro ao inativar projeto: {ex.Message}");
+            }
+        }
+    }
+    
+    private async Task AtivarProjeto(int id)
+    {
+        var confirmado = await JSRuntime.InvokeAsync<bool>("confirm", "Deseja realmente ativar este projeto?");
+        if (confirmado)
+        {
+            try
+            {
+                var success = await ProjetosService.AtivarProjetoAsync(id);
+                if (success)
+                {
+                    MessageBoxService.ShowSuccess("Projeto ativado com sucesso!");
+                    await CarregarProjetos();
+                }
+                else
+                {
+                    MessageBoxService.ShowError("Erro ao ativar projeto");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBoxService.ShowError($"Erro ao ativar projeto: {ex.Message}");
+            }
+        }
+    }
+    
+    private async Task ExcluirProjeto(int id)
+    {
+        var confirmado = await JSRuntime.InvokeAsync<bool>("confirm", "Deseja realmente excluir este projeto? Esta ação não pode ser desfeita.");
+        if (confirmado)
+        {
+            try
+            {
+                var success = await ProjetosService.RemoverProjetoAsync(id);
+                if (success)
+                {
+                    MessageBoxService.ShowSuccess("Projeto excluído com sucesso!");
+                    await CarregarProjetos();
+                }
+                else
+                {
+                    MessageBoxService.ShowError("Erro ao excluir projeto");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBoxService.ShowError($"Erro ao excluir projeto: {ex.Message}");
+            }
+        }
+    }
+}
