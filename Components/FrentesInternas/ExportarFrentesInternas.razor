@@ -12,8 +12,8 @@
     <div class="card card-body">
         <h4 class="card-title">Exportar Avaliações de Alocações Internas</h4>
         <div class="form-actions">
-            <button class="btn btn-facebook" @onclick="ExportarAvaliacoes" disabled="@isExporting">
-                @if (isExporting)
+            <button class="btn btn-facebook" @onclick="ExportarAvaliacoes" disabled="@exportando">
+                @if (exportando)
                 {
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     <span>Exportando...</span>
@@ -24,20 +24,14 @@
                 }
             </button>
         </div>
-        
-        @if (!string.IsNullOrEmpty(mensagemStatus))
-        {
-            <div class="alert alert-info mt-3" role="alert">
-                @mensagemStatus
-            </div>
-        }
     </div>
 }
 
 @code {
     private bool exibirSecaoExportacao = false;
-    private bool isExporting = false;
-    private string mensagemStatus = string.Empty;
+    private bool exportando = false;
+    private int usuarioLogadoId = 0;
+    private int perfilUsuarioLogado = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,86 +42,63 @@
     {
         try
         {
-            // TODO: Implementar verificação de usuário logado e permissões
-            // var usuarioLogado = await ObterUsuarioLogado();
-            // exibirSecaoExportacao = usuarioLogado.IdPerfil >= 3;
+            // TODO: Implementar obtenção do usuário logado via serviço de autenticação
+            // var usuarioLogado = await AuthService.ObterUsuarioLogado();
+            // usuarioLogadoId = usuarioLogado.Id;
+            // perfilUsuarioLogado = usuarioLogado.IdPerfil;
             
-            // Por enquanto, simular verificação
-            exibirSecaoExportacao = await FrentesInternasService.UsuarioTemPermissaoExportacaoAsync();
+            // Verificar se o usuário tem permissão para exportar (perfil >= 3)
+            exibirSecaoExportacao = perfilUsuarioLogado >= 3;
         }
         catch (Exception ex)
         {
-            TelemetryService.TrackException(ex);
             MessageBoxService.ShowError($"Erro ao verificar permissões de exportação: {ex.Message}");
-            exibirSecaoExportacao = false;
-        }
-        finally
-        {
-            StateHasChanged();
+            TelemetryService.TrackException(ex);
         }
     }
 
     private async Task ExportarAvaliacoes()
     {
-        if (isExporting) return;
-
         try
         {
-            isExporting = true;
-            mensagemStatus = "Preparando dados para exportação...";
+            exportando = true;
             StateHasChanged();
 
-            TelemetryService.TrackEvent("FrenteInterna_IniciarExportacao");
-
-            // Obter dados para exportação
-            var avaliacoes = await FrentesInternasService.ObterAvaliacoesParaExportacaoAsync();
+            var avaliacoes = await FrentesInternasService.ObterAvaliacoesAlocacoesInternasAsync();
             
             if (avaliacoes?.Any() != true)
             {
-                MessageBoxService.ShowWarning("Não há dados disponíveis para exportação.");
+                MessageBoxService.ShowWarning("Não há avaliações para exportar");
                 return;
             }
 
-            mensagemStatus = "Gerando arquivo Excel...";
-            StateHasChanged();
-
-            // Gerar arquivo Excel
             var nomeArquivo = $"AvaliacoesAlocacaoInterna_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-            var arquivoBytes = await ExportHelper.GerarExcelAvaliacoesAsync(avaliacoes, nomeArquivo);
+            var bytesArquivo = await ExportHelper.GerarExcelAvaliacoesAsync(avaliacoes, nomeArquivo);
 
-            mensagemStatus = "Iniciando download...";
-            StateHasChanged();
-
-            // Fazer download do arquivo
             await JSRuntime.InvokeVoidAsync("downloadFileFromByteArray", new
             {
-                ByteArray = arquivoBytes,
+                ByteArray = bytesArquivo,
                 FileName = nomeArquivo,
                 ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             });
 
             MessageBoxService.ShowSuccess("Exportação realizada com sucesso!");
-            TelemetryService.TrackEvent("FrenteInterna_ExportacaoConcluida", new Dictionary<string, string> 
-            { 
-                { "NomeArquivo", nomeArquivo },
-                { "TotalRegistros", avaliacoes.Count.ToString() }
+            TelemetryService.TrackEvent("ExportacaoAvaliacoesAlocacaoInterna", new Dictionary<string, string>
+            {
+                { "UsuarioId", usuarioLogadoId.ToString() },
+                { "QuantidadeRegistros", avaliacoes.Count.ToString() },
+                { "NomeArquivo", nomeArquivo }
             });
         }
         catch (Exception ex)
         {
-            TelemetryService.TrackException(ex);
             MessageBoxService.ShowError($"Erro ao exportar avaliações: {ex.Message}");
+            TelemetryService.TrackException(ex);
         }
         finally
         {
-            isExporting = false;
-            mensagemStatus = string.Empty;
+            exportando = false;
             StateHasChanged();
         }
-    }
-
-    public async Task RefreshAsync()
-    {
-        await VerificarPermissaoExportacao();
     }
 }
