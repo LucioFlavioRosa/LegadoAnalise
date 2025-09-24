@@ -230,6 +230,9 @@ builder.Services.AddScoped<IProjetosService, ProjetosService>();
 // Projetos Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IProjetosComboHelper, ProjetosComboHelper>();
 
+// Tipos Projetos Services - Migração de Web Forms para Blazor
+builder.Services.AddScoped<ITiposProjetosService, TiposProjetosService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
