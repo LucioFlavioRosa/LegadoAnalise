@@ -31,6 +31,9 @@ public class ApplicationDbContext : DbContext
     
     // Novo DbSet para Complexidades
     public DbSet<ProjetoComplexidade> ProjetosComplexidades { get; set; }
+    
+    // Novo DbSet para Performance
+    public DbSet<Performance> Performances { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -221,6 +224,38 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.IdComplexidade);
             entity.ToTable("PROJETOSCOMPLEXIDADES");
+        });
+
+        // Configuração da entidade Performance
+        modelBuilder.Entity<Performance>(entity =>
+        {
+            entity.HasKey(e => e.IdPerformance);
+            entity.ToTable("PERFORMANCES");
+            
+            entity.HasOne(d => d.Cargo)
+                .WithMany()
+                .HasForeignKey(d => d.IdCargo)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.CargoNivel)
+                .WithMany()
+                .HasForeignKey(d => d.IdNivel)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.NotaAutoAvaliacao)
+                .WithMany()
+                .HasForeignKey(d => d.NotaPadraoAutoAvaliacao)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.NotaAvaliacaoAsCegas)
+                .WithMany()
+                .HasForeignKey(d => d.NotaPadraoAvaliacaoAsCegas)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.NotaAvaliacaoGestor)
+                .WithMany()
+                .HasForeignKey(d => d.NotaPadraoAvaliacaoGestor)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
