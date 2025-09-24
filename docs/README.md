@@ -8,7 +8,7 @@ Este é um sistema de avaliação interna desenvolvido em ASP.NET Core 9 com Bla
 
 ### Organização de Pastas
 
-
+```text
 Peers.Moderno/
 ├── Components/           # Componentes Blazor reutilizáveis
 ├── Data/                # Contexto do Entity Framework
@@ -19,7 +19,7 @@ Peers.Moderno/
 │   └── Business/        # Serviços específicos de negócio
 ├── wwwroot/             # Arquivos estáticos
 └── docs/                # Documentação técnica
-
+```
 
 ### Padrão de Reutilização de Código
 
