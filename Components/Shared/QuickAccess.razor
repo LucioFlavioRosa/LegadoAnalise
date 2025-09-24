@@ -1,0 +1,36 @@
+@inject NavigationManager Navigation
+
+@if (QuickAccessItems != null && QuickAccessItems.Any())
+{
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Acesso rápido</h4>
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            @foreach (var item in QuickAccessItems)
+                            {
+                                <button class="@item.CssClass" @onclick="() => NavigateToPage(item.Action)">
+                                    @item.Text
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<QuickAccessItem> QuickAccessItems { get; set; } = new();
+
+    private void NavigateToPage(string action)
+    {
+        if (!string.IsNullOrEmpty(action))
+        {
+            Navigation.NavigateTo($"/{action}");
+        }
+    }
+}
