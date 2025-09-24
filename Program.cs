@@ -34,6 +34,8 @@ using Peers.Moderno.Services.Prazos;
 using Peers.Moderno.Services.Prazos.Common;
 using Peers.Moderno.Services.Premissas;
 using Peers.Moderno.Services.Premissas.Common;
+using Peers.Moderno.Services.Projetos;
+using Peers.Moderno.Services.Projetos.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -213,6 +215,12 @@ builder.Services.AddScoped<IPrazosService, PrazosService>();
 
 // Prazos Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IPrazosValidationHelper, PrazosValidationHelper>();
+
+// Projetos Services - Novos serviços adicionados
+builder.Services.AddScoped<IProjetosService, ProjetosService>();
+
+// Projetos Common Services - Novos serviços adicionados
+builder.Services.AddScoped<IProjetosComboHelper, ProjetosComboHelper>();
 
 var app = builder.Build();
 

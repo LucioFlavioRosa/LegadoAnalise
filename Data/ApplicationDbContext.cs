@@ -40,6 +40,11 @@ public class ApplicationDbContext : DbContext
     
     // Novo DbSet para Prazos
     public DbSet<Prazo> Prazos { get; set; }
+    
+    // Novos DbSets para Projetos
+    public DbSet<Projeto> Projetos { get; set; }
+    public DbSet<AssociadoProjeto> AssociadosProjetos { get; set; }
+    public DbSet<TipoProjeto> TiposProjetos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -294,6 +299,72 @@ public class ApplicationDbContext : DbContext
                 
             entity.Property(e => e.DHC)
                 .HasDefaultValueSql("GETUTCDATE()");
+        });
+
+        // Configurações das entidades de Projetos
+        modelBuilder.Entity<Projeto>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("PROJETOS");
+            entity.Property(e => e.Id).HasColumnName("IdProjeto");
+            
+            entity.HasOne(d => d.Cliente)
+                .WithMany()
+                .HasForeignKey(d => d.IdCliente)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.AssociadoResponsavel)
+                .WithMany()
+                .HasForeignKey(d => d.IdAssociadoResponsavel)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.AssociadoGestor)
+                .WithMany()
+                .HasForeignKey(d => d.IdAssociadoGestor)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.TipoProjeto)
+                .WithMany()
+                .HasForeignKey(d => d.IdTipoProjeto)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.Complexidade)
+                .WithMany()
+                .HasForeignKey(d => d.IdComplexidade)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AssociadoProjeto>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("ASSOCIADOS_PROJETOS");
+            
+            entity.HasOne(d => d.Projeto)
+                .WithMany(p => p.AssociadosProjeto)
+                .HasForeignKey(d => d.IdProjeto)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.Associado)
+                .WithMany()
+                .HasForeignKey(d => d.IdAssociado)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.CargoProjeto)
+                .WithMany()
+                .HasForeignKey(d => d.IdCargoProjeto)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            entity.HasOne(d => d.Avaliador)
+                .WithMany()
+                .HasForeignKey(d => d.IdAvaliador)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<TipoProjeto>(entity =>
+        {
+            entity.HasKey(e => e.IdTipo);
+            entity.ToTable("TIPOS_PROJETOS");
+            entity.Property(e => e.Nome).HasColumnName("ProjetoTipo");
         });
     }
 }
