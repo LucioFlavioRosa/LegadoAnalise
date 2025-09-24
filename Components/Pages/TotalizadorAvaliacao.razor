@@ -1,0 +1,195 @@
+@page "/totalizador-avaliacao"
+@rendermode InteractiveAuto
+@using Peers.Moderno.Services.Associados.Common
+@using Peers.Moderno.Services.Common
+@inject ITotalizadorAvaliacaoService TotalizadorService
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+
+<PageTitle>Totalizador das Avaliações</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Totalizador das Avaliações</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active">Totalizador das Avaliações</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Dados do Associado</h4>
+            
+            @if (IsLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Carregando...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="@FormModel" OnValidSubmit="@HandleSubmit">
+                    <div class="form-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nome</label>
+                                    <InputText @bind-Value="FormModel.Nome" class="form-control" placeholder="Digite o nome do associado" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Mentor</label>
+                                    <InputSelect @bind-Value="FormModel.IdMentor" class="form-control p-0 select2" style="width: 100%">
+                                        @foreach (var mentor in Mentores)
+                                        {
+                                            <option value="@mentor.Value">@mentor.Text</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>E-mail</label>
+                                    <InputText @bind-Value="FormModel.Email" class="form-control" type="email" placeholder="Digite o e-mail" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Senha</label>
+                                    <InputText @bind-Value="FormModel.Senha" type="password" class="form-control" placeholder="Digite a senha" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Cargo</label>
+                                    <InputSelect @bind-Value="FormModel.IdCargo" class="form-control p-0 select2" style="width: 100%">
+                                        @foreach (var cargo in Cargos)
+                                        {
+                                            <option value="@cargo.Value">@cargo.Text</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Perfil de acesso</label>
+                                    <InputSelect @bind-Value="FormModel.IdPerfil" class="form-control p-0 select2" style="width: 100%">
+                                        @foreach (var perfil in Perfis)
+                                        {
+                                            <option value="@perfil.Value">@perfil.Text</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Status</label>
+                                    <InputSelect @bind-Value="FormModel.Status" class="form-control p-0 select2" style="width: 100%">
+                                        @foreach (var status in StatusOptions)
+                                        {
+                                            <option value="@status.Value">@status.Text</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <div class="text-right">
+                                <button type="submit" class="btn btn-info" disabled="@IsProcessing">
+                                    @if (IsProcessing)
+                                    {
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        <span>Processando...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Cadastrar/Salvar</span>
+                                    }
+                                </button>
+                                @if (IsEditMode)
+                                {
+                                    <button type="button" class="btn btn-secondary ml-2" @onclick="LimparFormulario">
+                                        Novo
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+
+    @if (Associados.Any())
+    {
+        <div class="card mt-4">
+            <div class="card-body">
+                <h4 class="card-title">Lista de Associados</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>E-mail</th>
+                                <th>Cargo</th>
+                                <th>Perfil</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var associado in Associados)
+                            {
+                                <tr>
+                                    <td>@associado.Nome</td>
+                                    <td>@associado.Email</td>
+                                    <td>@(associado.Cargo?.Nome ?? "N/A")</td>
+                                    <td>@(associado.Perfil?.Nome ?? "N/A")</td>
+                                    <td>
+                                        <span class="badge @(associado.Ativo ? "badge-success" : "badge-secondary")">
+                                            @(associado.Ativo ? "Ativo" : "Inativo")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" @onclick="() => EditarAssociado(associado.Id)">
+                                            <i class="fa fa-edit"></i> Editar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (ShowMessageBox)
+{
+    <div class="alert @GetAlertClass() alert-dismissible fade show" role="alert">
+        @MessageBoxText
+        <button type="button" class="close" @onclick="HideMessageBox">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
