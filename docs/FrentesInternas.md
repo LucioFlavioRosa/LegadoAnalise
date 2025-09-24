@@ -8,7 +8,7 @@ Este documento descreve a arquitetura e integração dos serviços e componentes
 
 ### Estrutura de Pastas
 
-``text
+```text
 Services/FrentesInternas/
 ├── IFrentesInternasService.cs          # Interface principal do serviço
 ├── FrentesInternasService.cs           # Implementação do serviço principal
