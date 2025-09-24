@@ -38,6 +38,7 @@ using Peers.Moderno.Services.Projetos;
 using Peers.Moderno.Services.Projetos.Common;
 using Peers.Moderno.Services.SubCompetencias;
 using Peers.Moderno.Services.SubCompetencias.Common;
+using Peers.Moderno.Services.Common.Avaliacoes;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -119,6 +120,9 @@ builder.Services.AddScoped<IFooterLinksService, FooterLinksService>();
 
 // Perguntas Encerramento Services - Nova funcionalidade
 builder.Services.AddScoped<IPerguntasEncerramentoService, PerguntasEncerramentoService>();
+
+// TotalAvaliacao Services - Nova migração de Web Forms para Blazor
+builder.Services.AddScoped<ITotalAvaliacaoService, TotalAvaliacaoService>();
 
 // Business Services - Dependency Injection
 builder.Services.AddScoped<ICompetenciasService, CompetenciasService>();
