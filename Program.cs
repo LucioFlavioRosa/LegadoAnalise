@@ -25,6 +25,8 @@ using Peers.Moderno.Services.Eixos;
 using Peers.Moderno.Services.Eixos.Common;
 using Peers.Moderno.Services.Avaliacoes;
 using Peers.Moderno.Services.Avaliacoes.Common;
+using Peers.Moderno.Services.FrentesInternas;
+using Peers.Moderno.Services.FrentesInternas.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
@@ -165,6 +167,13 @@ builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>(
 // Avaliacoes Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IEmailUtils, EmailUtils>();
 builder.Services.AddScoped<IWorkflowUtils, WorkflowUtils>();
+
+// FrentesInternas Services - Novos serviços adicionados
+builder.Services.AddScoped<IFrentesInternasService, FrentesInternasService>();
+
+// FrentesInternas Common Services - Novos serviços adicionados
+builder.Services.AddScoped<IStatusHelper, StatusHelper>();
+builder.Services.AddScoped<IExportHelper, ExportHelper>();
 
 var app = builder.Build();
 
