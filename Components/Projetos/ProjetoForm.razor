@@ -1,0 +1,315 @@
+@page "/projetos/form"
+@page "/projetos/form/{ProjetoId:int}"
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Projetos
+@using Peers.Moderno.Services.Projetos.Common
+@using Peers.Moderno.Services.Common
+@inject IProjetosService ProjetosService
+@inject IProjetosComboHelper ProjetosComboHelper
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+@inject NavigationManager Navigation
+@rendermode InteractiveAuto
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">@(IsEditing ? "Editar Projeto" : "Novo Projeto")</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item"><a href="/projetos">Projetos</a></li>
+                    <li class="breadcrumb-item active">@(IsEditing ? "Editar" : "Cadastrar")</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Dados do Projeto</h4>
+            <EditForm Model="@projeto" OnValidSubmit="@HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Código</label>
+                                <InputText @bind-Value="projeto.Codigo" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Projeto</label>
+                                <InputText @bind-Value="projeto.Nome" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Empresa / Cliente</label>
+                                <InputSelect @bind-Value="projeto.IdCliente" class="form-control select2" style="width: 100%">
+                                    <option value="0">[Selecionar]</option>
+                                    @foreach (var cliente in clientes)
+                                    {
+                                        <option value="@cliente.IdCliente">@cliente.Nome</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Início</label>
+                                <InputDate @bind-Value="projeto.DataInicio" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Término</label>
+                                <InputDate @bind-Value="projeto.DataFim" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Responsável <a href="javascript:void(0)" @onclick="() => ShowModal(ModalType.Responsavel)" class="text-right ml-2"><i class="fa fa-plus" title="Adicionar"></i></a></label>
+                                <InputSelect @bind-Value="projeto.IdAssociadoResponsavel" class="form-control select2" style="width: 100%">
+                                    <option value="0">[Selecionar]</option>
+                                    @foreach (var responsavel in responsaveis)
+                                    {
+                                        <option value="@responsavel.Id">@responsavel.Nome</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Gestor <a href="javascript:void(0)" @onclick="() => ShowModal(ModalType.Gestor)" class="text-right ml-2"><i class="fa fa-plus" title="Adicionar"></i></a></label>
+                                <InputSelect @bind-Value="projeto.IdAssociadoGestor" class="form-control select2" style="width: 100%">
+                                    <option value="0">[Selecionar]</option>
+                                    @foreach (var gestor in gestores)
+                                    {
+                                        <option value="@gestor.Id">@gestor.Nome</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <InputSelect @bind-Value="projeto.Ativo" class="form-control select2" style="width: 100%">
+                                    <option value="true">Ativo</option>
+                                    <option value="false">Inativo</option>
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Tipo de Projeto <a href="javascript:void(0)" @onclick="() => ShowModal(ModalType.TipoProjeto)" class="text-right ml-2"><i class="fa fa-plus" title="Adicionar"></i></a></label>
+                                <InputSelect @bind-Value="projeto.IdTipoProjeto" class="form-control select2" style="width: 100%">
+                                    <option value="0">[Selecionar]</option>
+                                    @foreach (var tipo in tiposProjetos)
+                                    {
+                                        <option value="@tipo.IdTipo">@tipo.Nome</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>Complexidade <a href="javascript:void(0)" @onclick="() => ShowModal(ModalType.Complexidade)" class="text-right ml-2"><i class="fa fa-plus" title="Adicionar"></i></a></label>
+                                <InputSelect @bind-Value="projeto.IdComplexidade" class="form-control select2" style="width: 100%">
+                                    <option value="0">[Selecionar]</option>
+                                    @foreach (var complexidade in complexidades)
+                                    {
+                                        <option value="@complexidade.IdComplexidade">@complexidade.Nome</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <div class="text-right">
+                        <button type="button" class="btn btn-secondary mr-2" @onclick="Cancel">Cancelar</button>
+                        <button type="submit" class="btn btn-info" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span>Salvando...</span>
+                            }
+                            else
+                            {
+                                <span>@(IsEditing ? "Atualizar" : "Cadastrar")</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@if (showModal)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">@GetModalTitle()</h4>
+                    <button type="button" class="close" @onclick="CloseModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Funcionalidade de cadastro será implementada pelos desenvolvedores.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Fechar</button>
+                    <button type="button" class="btn btn-primary">Cadastrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int? ProjetoId { get; set; }
+    
+    private Projeto projeto = new();
+    private List<Cliente> clientes = new();
+    private List<Associado> responsaveis = new();
+    private List<Associado> gestores = new();
+    private List<TipoProjeto> tiposProjetos = new();
+    private List<ProjetoComplexidade> complexidades = new();
+    
+    private bool isLoading = false;
+    private bool showModal = false;
+    private ModalType currentModalType;
+    
+    private bool IsEditing => ProjetoId.HasValue && ProjetoId.Value > 0;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadCombos();
+            
+            if (IsEditing)
+            {
+                projeto = await ProjetosService.ObterProjetoAsync(ProjetoId.Value) ?? new Projeto();
+            }
+            
+            TelemetryService.TrackEvent("ProjetoFormLoaded", new Dictionary<string, string>
+            {
+                { "IsEditing", IsEditing.ToString() },
+                { "ProjetoId", ProjetoId?.ToString() ?? "0" }
+            });
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError("Erro ao carregar dados do formulário");
+        }
+    }
+    
+    private async Task LoadCombos()
+    {
+        clientes = await ProjetosComboHelper.GetClientesAsync();
+        responsaveis = await ProjetosComboHelper.GetResponsaveisAsync();
+        gestores = await ProjetosComboHelper.GetGestoresAsync();
+        tiposProjetos = await ProjetosComboHelper.GetTiposProjetosAsync();
+        complexidades = await ProjetosComboHelper.GetComplexidadesAsync();
+    }
+    
+    private async Task HandleValidSubmit()
+    {
+        if (isLoading) return;
+        
+        try
+        {
+            isLoading = true;
+            
+            if (projeto.DataInicio == default || projeto.DataFim == default)
+            {
+                MessageBoxService.ShowWarning("Data de Início e Término devem ser preenchidos.");
+                return;
+            }
+            
+            bool success;
+            if (IsEditing)
+            {
+                success = await ProjetosService.AtualizarProjetoAsync(projeto);
+                if (success)
+                {
+                    MessageBoxService.ShowSuccess("Projeto atualizado com sucesso!");
+                }
+            }
+            else
+            {
+                success = await ProjetosService.InserirProjetoAsync(projeto);
+                if (success)
+                {
+                    MessageBoxService.ShowSuccess("Projeto cadastrado com sucesso!");
+                }
+            }
+            
+            if (success)
+            {
+                Navigation.NavigateTo("/projetos");
+            }
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError("Erro ao salvar projeto");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/projetos");
+    }
+    
+    private void ShowModal(ModalType modalType)
+    {
+        currentModalType = modalType;
+        showModal = true;
+    }
+    
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+    
+    private string GetModalTitle()
+    {
+        return currentModalType switch
+        {
+            ModalType.Responsavel => "Cadastro de Responsável",
+            ModalType.Gestor => "Cadastro de Gestor",
+            ModalType.TipoProjeto => "Cadastro de Tipo de Projeto",
+            ModalType.Complexidade => "Cadastro de Complexidade",
+            _ => "Cadastro"
+        };
+    }
+    
+    private enum ModalType
+    {
+        Responsavel,
+        Gestor,
+        TipoProjeto,
+        Complexidade
+    }
+}

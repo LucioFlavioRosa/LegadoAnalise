@@ -1,0 +1,206 @@
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Associados
+@using Peers.Moderno.Services.Common
+@inject IAssociadosService AssociadosService
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+@rendermode InteractiveAuto
+
+@if (IsVisible)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Cadastro de Gestor</h4>
+                    <button type="button" class="close" @onclick="FecharModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@gestor" OnValidSubmit="@SalvarGestor">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        
+                        <div class="form-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Nome Completo *</label>
+                                        <InputText @bind-Value="gestor.Nome" class="form-control" placeholder="Digite o nome completo" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Email *</label>
+                                        <InputText @bind-Value="gestor.Email" class="form-control" type="email" placeholder="email@exemplo.com" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Telefone</label>
+                                        <InputText @bind-Value="gestor.Telefone" class="form-control" placeholder="(11) 99999-9999" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>CPF *</label>
+                                        <InputText @bind-Value="gestor.CPF" class="form-control" placeholder="000.000.000-00" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Data de Nascimento</label>
+                                        <InputDate @bind-Value="gestor.DataNascimento" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Nível de Gestão</label>
+                                        <InputSelect @bind-Value="gestor.NivelGestao" class="form-control">
+                                            <option value="">[Selecionar]</option>
+                                            <option value="Junior">Gestor Júnior</option>
+                                            <option value="Pleno">Gestor Pleno</option>
+                                            <option value="Senior">Gestor Sênior</option>
+                                            <option value="Diretor">Diretor</option>
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Observações</label>
+                                        <InputTextArea @bind-Value="gestor.Observacoes" class="form-control" rows="3" placeholder="Observações adicionais sobre o gestor" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="FecharModal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                @if (isSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span>Salvando...</span>
+                                }
+                                else
+                                {
+                                    <span>Cadastrar</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<Associado> OnGestorCadastrado { get; set; }
+    
+    private Associado gestor = new();
+    private bool isSaving = false;
+    
+    protected override void OnParametersSet()
+    {
+        if (IsVisible && gestor.Id == 0)
+        {
+            InicializarGestor();
+        }
+    }
+    
+    private void InicializarGestor()
+    {
+        gestor = new Associado
+        {
+            Ativo = true,
+            DataCadastro = DateTime.Now,
+            IdPerfil = 2,
+            Senha = "avaliacao"
+        };
+    }
+    
+    private async Task SalvarGestor()
+    {
+        if (isSaving) return;
+        
+        try
+        {
+            isSaving = true;
+            
+            if (string.IsNullOrWhiteSpace(gestor.Nome))
+            {
+                MessageBoxService.ShowWarning("Nome é obrigatório");
+                return;
+            }
+            
+            if (string.IsNullOrWhiteSpace(gestor.Email))
+            {
+                MessageBoxService.ShowWarning("Email é obrigatório");
+                return;
+            }
+            
+            if (string.IsNullOrWhiteSpace(gestor.CPF))
+            {
+                MessageBoxService.ShowWarning("CPF é obrigatório");
+                return;
+            }
+            
+            var emailExiste = await AssociadosService.VerificarEmailExisteAsync(gestor.Email);
+            if (emailExiste)
+            {
+                MessageBoxService.ShowWarning("Já existe um associado com este email");
+                return;
+            }
+            
+            var cpfExiste = await AssociadosService.VerificarCPFExisteAsync(gestor.CPF);
+            if (cpfExiste)
+            {
+                MessageBoxService.ShowWarning("Já existe um associado com este CPF");
+                return;
+            }
+            
+            var success = await AssociadosService.InserirAssociadoAsync(gestor);
+            if (success)
+            {
+                MessageBoxService.ShowSuccess("Gestor cadastrado com sucesso!");
+                await OnGestorCadastrado.InvokeAsync(gestor);
+                await FecharModal();
+            }
+            else
+            {
+                MessageBoxService.ShowError("Erro ao cadastrar gestor");
+            }
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Component", "GestorModal" },
+                { "Action", "SalvarGestor" }
+            });
+            MessageBoxService.ShowError("Erro interno ao cadastrar gestor");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+    
+    private async Task FecharModal()
+    {
+        gestor = new();
+        await OnClose.InvokeAsync();
+    }
+}
