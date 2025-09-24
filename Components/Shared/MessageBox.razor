@@ -2,52 +2,53 @@
 @inject IMessageBoxService MessageBoxService
 @implements IDisposable
 
-@if (ShowMessage)
+@if (currentMessage != null)
 {
-    <div class="alert @GetAlertClass() alert-dismissible fade show" role="alert">
-        <strong>@GetAlertTitle()</strong> @CurrentMessage
-        <button type="button" class="btn-close" @onclick="HideMessage" aria-label="Close"></button>
+    <div class="alert @GetAlertClass(currentMessage.Type) alert-dismissible fade show" role="alert">
+        <strong>@GetAlertTitle(currentMessage.Type)</strong> @currentMessage.Message
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" @onclick="DismissMessage">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
 }
 
 @code {
-    [Parameter] public bool AutoHide { get; set; } = true;
-    [Parameter] public int AutoHideDelay { get; set; } = 5000;
-
-    private bool ShowMessage { get; set; } = false;
-    private string CurrentMessage { get; set; } = string.Empty;
-    private MessageBoxType CurrentType { get; set; } = MessageBoxType.Info;
-    private Timer? _autoHideTimer;
+    private MessageBoxEventArgs? currentMessage;
+    private Timer? dismissTimer;
 
     protected override void OnInitialized()
     {
         MessageBoxService.OnMessageReceived += HandleMessage;
     }
 
-    private void HandleMessage(MessageBoxEventArgs args)
+    private void HandleMessage(MessageBoxEventArgs message)
     {
-        CurrentMessage = args.Message;
-        CurrentType = args.Type;
-        ShowMessage = true;
+        currentMessage = message;
         StateHasChanged();
 
-        if (AutoHide)
+        dismissTimer?.Dispose();
+        dismissTimer = new Timer(DismissMessageCallback, null, 5000, Timeout.Infinite);
+    }
+
+    private void DismissMessageCallback(object? state)
+    {
+        InvokeAsync(() =>
         {
-            _autoHideTimer?.Dispose();
-            _autoHideTimer = new Timer((_) => InvokeAsync(HideMessage), null, AutoHideDelay, Timeout.Infinite);
-        }
+            currentMessage = null;
+            StateHasChanged();
+        });
     }
 
-    private void HideMessage()
+    private void DismissMessage()
     {
-        ShowMessage = false;
-        _autoHideTimer?.Dispose();
+        dismissTimer?.Dispose();
+        currentMessage = null;
         StateHasChanged();
     }
 
-    private string GetAlertClass()
+    private string GetAlertClass(MessageBoxType type)
     {
-        return CurrentType switch
+        return type switch
         {
             MessageBoxType.Success => "alert-success",
             MessageBoxType.Error => "alert-danger",
@@ -57,9 +58,9 @@
         };
     }
 
-    private string GetAlertTitle()
+    private string GetAlertTitle(MessageBoxType type)
     {
-        return CurrentType switch
+        return type switch
         {
             MessageBoxType.Success => "Sucesso!",
             MessageBoxType.Error => "Erro!",
@@ -72,6 +73,6 @@
     public void Dispose()
     {
         MessageBoxService.OnMessageReceived -= HandleMessage;
-        _autoHideTimer?.Dispose();
+        dismissTimer?.Dispose();
     }
 }
