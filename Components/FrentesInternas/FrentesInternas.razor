@@ -1,0 +1,136 @@
+@page "/frentes-internas"
+@using Peers.Moderno.Services.FrentesInternas
+@using Peers.Moderno.Services.Common
+@using Peers.Moderno.Models
+@inject IFrentesInternasService FrentesInternasService
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+@rendermode InteractiveAuto
+
+<PageTitle>Alocações Internas</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">ALOCAÇÕES INTERNAS</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers / Gerenciar Métricas</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Alocações Internas</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <!-- Editor de Frente Interna -->
+    <EditorFrenteInterna @ref="editorRef" 
+                        OnFrenteInternaSalva="OnFrenteInternaSalva" 
+                        OnFrenteInternaEditada="OnFrenteInternaEditada" />
+
+    <!-- Lista de Frentes Internas -->
+    <ListaFrentesInternas @ref="listaRef" 
+                         OnEditarFrenteInterna="OnEditarFrenteInterna" 
+                         OnInativarFrenteInterna="OnInativarFrenteInterna" />
+
+    <!-- Seção de Avaliação -->
+    <AvaliarFrenteInterna @ref="avaliarRef" />
+
+    <!-- Seção de Exportação -->
+    <ExportarFrentesInternas @ref="exportarRef" />
+</div>
+
+@code {
+    private EditorFrenteInterna? editorRef;
+    private ListaFrentesInternas? listaRef;
+    private AvaliarFrenteInterna? avaliarRef;
+    private ExportarFrentesInternas? exportarRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            TelemetryService.TrackPageView("FrentesInternas");
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError($"Erro ao carregar página: {ex.Message}");
+        }
+    }
+
+    private async Task OnFrenteInternaSalva()
+    {
+        try
+        {
+            MessageBoxService.ShowSuccess("Frente interna cadastrada com sucesso!");
+            await RefreshLista();
+            TelemetryService.TrackEvent("FrenteInterna_Cadastrada");
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError($"Erro ao processar cadastro: {ex.Message}");
+        }
+    }
+
+    private async Task OnFrenteInternaEditada()
+    {
+        try
+        {
+            MessageBoxService.ShowSuccess("Frente interna atualizada com sucesso!");
+            await RefreshLista();
+            TelemetryService.TrackEvent("FrenteInterna_Atualizada");
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError($"Erro ao processar atualização: {ex.Message}");
+        }
+    }
+
+    private async Task OnEditarFrenteInterna(FrenteInternaModel frenteInterna)
+    {
+        try
+        {
+            if (editorRef != null)
+            {
+                await editorRef.EditarFrenteInterna(frenteInterna);
+            }
+            TelemetryService.TrackEvent("FrenteInterna_IniciarEdicao", new Dictionary<string, string> { { "Id", frenteInterna.IdFrenteInterna.ToString() } });
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError($"Erro ao iniciar edição: {ex.Message}");
+        }
+    }
+
+    private async Task OnInativarFrenteInterna(int idFrenteInterna)
+    {
+        try
+        {
+            await FrentesInternasService.InativarFrenteInternaAsync(idFrenteInterna);
+            MessageBoxService.ShowSuccess("Frente interna inativada com sucesso!");
+            await RefreshLista();
+            TelemetryService.TrackEvent("FrenteInterna_Inativada", new Dictionary<string, string> { { "Id", idFrenteInterna.ToString() } });
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError($"Erro ao inativar frente interna: {ex.Message}");
+        }
+    }
+
+    private async Task RefreshLista()
+    {
+        if (listaRef != null)
+        {
+            await listaRef.RefreshAsync();
+        }
+    }
+}
