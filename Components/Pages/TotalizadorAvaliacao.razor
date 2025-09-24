@@ -1,0 +1,130 @@
+@page "/totalizador-avaliacao"
+@rendermode InteractiveAuto
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Common
+@inject IMessageBoxService MessageBoxService
+@inject NavigationManager Navigation
+
+<PageTitle>Totalizador das Avaliações</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Totalizador das Avaliações</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active">Totalizador das Avaliações</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Dados do Associado</h4>
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <InputText @bind-Value="@associado.Nome" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Mentor</label>
+                            <InputSelect @bind-Value="@associado.IdMentor" class="form-control p-0 select2" style="width: 100%">
+                                @foreach (var mentor in mentoresCombo)
+                                {
+                                    <option value="@mentor.Value">@mentor.Text</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>E-mail</label>
+                            <InputText @bind-Value="@associado.Email" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Senha</label>
+                            <InputText @bind-Value="@associado.Senha" type="password" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Cargo</label>
+                            <InputSelect @bind-Value="@associado.IdCargo" class="form-control p-0 select2" style="width: 100%">
+                                @foreach (var cargo in cargosCombo)
+                                {
+                                    <option value="@cargo.Value">@cargo.Text</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Perfil de acesso</label>
+                            <InputSelect @bind-Value="@associado.IdPerfil" class="form-control p-0 select2" style="width: 100%">
+                                @foreach (var perfil in perfisCombo)
+                                {
+                                    <option value="@perfil.Value">@perfil.Text</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <InputSelect @bind-Value="@statusSelecionado" class="form-control p-0 select2" style="width: 100%">
+                                @foreach (var status in statusCombo)
+                                {
+                                    <option value="@status.Value">@status.Text</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <div class="text-right">
+                        <button @onclick="CadastrarSalvar" class="btn btn-info" disabled="@isProcessing">
+                            @if (isProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <text> Processando...</text>
+                            }
+                            else
+                            {
+                                <text>Cadastrar/Salvar</text>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (showMessageBox)
+{
+    <div class="alert @GetAlertClass() alert-dismissible fade show" role="alert">
+        @messageBoxText
+        <button type="button" class="close" @onclick="() => showMessageBox = false" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
