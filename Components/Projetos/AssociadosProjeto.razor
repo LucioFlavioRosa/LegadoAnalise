@@ -1,0 +1,383 @@
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Projetos
+@using Peers.Moderno.Services.Projetos.Common
+@using Peers.Moderno.Services.Common
+@inject IProjetosService ProjetosService
+@inject IProjetosComboHelper ProjetosComboHelper
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveAuto
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h4 class="card-title">
+            Associados no Projeto 
+            <button type="button" class="btn btn-sm btn-success ml-2" @onclick="AbrirModalAssociados">
+                <i class="fa fa-plus"></i> Adicionar
+            </button>
+        </h4>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="text-center p-4">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Carregando...</span>
+        </div>
+        <p class="mt-2">Carregando associados...</p>
+    </div>
+}
+else if (!associadosProjeto.Any())
+{
+    <div class="alert alert-info text-center">
+        <i class="fa fa-info-circle"></i>
+        <span>Nenhum associado vinculado ao projeto.</span>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped border">
+            <thead>
+                <tr>
+                    <th>Associado</th>
+                    <th>Cargo Projeto</th>
+                    <th>Avaliador</th>
+                    <th>Data Início</th>
+                    <th>Data Término</th>
+                    <th>Status</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var associado in associadosProjeto)
+                {
+                    <tr>
+                        <td>@associado.Associado?.Nome</td>
+                        <td>@associado.CargoProjeto?.Nome</td>
+                        <td>@associado.Avaliador?.Nome</td>
+                        <td>@associado.DataInicio?.ToString("dd/MM/yyyy")</td>
+                        <td>@associado.DataFim?.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <span class="badge @(associado.Ativo ? "badge-success" : "badge-secondary")">
+                                @(associado.Ativo ? "Ativo" : "Inativo")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => EditarAssociado(associado)" title="Editar">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                @if (associado.Ativo)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => RemoverAssociado(associado.Id)" title="Remover">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (showModal)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">@(isEditing ? "Editar" : "Adicionar") Associado ao Projeto</h4>
+                    <button type="button" class="close" @onclick="FecharModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@associadoAtual" OnValidSubmit="@SalvarAssociado">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        
+                        <div class="form-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Associado *</label>
+                                        <InputSelect @bind-Value="associadoAtual.IdAssociado" class="form-control" disabled="@isEditing">
+                                            <option value="0">[Selecionar]</option>
+                                            @foreach (var associado in associadosDisponiveis)
+                                            {
+                                                <option value="@associado.Id">@associado.Nome</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Cargo no Projeto *</label>
+                                        <InputSelect @bind-Value="associadoAtual.IdCargoProjeto" class="form-control">
+                                            <option value="0">[Selecionar]</option>
+                                            @foreach (var cargo in cargos)
+                                            {
+                                                <option value="@cargo.IdCargo">@cargo.Nome</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Avaliador</label>
+                                        <InputSelect @bind-Value="associadoAtual.IdAvaliador" class="form-control">
+                                            <option value="0">[Selecionar]</option>
+                                            @foreach (var avaliador in avaliadores)
+                                            {
+                                                <option value="@avaliador.Id">@avaliador.Nome</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <InputSelect @bind-Value="associadoAtual.Ativo" class="form-control">
+                                            <option value="true">Ativo</option>
+                                            <option value="false">Inativo</option>
+                                        </InputSelect>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Data Início</label>
+                                        <InputDate @bind-Value="associadoAtual.DataInicio" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Data Término</label>
+                                        <InputDate @bind-Value="associadoAtual.DataFim" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="FecharModal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                                @if (isSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span>Salvando...</span>
+                                }
+                                else
+                                {
+                                    <span>@(isEditing ? "Atualizar" : "Adicionar")</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int ProjetoId { get; set; }
+    [Parameter] public EventCallback OnAssociadosChanged { get; set; }
+    
+    private List<AssociadoProjeto> associadosProjeto = new();
+    private List<Associado> associadosDisponiveis = new();
+    private List<Cargo> cargos = new();
+    private List<Associado> avaliadores = new();
+    
+    private AssociadoProjeto associadoAtual = new();
+    private bool showModal = false;
+    private bool isEditing = false;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarDados();
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ProjetoId > 0)
+        {
+            await CarregarAssociadosProjeto();
+        }
+    }
+    
+    private async Task CarregarDados()
+    {
+        try
+        {
+            isLoading = true;
+            
+            var tasks = new Task[]
+            {
+                CarregarAssociadosProjeto(),
+                CarregarAssociadosDisponiveis(),
+                CarregarCargos(),
+                CarregarAvaliadores()
+            };
+            
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError("Erro ao carregar dados dos associados");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private async Task CarregarAssociadosProjeto()
+    {
+        if (ProjetoId > 0)
+        {
+            associadosProjeto = await ProjetosService.ObterAssociadosProjetoAsync(ProjetoId);
+        }
+    }
+    
+    private async Task CarregarAssociadosDisponiveis()
+    {
+        associadosDisponiveis = await ProjetosComboHelper.GetAssociadosAsync();
+    }
+    
+    private async Task CarregarCargos()
+    {
+        cargos = await ProjetosComboHelper.GetCargosAsync();
+    }
+    
+    private async Task CarregarAvaliadores()
+    {
+        avaliadores = await ProjetosComboHelper.GetAvaliadoresAsync();
+    }
+    
+    private void AbrirModalAssociados()
+    {
+        associadoAtual = new AssociadoProjeto
+        {
+            IdProjeto = ProjetoId,
+            Ativo = true,
+            DataInicio = DateTime.Today
+        };
+        isEditing = false;
+        showModal = true;
+    }
+    
+    private void EditarAssociado(AssociadoProjeto associado)
+    {
+        associadoAtual = new AssociadoProjeto
+        {
+            Id = associado.Id,
+            IdProjeto = associado.IdProjeto,
+            IdAssociado = associado.IdAssociado,
+            IdCargoProjeto = associado.IdCargoProjeto,
+            IdAvaliador = associado.IdAvaliador,
+            DataInicio = associado.DataInicio,
+            DataFim = associado.DataFim,
+            Ativo = associado.Ativo
+        };
+        isEditing = true;
+        showModal = true;
+    }
+    
+    private void FecharModal()
+    {
+        showModal = false;
+        associadoAtual = new();
+        isEditing = false;
+    }
+    
+    private async Task SalvarAssociado()
+    {
+        if (isSaving) return;
+        
+        try
+        {
+            isSaving = true;
+            
+            if (associadoAtual.IdAssociado == 0)
+            {
+                MessageBoxService.ShowWarning("Selecione um associado");
+                return;
+            }
+            
+            if (associadoAtual.IdCargoProjeto == 0)
+            {
+                MessageBoxService.ShowWarning("Selecione um cargo para o projeto");
+                return;
+            }
+            
+            bool success;
+            if (isEditing)
+            {
+                success = await ProjetosService.AtualizarAssociadoProjetoAsync(associadoAtual);
+                if (success)
+                {
+                    MessageBoxService.ShowSuccess("Associado atualizado com sucesso!");
+                }
+            }
+            else
+            {
+                success = await ProjetosService.AdicionarAssociadoProjetoAsync(associadoAtual);
+                if (success)
+                {
+                    MessageBoxService.ShowSuccess("Associado adicionado com sucesso!");
+                }
+            }
+            
+            if (success)
+            {
+                await CarregarAssociadosProjeto();
+                await OnAssociadosChanged.InvokeAsync();
+                FecharModal();
+            }
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError("Erro ao salvar associado");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+    
+    private async Task RemoverAssociado(int associadoProjetoId)
+    {
+        try
+        {
+            var confirmado = await JSRuntime.InvokeAsync<bool>("confirm", "Tem certeza que deseja remover este associado do projeto?");
+            if (confirmado)
+            {
+                var success = await ProjetosService.RemoverAssociadoProjetoAsync(associadoProjetoId);
+                if (success)
+                {
+                    MessageBoxService.ShowSuccess("Associado removido com sucesso!");
+                    await CarregarAssociadosProjeto();
+                    await OnAssociadosChanged.InvokeAsync();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex);
+            MessageBoxService.ShowError("Erro ao remover associado");
+        }
+    }
+}
