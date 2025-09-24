@@ -1,0 +1,174 @@
+@page "/totalizador-avaliacao"
+@page "/TotalizadorAvaliacao"
+@rendermode InteractiveAuto
+@using Peers.Moderno.Services.Associados.Common
+@using Peers.Moderno.Services.Common
+@inject ITotalizadorAvaliacaoService TotalizadorService
+@inject IMessageBoxService MessageBoxService
+@inject NavigationManager Navigation
+
+<PageTitle>Totalizador das Avaliações</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Totalizador das Avaliações</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active">Totalizador das Avaliações</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Dados do Associado</h4>
+            
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Carregando...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="@model" OnValidSubmit="@HandleValidSubmit">
+                    <div class="form-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nome</label>
+                                    <InputText @bind-Value="model.Nome" class="form-control" placeholder="Digite o nome do associado" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Mentor</label>
+                                    <InputSelect @bind-Value="model.IdMentor" class="form-control p-0 select2" style="width: 100%">
+                                        @foreach (var mentor in mentores)
+                                        {
+                                            <option value="@mentor.Value">@mentor.Text</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>E-mail</label>
+                                    <InputText @bind-Value="model.Email" class="form-control" type="email" placeholder="Digite o e-mail" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Senha</label>
+                                    <InputText @bind-Value="model.Senha" type="password" class="form-control" placeholder="Digite a senha" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Cargo</label>
+                                    <InputSelect @bind-Value="model.IdCargo" class="form-control p-0 select2" style="width: 100%">
+                                        @foreach (var cargo in cargos)
+                                        {
+                                            <option value="@cargo.Value">@cargo.Text</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Perfil de acesso</label>
+                                    <InputSelect @bind-Value="model.IdPerfil" class="form-control p-0 select2" style="width: 100%">
+                                        @foreach (var perfil in perfis)
+                                        {
+                                            <option value="@perfil.Value">@perfil.Text</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Status</label>
+                                    <InputSelect @bind-Value="model.Status" class="form-control p-0 select2" style="width: 100%">
+                                        @foreach (var status in statusOptions)
+                                        {
+                                            <option value="@status.Value">@status.Text</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <div class="text-right">
+                                <button type="button" class="btn btn-secondary mr-2" @onclick="LimparFormulario" disabled="@isProcessing">
+                                    Limpar
+                                </button>
+                                <button type="submit" class="btn btn-info" disabled="@isProcessing">
+                                    @if (isProcessing)
+                                    {
+                                        <span class="spinner-border spinner-border-sm mr-2" role="status"></span>
+                                    }
+                                    @(model.IsEdicao ? "Salvar Alterações" : "Cadastrar")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+@if (showValidationErrors && validationErrors.Any())
+{
+    <div class="alert alert-danger mt-3">
+        <h6>Erros de Validação:</h6>
+        <ul class="mb-0">
+            @foreach (var error in validationErrors)
+            {
+                <li>@((MarkupString)error)</li>
+            }
+        </ul>
+    </div>
+}
+
+<style>
+    .select2 {
+        height: calc(1.5em + 0.75rem + 2px) !important;
+    }
+    
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-title {
+        color: #495057;
+        font-weight: 600;
+    }
+    
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+    }
+</style>
