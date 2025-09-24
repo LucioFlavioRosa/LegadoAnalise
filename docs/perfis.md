@@ -8,7 +8,7 @@ Este documento descreve a migração da funcionalidade de "Perfis de Acesso" do 
 
 ### Estrutura de Pastas
 
-
+```text
 Services/Perfis/
 ├── IPerfisService.cs          # Interface do serviço principal
 ├── PerfisService.cs           # Implementação do serviço
@@ -26,7 +26,7 @@ Components/
 
 Models/
 └── Perfil.cs                  # Entidade do Entity Framework
-
+```
 
 ### Componentes Principais
 
@@ -52,7 +52,7 @@ Models/
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A["Usuário acessa /perfis"] --> B["Perfis.razor carrega"]
     B --> C["OnInitializedAsync()"]
@@ -79,7 +79,7 @@ flowchart TD
     V --> W["IPerfisService.InativarPerfilAsync(id)"]
     W --> X["Atualiza status para false"]
     X --> Y["Recarrega lista"]
-
+```
 
 ## Integração com Outros Serviços
 
@@ -99,6 +99,8 @@ builder.Services.AddScoped<IPerfisService, PerfisService>();
 ### Configuração do Entity Framework
 
 No `ApplicationDbContext.cs`:
+
+```text
 csharp
 public DbSet<Perfil> Perfis { get; set; }
 
@@ -109,7 +111,7 @@ modelBuilder.Entity<Perfil>(entity =>
     entity.Property(e => e.Id).HasColumnName("IdPerfil");
     entity.Property(e => e.Nome).HasColumnName("Perfil");
 });
-
+```
 
 ## Funcionalidades Implementadas
 
