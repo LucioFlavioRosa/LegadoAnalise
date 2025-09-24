@@ -8,7 +8,7 @@ Este documento descreve a migração da funcionalidade de **Tipos de Projeto** d
 
 ### Estrutura de Pastas
 
-
+```text
 Peers.Moderno/
 ├── Components/
 │   └── Projetos/
@@ -23,7 +23,7 @@ Peers.Moderno/
 │   └── TipoProjeto.cs                   # Modelo de dados
 └── docs/
     └── TiposProjetos.md                 # Esta documentação
-
+```
 
 ### Componentes Principais
 
@@ -76,36 +76,36 @@ Peers.Moderno/
 ### Injeção de Dependência
 
 O serviço é registrado em `Program.cs`:
-
+```text
 csharp
 builder.Services.AddScoped<ITiposProjetosService, TiposProjetosService>();
-
+```
 
 ### Uso em Outros Componentes
 
 Para reutilizar o serviço em outros componentes:
-
+```text
 csharp
 @inject ITiposProjetosService TiposProjetosService
 
 // Em métodos do componente
 var tipos = await TiposProjetosService.ListarAtivosAsync();
-
+```
 
 ### Integração com Entity Framework
 
 O serviço utiliza o `ApplicationDbContext` já configurado:
-
+```text
 csharp
 var tipos = await _context.TiposProjetos
     .Where(t => t.ATV == 1)
     .OrderBy(t => t.Nome)
     .ToListAsync();
-
+```
 
 ## Fluxo de Funcionamento
 
-mermaid
+```mermaid
 flowchart TD
     A["Usuário acessa /tipos-projetos"] --> B["TiposProjetos.razor carrega"]
     B --> C["OnInitializedAsync()"]
@@ -136,7 +136,7 @@ flowchart TD
     Z --> AA["Atualiza ATV = 0"]
     AA --> BB["Exibe mensagem sucesso"]
     BB --> S
-
+```
 
 ## Benefícios da Migração
 
@@ -179,15 +179,15 @@ flowchart TD
 ## Exemplo de Uso
 
 ### Listagem de Tipos Ativos
-
+```text
 csharp
 @inject ITiposProjetosService TiposProjetosService
 
 var tiposAtivos = await TiposProjetosService.ListarAtivosAsync();
-
+```
 
 ### Criação de Novo Tipo
-
+```text
 csharp
 var novoTipo = new TipoProjeto
 {
@@ -196,16 +196,15 @@ var novoTipo = new TipoProjeto
 };
 
 var sucesso = await TiposProjetosService.InserirAsync(novoTipo);
-
+```
 
 ### Validação de Duplicata
-
+```text
 csharp
 var existe = await TiposProjetosService.ExisteNomeAsync("Nome do Tipo");
 if (existe)
 {
     // Tratar duplicata
 }
-
-
+```
 Esta migração estabelece uma base sólida para futuras funcionalidades relacionadas a projetos, seguindo os padrões arquiteturais da aplicação e proporcionando uma experiência moderna aos usuários.
