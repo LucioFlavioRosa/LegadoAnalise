@@ -124,6 +124,10 @@ builder.Services.AddScoped<IPerguntasEncerramentoService, PerguntasEncerramentoS
 // TotalAvaliacao Services - Nova migração de Web Forms para Blazor
 builder.Services.AddScoped<ITotalAvaliacaoService, TotalAvaliacaoService>();
 
+// WebForm4 Common Services - Nova migração de Web Forms para Blazor
+builder.Services.AddScoped<IComponentBaseService, ComponentBaseService>();
+builder.Services.AddScoped<IBlazorNavigationService, BlazorNavigationService>();
+
 // Business Services - Dependency Injection
 builder.Services.AddScoped<ICompetenciasService, CompetenciasService>();
 builder.Services.AddScoped<ICargosService, CargosService>();
