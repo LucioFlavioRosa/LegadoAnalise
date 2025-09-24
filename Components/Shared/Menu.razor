@@ -1,0 +1,39 @@
+@inject NavigationManager Navigation
+
+@if (MenuItems != null && MenuItems.Any())
+{
+    @foreach (var menuSection in MenuItems)
+    {
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">@menuSection.Title</h4>
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                @foreach (var item in menuSection.Items)
+                                {
+                                    <button class="@item.CssClass" @onclick="() => NavigateToPage(item.Action)">
+                                        @item.Text
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public List<MenuItem> MenuItems { get; set; } = new();
+
+    private void NavigateToPage(string action)
+    {
+        if (!string.IsNullOrEmpty(action))
+        {
+            Navigation.NavigateTo($"/{action}");
+        }
+    }
+}
