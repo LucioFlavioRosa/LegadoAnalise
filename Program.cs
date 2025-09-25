@@ -225,6 +225,7 @@ builder.Services.AddScoped<IWorkflowUtils, WorkflowUtils>();
 
 // AutoAvaliacao Services - Novos serviços para migração de Web Forms
 builder.Services.AddScoped<IAutoAvaliacaoService, AutoAvaliacaoService>();
+builder.Services.AddScoped<IAutoAvaliacaoPerformanceService, AutoAvaliacaoPerformanceService>();
 
 // AutoAvaliacao Common Services - Novos serviços reutilizáveis (passo 12)
 builder.Services.AddScoped<INotaHelper, NotaHelper>();
