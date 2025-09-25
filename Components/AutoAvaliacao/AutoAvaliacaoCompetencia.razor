@@ -1,0 +1,413 @@
+@page "/autoavaliacao-competencia"
+@using Peers.Moderno.Services.AutoAvaliacao
+@using Peers.Moderno.Services.AutoAvaliacao.Common
+@using Peers.Moderno.Services.Common
+@using Peers.Moderno.Models.AutoAvaliacao
+@inject IAutoAvaliacaoService AutoAvaliacaoService
+@inject IValidationHelper ValidationHelper
+@inject IMessageBoxService MessageBoxService
+@inject NavigationManager Navigation
+@inject IConfiguration Configuration
+
+<PageTitle>Auto Avaliação - Competência</PageTitle>
+
+<MessageBox @ref="messageBox" />
+
+<!-- Breadcrumb -->
+<div class="page-breadcrumb border-bottom" style="position:fixed;z-index:1;width:100%">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Auto Avaliação</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item"><a href="/">Avaliação / Auto Avaliação</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Competência</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Container Principal -->
+<div style="overflow:initial !important" class="page-content container-fluid">
+    
+    <!-- Card Título -->
+    <div class="card col-md-10" style="position:fixed;z-index:1; margin-top:21px;border-color:rgba(0, 0, 0, .25);border-width:1px">
+        <div class="card-body">
+            
+            <!-- Detalhes da Avaliação -->
+            <div class="accordion" id="accordionDetalhes">
+                <div class="card">
+                    <div class="card-header" id="headingDetalhes">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#Detalhes" aria-expanded="true" aria-controls="Detalhes">
+                                Detalhes da avaliação
+                                <i class="fa fa-angle-right"></i>
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="Detalhes" class="collapse" aria-labelledby="headingDetalhes" data-parent="#accordionDetalhes">
+                        <div class="col-md-5">
+                            <div class="text-left">
+                                <button type="button" class="btn btn-facebook" disabled>Competência</button>
+                                <button class="btn btn-danger" @onclick="IrParaPerformance">Performance</button>
+                                <button class="btn btn-info" @onclick="IrParaFinalizacao">Ir para Finalização</button>
+                                <p></p>
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <div class="row">
+                                <div class="col-md-2"><label><b>Avaliado</b></label></div>
+                                <div class="col-md-4"><label>@avaliacaoData?.NomeAssociado</label></div>
+                                <div class="col-md-2"><label><b>Período</b></label></div>
+                                <div class="col-md-4"><label>@avaliacaoData?.Periodo</label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-2"><label><b>Tempo de Cargo:</b></label></div>
+                                <div class="col-md-4"><label>@avaliacaoData?.TempoCargo</label></div>
+                                <div class="col-md-2"><label><b>Tempo de Peers</b></label></div>
+                                <div class="col-md-4"><label>@avaliacaoData?.TempoPeers</label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-1"><label><b>Projeto</b></label></div>
+                                <div class="col-md-3"><label>@avaliacaoData?.NomeProjeto</label></div>
+                                <div class="col-md-1"><label><b>Cliente</b></label></div>
+                                <div class="col-md-3"><label>@avaliacaoData?.NomeCliente</label></div>
+                                <div class="col-md-2"><label><b>Tempo restante</b></label></div>
+                                <div class="col-md-2"><label>@avaliacaoData?.TempoRestante</label></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Descrições Nível Atual e Próximo -->
+            <div class="accordion" id="accordionCabecalho">
+                <div class="card">
+                    <div class="card-header" id="headingCabecalho">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#Cabecalho" aria-expanded="true" aria-controls="Cabecalho">
+                                Descrições nível atual e próximo nível
+                                <i class="fa fa-angle-right"></i>
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="Cabecalho" class="collapse" aria-labelledby="headingCabecalho" data-parent="#accordionCabecalho">
+                        @if (cabecalhoData != null)
+                        {
+                            <table class="table table-striped border" style="width:100%;table-layout:fixed">
+                                <thead>
+                                    <tr>
+                                        <th colspan="1"></th>
+                                        <th colspan="2">Cargo</th>
+                                        <th colspan="2">Função</th>
+                                        <th colspan="2">Autonomia</th>
+                                        <th colspan="2">Escopo de Atuação</th>
+                                        <th colspan="2">Nível de interlocução principal no cliente</th>
+                                        @foreach (var titulo in cabecalhoData.TitulosCompetencias)
+                                        {
+                                            <th colspan="2">@titulo</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="1">Nível atual</td>
+                                        <td colspan="2">@cabecalhoData.CargoAtual</td>
+                                        <td colspan="2">@cabecalhoData.FuncaoAtual</td>
+                                        <td colspan="2">@cabecalhoData.AutonomiaAtual</td>
+                                        <td colspan="2">@cabecalhoData.EscopoAtual</td>
+                                        <td colspan="2">@cabecalhoData.InterlocucaoAtual</td>
+                                        @foreach (var desc in cabecalhoData.DescricoesCompetenciasAtual)
+                                        {
+                                            <th colspan="2" style="font-weight:normal;">@desc</th>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <td colspan="1">Próximo nível</td>
+                                        <td colspan="2">@cabecalhoData.CargoProximo</td>
+                                        <td colspan="2">@cabecalhoData.FuncaoProximo</td>
+                                        <td colspan="2">@cabecalhoData.AutonomiaProximo</td>
+                                        <td colspan="2">@cabecalhoData.EscopoProximo</td>
+                                        <td colspan="2">@cabecalhoData.InterlocucaoProximo</td>
+                                        @foreach (var desc in cabecalhoData.DescricoesCompetenciasProximo)
+                                        {
+                                            <th colspan="2" style="font-weight:normal;">@desc</th>
+                                        }
+                                    </tr>
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Competências -->
+    <div class="card col-md-12" style="margin-top:220px">
+        <div class="card-body">
+            
+            <!-- Botão Salvar Superior -->
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="text-right">
+                            <button class="btn btn-dark" @onclick="SalvarAvaliacao" disabled="@(!podeEditar)">Salvar Avaliação</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Competências -->
+            <CompetenciaTable @ref="competenciaTable" 
+                             Competencias="@competencias" 
+                             PodeEditar="@podeEditar"
+                             OnCompetenciaChanged="OnCompetenciaChanged" />
+
+            <!-- Botão Salvar Inferior -->
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="text-right">
+                            <button class="btn btn-dark" @onclick="SalvarAvaliacao" disabled="@(!podeEditar)">Salvar Avaliação</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões Adicionais -->
+        <div class="card">
+            <div class="card-body">
+                <div class="col-md-5">
+                    <div class="text-left">
+                        <button type="button" class="btn btn-facebook" disabled>Competência</button>
+                        <button class="btn btn-danger" @onclick="IrParaPerformance">Performance</button>
+                        <button class="btn btn-info" @onclick="IrParaFinalizacao">Ir para Finalização</button>
+                        <p></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-save Script -->
+<script>
+    window.autoSaveInterval = null;
+    
+    window.startAutoSave = (dotNetRef) => {
+        if (window.autoSaveInterval) {
+            clearInterval(window.autoSaveInterval);
+        }
+        
+        window.autoSaveInterval = setInterval(() => {
+            dotNetRef.invokeMethodAsync('AutoSave');
+        }, 900000); // 15 minutos
+    };
+    
+    window.stopAutoSave = () => {
+        if (window.autoSaveInterval) {
+            clearInterval(window.autoSaveInterval);
+            window.autoSaveInterval = null;
+        }
+    };
+</script>
+
+@code {
+    [Parameter, SupplyParameterFromQuery] public int? IdProjeto { get; set; }
+    [Parameter, SupplyParameterFromQuery] public int? IdAssociado { get; set; }
+    [Parameter, SupplyParameterFromQuery] public int? IdPeriodo { get; set; }
+    [Parameter, SupplyParameterFromQuery] public string? TipoAvaliacao { get; set; }
+    [Parameter, SupplyParameterFromQuery] public string? Escopo { get; set; }
+    [Parameter, SupplyParameterFromQuery] public int? IdGestor { get; set; }
+
+    private MessageBox messageBox = default!;
+    private CompetenciaTable competenciaTable = default!;
+    private DotNetObjectReference<AutoAvaliacaoCompetencia>? dotNetRef;
+
+    private AvaliacaoDataModel? avaliacaoData;
+    private CabecalhoDataModel? cabecalhoData;
+    private List<CompetenciaAvaliacaoModel> competencias = new();
+    private bool podeEditar = true;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        dotNetRef = DotNetObjectReference.Create(this);
+        await CarregarDados();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && podeEditar)
+        {
+            await InvokeAsync(async () =>
+            {
+                await Task.Delay(1000);
+                await JSRuntime.InvokeVoidAsync("startAutoSave", dotNetRef);
+            });
+        }
+    }
+
+    private async Task CarregarDados()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            var parametros = new AvaliacaoParametrosModel
+            {
+                IdProjeto = IdProjeto,
+                IdAssociado = IdAssociado,
+                IdPeriodo = IdPeriodo,
+                TipoAvaliacao = TipoAvaliacao,
+                Escopo = Escopo,
+                IdGestor = IdGestor
+            };
+
+            var resultado = await AutoAvaliacaoService.CarregarDadosAvaliacaoAsync(parametros);
+            
+            if (resultado.Sucesso)
+            {
+                avaliacaoData = resultado.AvaliacaoData;
+                cabecalhoData = resultado.CabecalhoData;
+                competencias = resultado.Competencias;
+                podeEditar = resultado.PodeEditar;
+            }
+            else
+            {
+                messageBox.Show(resultado.MensagemErro, MessageBoxType.Error);
+                if (resultado.DeveRedirecionarParaIndex)
+                {
+                    Navigation.NavigateTo("/");
+                    return;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            messageBox.Show("Erro interno ao carregar dados da avaliação.", MessageBoxType.Error);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SalvarAvaliacao()
+    {
+        try
+        {
+            if (!await ValidarAvaliacao())
+                return;
+
+            var resultado = await AutoAvaliacaoService.SalvarAvaliacaoAsync(competencias, false);
+            
+            if (resultado.Sucesso)
+            {
+                messageBox.Show("Avaliação Salva com Sucesso.", MessageBoxType.Success);
+            }
+            else
+            {
+                messageBox.Show(resultado.MensagemErro, MessageBoxType.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            messageBox.Show("Erro interno ao salvar avaliação.", MessageBoxType.Error);
+        }
+    }
+
+    [JSInvokable]
+    public async Task AutoSave()
+    {
+        if (podeEditar && competencias.Any())
+        {
+            try
+            {
+                await AutoAvaliacaoService.SalvarAvaliacaoAsync(competencias, false);
+                messageBox.Show("SALVANDO!!", MessageBoxType.Info, "ATENÇÃO!");
+            }
+            catch
+            {
+                // Falha silenciosa no auto-save
+            }
+        }
+    }
+
+    private async Task<bool> ValidarAvaliacao()
+    {
+        try
+        {
+            var resultado = await ValidationHelper.ValidarAvaliacaoCompetenciasAsync(competencias);
+            
+            if (!resultado.IsValid)
+            {
+                messageBox.Show(resultado.ErrorMessage, MessageBoxType.Error);
+                
+                // Destacar campos com erro
+                if (competenciaTable != null)
+                {
+                    await competenciaTable.HighlightErrors(resultado.CompetenciasComErro);
+                }
+                
+                return false;
+            }
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            messageBox.Show("Erro interno na validação.", MessageBoxType.Error);
+            return false;
+        }
+    }
+
+    private void OnCompetenciaChanged(CompetenciaAvaliacaoModel competencia)
+    {
+        var index = competencias.FindIndex(c => c.IdCompetencia == competencia.IdCompetencia);
+        if (index >= 0)
+        {
+            competencias[index] = competencia;
+        }
+    }
+
+    private async Task IrParaPerformance()
+    {
+        if (await ValidarAvaliacao())
+        {
+            await SalvarAvaliacao();
+            Navigation.NavigateTo("/autoavaliacao-performance");
+        }
+    }
+
+    private async Task IrParaFinalizacao()
+    {
+        if (await ValidarAvaliacao())
+        {
+            await SalvarAvaliacao();
+            var baseUrl = "/autoavaliacao";
+            var queryParams = new List<string>();
+            
+            if (IdProjeto.HasValue) queryParams.Add($"IdProjeto={IdProjeto}");
+            if (IdAssociado.HasValue) queryParams.Add($"IdAssociado={IdAssociado}");
+            if (IdPeriodo.HasValue) queryParams.Add($"IdPeriodo={IdPeriodo}");
+            
+            var url = queryParams.Any() ? $"{baseUrl}?{string.Join("&", queryParams)}" : baseUrl;
+            Navigation.NavigateTo(url);
+        }
+    }
+
+    public void Dispose()
+    {
+        dotNetRef?.Dispose();
+        InvokeAsync(async () => await JSRuntime.InvokeVoidAsync("stopAutoSave"));
+    }
+}

@@ -1,0 +1,108 @@
+@using Peers.Moderno.Services.Common
+@inject IMessageBoxService MessageBoxService
+@implements IDisposable
+
+@if (IsVisible)
+{
+    <div class="alert @GetAlertClass() alert-dismissible fade show" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="@GetIconClass() me-2"></i>
+            <div class="flex-grow-1">
+                <strong>@Title</strong>
+                @if (!string.IsNullOrEmpty(Message))
+                {
+                    <div class="mt-1">
+                        @((MarkupString)Message)
+                    </div>
+                }
+            </div>
+        </div>
+        <button type="button" class="btn-close" @onclick="Hide" aria-label="Close"></button>
+    </div>
+}
+
+@code {
+    [Parameter] public string Title { get; set; } = "ATENÇÃO!";
+    [Parameter] public string Message { get; set; } = string.Empty;
+    [Parameter] public MessageBoxType Type { get; set; } = MessageBoxType.Info;
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public int AutoHideDelay { get; set; } = 0;
+    [Parameter] public EventCallback OnHidden { get; set; }
+
+    private Timer? _autoHideTimer;
+
+    protected override void OnInitialized()
+    {
+        MessageBoxService.OnMessageReceived += HandleMessage;
+    }
+
+    private void HandleMessage(MessageBoxEventArgs args)
+    {
+        Message = args.Message;
+        Type = args.Type;
+        Show();
+    }
+
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+
+        if (AutoHideDelay > 0)
+        {
+            _autoHideTimer?.Dispose();
+            _autoHideTimer = new Timer(async _ => await HideWithCallback(), null, AutoHideDelay, Timeout.Infinite);
+        }
+    }
+
+    public void Show(string message, MessageBoxType type = MessageBoxType.Info, string title = "ATENÇÃO!")
+    {
+        Message = message;
+        Type = type;
+        Title = title;
+        Show();
+    }
+
+    public void Hide()
+    {
+        IsVisible = false;
+        _autoHideTimer?.Dispose();
+        StateHasChanged();
+    }
+
+    private async Task HideWithCallback()
+    {
+        Hide();
+        await OnHidden.InvokeAsync();
+    }
+
+    private string GetAlertClass()
+    {
+        return Type switch
+        {
+            MessageBoxType.Success => "alert-success",
+            MessageBoxType.Error => "alert-danger",
+            MessageBoxType.Warning => "alert-warning",
+            MessageBoxType.Info => "alert-info",
+            _ => "alert-info"
+        };
+    }
+
+    private string GetIconClass()
+    {
+        return Type switch
+        {
+            MessageBoxType.Success => "fas fa-check-circle text-success",
+            MessageBoxType.Error => "fas fa-exclamation-triangle text-danger",
+            MessageBoxType.Warning => "fas fa-exclamation-triangle text-warning",
+            MessageBoxType.Info => "fas fa-info-circle text-info",
+            _ => "fas fa-info-circle text-info"
+        };
+    }
+
+    public void Dispose()
+    {
+        MessageBoxService.OnMessageReceived -= HandleMessage;
+        _autoHideTimer?.Dispose();
+    }
+}
