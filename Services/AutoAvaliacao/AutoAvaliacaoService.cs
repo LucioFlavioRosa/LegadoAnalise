@@ -1,11 +1,10 @@
 using Peers.Moderno.Models;
 using Peers.Moderno.Services.Common;
 using Peers.Moderno.Services.Associados;
-using Peers.Moderno.Services.Avaliacoes;
-using Peers.Moderno.Services.Competencias;
-using Peers.Moderno.Services.Cargos;
-using Peers.Moderno.Services.Clientes;
 using Peers.Moderno.Services.Projetos;
+using Peers.Moderno.Services.Clientes;
+using Peers.Moderno.Services.Avaliacoes;
+using Peers.Moderno.Services.Performance;
 using Microsoft.Extensions.Configuration;
 using System.Globalization;
 
@@ -13,218 +12,147 @@ namespace Peers.Moderno.Services.AutoAvaliacao;
 
 public interface IAutoAvaliacaoService
 {
-    Task<AutoAvaliacaoDto> CarregarAvaliacaoAsync(int idProjeto, int idAssociado, int idPeriodo, string tipoAvaliacao, string escopo, int idGestor);
-    Task<bool> SalvarAvaliacaoAsync(AutoAvaliacaoDto avaliacao, bool finalizarAvaliacao = false);
-    Task<bool> ValidarParametrosAsync(int idProjeto, int idAssociado, int idPeriodo, string tipoAvaliacao, string escopo, int idGestor);
-    Task<List<CompetenciaAvaliacaoDto>> CarregarCompetenciasAsync(int idAssociado, int idProjeto, int idPeriodo, string tipoAvaliacao, string escopo, int idAvaliacao);
-    Task<CabecalhoAvaliacaoDto> CarregarCabecalhoAsync(int idProjeto, int idAssociado, int idPeriodo);
+    Task<AutoAvaliacaoPerformanceViewModel> CarregarDadosAsync(int idProjeto, int idAssociado, int idPeriodo, int idAvaliacao);
+    Task<bool> SalvarAvaliacaoAsync(AutoAvaliacaoPerformanceViewModel model, bool finalizarAvaliacao = false);
+    Task<bool> FinalizarAvaliacaoAsync(AutoAvaliacaoPerformanceViewModel model);
+    Task<List<PerformanceItemModel>> ObterPerformancesAsync(int idAssociado, int idProjeto, int idPeriodo);
     Task<string> CalcularTempoRestanteAsync(int idAvaliacao);
-    string TruncarTexto(string texto, int qtdCaracteres);
+    Task<bool> ValidarPermissoesAsync(int idAssociado, int idProjeto, int idPeriodo);
+    Task<bool> PodeEditarAvaliacaoAsync(int idAssociado, int idProjeto, int idPeriodo);
 }
 
 public class AutoAvaliacaoService : IAutoAvaliacaoService
 {
     private readonly IAssociadosService _associadosService;
-    private readonly IAvaliacoesService _avaliacoesService;
-    private readonly ICompetenciasService _competenciasService;
-    private readonly ICargosService _cargosService;
-    private readonly IClientesService _clientesService;
     private readonly IProjetosService _projetosService;
+    private readonly IClientesService _clientesService;
+    private readonly IAvaliacoesService _avaliacoesService;
+    private readonly IPerformanceService _performanceService;
+    private readonly IUserContextService _userContextService;
     private readonly ITelemetryService _telemetryService;
     private readonly IMessageBoxService _messageBoxService;
     private readonly IConfiguration _configuration;
 
     public AutoAvaliacaoService(
         IAssociadosService associadosService,
-        IAvaliacoesService avaliacoesService,
-        ICompetenciasService competenciasService,
-        ICargosService cargosService,
-        IClientesService clientesService,
         IProjetosService projetosService,
+        IClientesService clientesService,
+        IAvaliacoesService avaliacoesService,
+        IPerformanceService performanceService,
+        IUserContextService userContextService,
         ITelemetryService telemetryService,
         IMessageBoxService messageBoxService,
         IConfiguration configuration)
     {
         _associadosService = associadosService;
-        _avaliacoesService = avaliacoesService;
-        _competenciasService = competenciasService;
-        _cargosService = cargosService;
-        _clientesService = clientesService;
         _projetosService = projetosService;
+        _clientesService = clientesService;
+        _avaliacoesService = avaliacoesService;
+        _performanceService = performanceService;
+        _userContextService = userContextService;
         _telemetryService = telemetryService;
         _messageBoxService = messageBoxService;
         _configuration = configuration;
     }
 
-    public async Task<AutoAvaliacaoDto> CarregarAvaliacaoAsync(int idProjeto, int idAssociado, int idPeriodo, string tipoAvaliacao, string escopo, int idGestor)
+    public async Task<AutoAvaliacaoPerformanceViewModel> CarregarDadosAsync(int idProjeto, int idAssociado, int idPeriodo, int idAvaliacao)
     {
         try
         {
-            var validacao = await ValidarParametrosAsync(idProjeto, idAssociado, idPeriodo, tipoAvaliacao, escopo, idGestor);
-            if (!validacao)
+            var model = new AutoAvaliacaoPerformanceViewModel();
+
+            if (!await ValidarParametrosObrigatoriosAsync(idProjeto, idAssociado, idPeriodo))
             {
-                return new AutoAvaliacaoDto { IsValid = false };
+                return model;
             }
 
-            var cabecalho = await CarregarCabecalhoAsync(idProjeto, idAssociado, idPeriodo);
-            var avaliacaoEmail = await _avaliacoesService.ObterAvaliacaoEmailAsync(idProjeto, idAssociado, idPeriodo, cabecalho.Projeto.IdEmpresa, tipoAvaliacao, escopo, idGestor);
-            
-            if (avaliacaoEmail == null)
-            {
-                _messageBoxService.ShowError("Avaliação não encontrada");
-                return new AutoAvaliacaoDto { IsValid = false };
-            }
+            var projeto = await _projetosService.ObterProjetoAsync(idProjeto);
+            var associado = await _associadosService.ObterAssociadoAsync(idAssociado);
+            var gestor = await _associadosService.ObterAssociadoAsync(projeto.IdAssociadoGestor);
+            var cliente = await _clientesService.ObterClienteAsync(projeto.IdCliente);
+            var periodo = await _avaliacoesService.ObterPeriodoAsync(idPeriodo);
 
-            var competencias = await CarregarCompetenciasAsync(idAssociado, idProjeto, idPeriodo, tipoAvaliacao, escopo, avaliacaoEmail.IdAvaliacao);
-            var tempoRestante = await CalcularTempoRestanteAsync(avaliacaoEmail.IdAvaliacao);
+            model.IdProjeto = idProjeto;
+            model.IdAssociado = idAssociado;
+            model.IdPeriodo = idPeriodo;
+            model.IdAvaliacao = idAvaliacao;
+            model.NomeAssociado = associado.Nome;
+            model.NomePeriodo = periodo.Periodo;
+            model.NomeProjeto = projeto.Projeto;
+            model.NomeGestor = gestor.Nome;
+            model.NomeCliente = cliente.Cliente;
+            model.TempoPeers = await CalcularTempoPeersAsync(associado.Id);
+            model.TempoCargo = await CalcularTempoCargoAsync(associado.Id);
+            model.TempoRestante = await CalcularTempoRestanteAsync(idAvaliacao);
 
-            var dto = new AutoAvaliacaoDto
-            {
-                IdProjeto = idProjeto,
-                IdAssociado = idAssociado,
-                IdPeriodo = idPeriodo,
-                TipoAvaliacao = tipoAvaliacao,
-                Escopo = escopo,
-                IdGestor = idGestor,
-                IdAvaliacao = avaliacaoEmail.IdAvaliacao,
-                Cabecalho = cabecalho,
-                Competencias = competencias,
-                TempoRestante = tempoRestante,
-                IsValid = true
-            };
+            model.Performances = await ObterPerformancesAsync(idAssociado, idProjeto, idPeriodo);
+            model.PodeEditar = await PodeEditarAvaliacaoAsync(idAssociado, idProjeto, idPeriodo);
 
-            _telemetryService.TrackEvent("AutoAvaliacaoCarregada", new Dictionary<string, string>
+            _telemetryService.TrackEvent("AutoAvaliacaoPerformanceCarregada", new Dictionary<string, string>
             {
                 { "IdProjeto", idProjeto.ToString() },
                 { "IdAssociado", idAssociado.ToString() },
-                { "TipoAvaliacao", tipoAvaliacao },
-                { "Escopo", escopo }
+                { "IdPeriodo", idPeriodo.ToString() },
+                { "QuantidadePerformances", model.Performances.Count.ToString() }
             });
 
-            return dto;
+            return model;
         }
         catch (Exception ex)
         {
             _telemetryService.TrackException(ex, new Dictionary<string, string>
             {
-                { "Method", "CarregarAvaliacaoAsync" },
+                { "Method", "CarregarDadosAsync" },
+                { "Component", "AutoAvaliacaoService" },
                 { "IdProjeto", idProjeto.ToString() },
                 { "IdAssociado", idAssociado.ToString() }
             });
-            _messageBoxService.ShowError("Erro ao carregar avaliação");
-            return new AutoAvaliacaoDto { IsValid = false };
+            throw;
         }
     }
 
-    public async Task<bool> SalvarAvaliacaoAsync(AutoAvaliacaoDto avaliacao, bool finalizarAvaliacao = false)
+    public async Task<bool> SalvarAvaliacaoAsync(AutoAvaliacaoPerformanceViewModel model, bool finalizarAvaliacao = false)
     {
         try
         {
-            var avaliacaoEmail = await _avaliacoesService.ObterAvaliacaoEmailAsync(avaliacao.IdAvaliacao);
-            if (avaliacaoEmail == null)
-            {
-                _messageBoxService.ShowError("Avaliação não encontrada");
-                return false;
-            }
+            var associado = await _associadosService.ObterAssociadoAsync(model.IdAssociado);
+            var usuarioLogado = await _userContextService.GetUsuarioLogadoAsync();
 
-            var etapasPermitidas = new[] { "avaliacao_as_cegas", "auto_avaliacao", "em_paralelo", "nao_iniciada" };
-            if (!etapasPermitidas.Contains(avaliacaoEmail.PosicaoAtualFluxoAvaliacao))
+            foreach (var performance in model.Performances)
             {
-                return true;
-            }
+                var avaliacao = await _avaliacoesService.ObterAvaliacaoPerformanceAsync(
+                    model.IdAssociado, model.IdProjeto, performance.IdPerformance, model.IdPeriodo);
 
-            var associado = await _associadosService.ObterAssociadoAsync(avaliacao.IdAssociado);
-            if (associado == null)
-            {
-                _messageBoxService.ShowError("Associado não encontrado");
-                return false;
-            }
-
-            foreach (var competencia in avaliacao.Competencias)
-            {
-                var avaliacaoCompetencia = await _avaliacoesService.ObterAvaliacaoCompetenciaAsync(
-                    avaliacao.IdAssociado, avaliacao.IdProjeto, competencia.IdCompetencia, 
-                    avaliacao.IdPeriodo, avaliacao.TipoAvaliacao, avaliacao.Escopo, avaliacao.IdAvaliacao);
-
-                if (avaliacaoCompetencia == null)
+                if (avaliacao == null)
                 {
-                    avaliacaoCompetencia = new AvaliacaoCompetencia
-                    {
-                        IdEmpresa = associado.IdEmpresa,
-                        IdAssociado = avaliacao.IdAssociado,
-                        USRAutoAvaliacao = avaliacao.IdAssociado,
-                        IdCargo = associado.IdCargo,
-                        IdNivel = associado.IdNivel,
-                        IdProjeto = avaliacao.IdProjeto,
-                        IdPeriodo = avaliacao.IdPeriodo,
-                        IdCompetencia = competencia.IdCompetencia,
-                        IdAvaliacaoStatus = 2,
-                        PosicaoAtualFluxoAvaliacao = "em_paralelo",
-                        DataHoraInicio = DateTime.Now,
-                        DHCAutoAvaliacao = DateTime.Now,
-                        USR = avaliacao.IdAssociado,
-                        DHC = DateTime.Now,
-                        ATV = true,
-                        IdNotaNivel1AutoAvaliacao = competencia.NotaNivel1,
-                        IdNotaNivel2AutoAvaliacao = competencia.NotaNivel2,
-                        ComentariosAutoAvaliacao = competencia.Consideracoes,
-                        DataHoraInicioAutoAvaliacao = DateTime.Now,
-                        TipoAvaliacao = avaliacao.TipoAvaliacao,
-                        Escopo = avaliacao.Escopo,
-                        IdAvaliacao = avaliacao.IdAvaliacao
-                    };
-
-                    var sucesso = await _avaliacoesService.SalvarAvaliacaoCompetenciaAsync(avaliacaoCompetencia);
-                    if (!sucesso)
-                    {
-                        _messageBoxService.ShowError("Erro ao salvar competência");
-                        return false;
-                    }
+                    avaliacao = CriarNovaAvaliacaoPerformance(model, performance, associado, usuarioLogado.Id);
+                    var sucesso = await _avaliacoesService.SalvarAvaliacaoPerformanceAsync(avaliacao);
+                    if (!sucesso) return false;
                 }
                 else
                 {
-                    avaliacaoCompetencia.IdNotaNivel1AutoAvaliacao = competencia.NotaNivel1;
-                    avaliacaoCompetencia.IdNotaNivel2AutoAvaliacao = competencia.NotaNivel2;
-                    avaliacaoCompetencia.ComentariosAutoAvaliacao = competencia.Consideracoes;
-                    avaliacaoCompetencia.PosicaoAtualFluxoAvaliacao = "em_paralelo";
-
-                    if (avaliacaoCompetencia.IdAvaliacaoStatus == 1)
-                    {
-                        avaliacaoCompetencia.IdAvaliacaoStatus = 2;
-                        if (avaliacaoCompetencia.DataHoraInicio == DateTime.MinValue)
-                            avaliacaoCompetencia.DataHoraInicio = DateTime.Now;
-                        avaliacaoCompetencia.DataHoraInicioAutoAvaliacao = DateTime.Now;
-                    }
-
-                    if (finalizarAvaliacao)
-                        avaliacaoCompetencia.DataHoraFimAutoAvaliacao = DateTime.Now;
-
-                    var sucesso = await _avaliacoesService.AlterarAvaliacaoCompetenciaAsync(avaliacaoCompetencia.IdAvaliacaoCompetencia, avaliacaoCompetencia);
-                    if (!sucesso)
-                    {
-                        _messageBoxService.ShowError("Erro ao alterar competência");
-                        return false;
-                    }
+                    AtualizarAvaliacaoPerformance(avaliacao, performance, finalizarAvaliacao);
+                    var sucesso = await _avaliacoesService.AlterarAvaliacaoPerformanceAsync(avaliacao.IdAvaliacaoPerformance, avaliacao);
+                    if (!sucesso) return false;
                 }
 
-                avaliacaoEmail.IdStatus = avaliacaoCompetencia.IdAvaliacaoStatus;
-                avaliacaoEmail.PosicaoAtualFluxoAvaliacao = avaliacaoCompetencia.PosicaoAtualFluxoAvaliacao;
-                await _avaliacoesService.AlterarAvaliacaoEmailAsync(avaliacaoEmail.IdAvaliacao, avaliacaoEmail);
-
-                if (finalizarAvaliacao)
-                {
-                    await _avaliacoesService.AvancaProximaEtapaCompetenciaAsync(avaliacaoCompetencia, avaliacaoEmail, avaliacaoEmail.TipoAvaliacao);
-                }
+                await AtualizarStatusAvaliacaoEmailAsync(model.IdAvaliacao, avaliacao, finalizarAvaliacao);
             }
 
-            _telemetryService.TrackEvent("AutoAvaliacaoSalva", new Dictionary<string, string>
+            var mensagem = finalizarAvaliacao 
+                ? _configuration["AutoAvaliacao:ValidationMessages:SucessoFinalizacao"]
+                : _configuration["AutoAvaliacao:ValidationMessages:SucessoSalvamento"];
+            
+            _messageBoxService.ShowSuccess(mensagem);
+
+            _telemetryService.TrackEvent("AutoAvaliacaoPerformanceSalva", new Dictionary<string, string>
             {
-                { "IdAvaliacao", avaliacao.IdAvaliacao.ToString() },
+                { "IdProjeto", model.IdProjeto.ToString() },
+                { "IdAssociado", model.IdAssociado.ToString() },
                 { "Finalizada", finalizarAvaliacao.ToString() },
-                { "TotalCompetencias", avaliacao.Competencias.Count.ToString() }
+                { "QuantidadePerformances", model.Performances.Count.ToString() }
             });
 
-            _messageBoxService.ShowSuccess("Avaliação salva com sucesso");
             return true;
         }
         catch (Exception ex)
@@ -232,126 +160,56 @@ public class AutoAvaliacaoService : IAutoAvaliacaoService
             _telemetryService.TrackException(ex, new Dictionary<string, string>
             {
                 { "Method", "SalvarAvaliacaoAsync" },
-                { "IdAvaliacao", avaliacao.IdAvaliacao.ToString() }
+                { "Component", "AutoAvaliacaoService" },
+                { "IdProjeto", model.IdProjeto.ToString() },
+                { "IdAssociado", model.IdAssociado.ToString() }
             });
-            _messageBoxService.ShowError("Erro ao salvar avaliação");
-            return false;
-        }
-    }
 
-    public async Task<bool> ValidarParametrosAsync(int idProjeto, int idAssociado, int idPeriodo, string tipoAvaliacao, string escopo, int idGestor)
-    {
-        var mensagens = _configuration.GetSection("AutoAvaliacao:ValidationMessages");
-
-        if (idProjeto <= 0)
-        {
-            _messageBoxService.ShowInfo(mensagens["ProjetoObrigatorio"] ?? "É obrigatório a seleção de um Projeto.");
-            return false;
-        }
-
-        if (idAssociado <= 0)
-        {
-            _messageBoxService.ShowInfo(mensagens["AssociadoObrigatorio"] ?? "É obrigatório a seleção de um Associado.");
-            return false;
-        }
-
-        if (idPeriodo <= 0)
-        {
-            _messageBoxService.ShowInfo(mensagens["PeriodoObrigatorio"] ?? "É obrigatório a seleção de um Período.");
-            return false;
-        }
-
-        if (idGestor <= 0)
-        {
-            _messageBoxService.ShowInfo(mensagens["GestorObrigatorio"] ?? "É obrigatório a seleção de um Gestor.");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(tipoAvaliacao))
-        {
-            _messageBoxService.ShowInfo(mensagens["TipoAvaliacaoObrigatorio"] ?? "É obrigatório a seleção de um tipo de avaliação.");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(escopo))
-        {
-            _messageBoxService.ShowInfo(mensagens["EscopoObrigatorio"] ?? "É obrigatório a seleção de um escopo.");
-            return false;
-        }
-
-        return true;
-    }
-
-    public async Task<List<CompetenciaAvaliacaoDto>> CarregarCompetenciasAsync(int idAssociado, int idProjeto, int idPeriodo, string tipoAvaliacao, string escopo, int idAvaliacao)
-    {
-        var associado = await _associadosService.ObterAssociadoAsync(idAssociado);
-        var avaliacaoCompetencia = await _avaliacoesService.ObterAvaliacaoCompetenciaAsync(idAssociado, idProjeto, idPeriodo, tipoAvaliacao, escopo, idAvaliacao);
-        
-        var competencias = new List<Competencia>();
-        var listaCompetencias = new List<AvaliacaoCompetencia>();
-
-        if (avaliacaoCompetencia != null)
-        {
-            listaCompetencias = await _avaliacoesService.ObterAvaliacoesCompetenciasAsync(idAssociado, idProjeto, idPeriodo, tipoAvaliacao, escopo, idAvaliacao);
-            var listaIdCompetencias = listaCompetencias.Select(comp => comp.IdCompetencia).ToList();
-            competencias = await _competenciasService.ObterListaCompetenciasAsync(associado.IdEmpresa, avaliacaoCompetencia.IdCargo, associado.IdNivel, avaliacaoCompetencia.TipoAvaliacao, avaliacaoCompetencia.Escopo, listaIdCompetencias);
-        }
-        else
-        {
-            competencias = await _competenciasService.ObterListaCompetenciasAsync(associado.IdEmpresa, associado.IdCargo, associado.IdNivel, tipoAvaliacao, escopo, null);
-        }
-
-        var competenciasDto = new List<CompetenciaAvaliacaoDto>();
-        
-        foreach (var competencia in competencias)
-        {
-            var avaliacaoExistente = listaCompetencias.FirstOrDefault(x => x.IdCompetencia == competencia.IdCompetencia);
+            var mensagem = finalizarAvaliacao 
+                ? _configuration["AutoAvaliacao:ValidationMessages:ErroFinalizacao"]
+                : _configuration["AutoAvaliacao:ValidationMessages:ErroSalvamento"];
             
-            var dto = new CompetenciaAvaliacaoDto
-            {
-                IdCompetencia = competencia.IdCompetencia,
-                SubCompetencia = competencia.SubCompetencia?.Nome ?? "",
-                PalavrasChave = competencia.PalavrasChave?.Replace("\n", "<br>") ?? "",
-                DetalheNivelAtual = GetDetalheNivelAtual(competencia, associado.IdNivel),
-                DetalheProximoNivel = GetDetalheProximoNivel(competencia, associado),
-                NotaNivel1 = avaliacaoExistente?.IdNotaNivel1AutoAvaliacao ?? 0,
-                NotaNivel2 = avaliacaoExistente?.IdNotaNivel2AutoAvaliacao ?? 0,
-                Consideracoes = avaliacaoExistente?.ComentariosAutoAvaliacao ?? "",
-                IsReadOnly = avaliacaoExistente?.DataHoraFimAutoAvaliacao != null,
-                InputEtapaAtual = competencia.InputAutoAvaliacao,
-                VisivelEtapaAtual = competencia.VisivelAutoAvaliacao,
-                InputNivel1 = competencia.InputNivel1,
-                InputNivel2 = competencia.InputNivel2,
-                VisivelNivel1 = competencia.VisivelNivel1,
-                VisivelNivel2 = competencia.VisivelNivel2,
-                IdModo = competencia.IdModo
-            };
-
-            competenciasDto.Add(dto);
+            _messageBoxService.ShowError(mensagem);
+            return false;
         }
-
-        return competenciasDto;
     }
 
-    public async Task<CabecalhoAvaliacaoDto> CarregarCabecalhoAsync(int idProjeto, int idAssociado, int idPeriodo)
+    public async Task<bool> FinalizarAvaliacaoAsync(AutoAvaliacaoPerformanceViewModel model)
     {
-        var projeto = await _projetosService.ObterProjetoAsync(idProjeto);
-        var associado = await _associadosService.ObterAssociadoAsync(idAssociado);
-        var periodo = await _avaliacoesService.ObterPeriodoAsync(idPeriodo);
-        var cliente = await _clientesService.ObterClienteAsync(projeto.IdCliente);
-        
-        var tempoPeers = await _associadosService.CalcularTempoAssociadoAsync(idAssociado, "TempoDePeers");
-        var tempoCargo = await _associadosService.CalcularTempoAssociadoAsync(idAssociado, "TempoDeCargo");
+        return await SalvarAvaliacaoAsync(model, true);
+    }
 
-        return new CabecalhoAvaliacaoDto
+    public async Task<List<PerformanceItemModel>> ObterPerformancesAsync(int idAssociado, int idProjeto, int idPeriodo)
+    {
+        try
         {
-            Projeto = projeto,
-            Associado = associado,
-            Periodo = periodo,
-            Cliente = cliente,
-            TempoPeers = tempoPeers,
-            TempoCargo = tempoCargo
-        };
+            var associado = await _associadosService.ObterAssociadoAsync(idAssociado);
+            var avaliacaoPerformance = await _avaliacoesService.ObterAvaliacaoPerformanceAsync(idAssociado, idProjeto, idPeriodo, true);
+
+            List<Performance> performances;
+            if (avaliacaoPerformance != null)
+            {
+                var listaPerformances = await _avaliacoesService.ObterAvaliacoesPerformancesAsync(idAssociado, idProjeto, idPeriodo, true);
+                var listaIdPerformances = listaPerformances.Select(perf => perf.IdPerformance).ToList();
+                performances = await _performanceService.ObterListaPerformancesAsync(associado.IdEmpresa, avaliacaoPerformance.IdCargo, associado.IdNivel, listaIdPerformances);
+            }
+            else
+            {
+                performances = await _performanceService.ObterListaPerformancesAsync(associado.IdEmpresa, associado.IdCargo, associado.IdNivel, null);
+            }
+
+            return await OrganizarPerformancesPorAbrangenciaAsync(performances, idAssociado, idProjeto, idPeriodo);
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ObterPerformancesAsync" },
+                { "Component", "AutoAvaliacaoService" },
+                { "IdAssociado", idAssociado.ToString() }
+            });
+            return new List<PerformanceItemModel>();
+        }
     }
 
     public async Task<string> CalcularTempoRestanteAsync(int idAvaliacao)
@@ -359,92 +217,255 @@ public class AutoAvaliacaoService : IAutoAvaliacaoService
         try
         {
             var avaliacaoEmail = await _avaliacoesService.ObterAvaliacaoEmailAsync(idAvaliacao);
-            if (avaliacaoEmail?.DataLiberacao == null || avaliacaoEmail.Prazos == null)
-                return "Não definido";
+            if (avaliacaoEmail?.PRAZOS == null || !avaliacaoEmail.DataLiberacao.HasValue)
+            {
+                return "N/A";
+            }
 
-            var dataFinal = avaliacaoEmail.DataLiberacao.Value.AddDays(avaliacaoEmail.Prazos.DuracaoAutoAvaliacao).ToString("dd/MM/yyyy");
+            var prazo = avaliacaoEmail.PRAZOS;
+            var dataFinal = avaliacaoEmail.DataLiberacao.Value.AddDays(prazo.DuracaoAutoAvaliacao).ToString("dd/MM/yyyy");
             
-            return DateTime.Today >= Convert.ToDateTime(dataFinal, CultureInfo.GetCultureInfo("pt-BR")) ?
-                DateTime.Today.AddDays(avaliacaoEmail.Prazos.CompensadorAutoAvaliacao).ToString("dd/MM/yyyy") :
-                dataFinal;
+            return DateTime.Today >= Convert.ToDateTime(dataFinal, CultureInfo.GetCultureInfo("pt-BR")) 
+                ? DateTime.Today.AddDays(prazo.CompensadorAutoAvaliacao).ToString("dd/MM/yyyy")
+                : dataFinal;
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "CalcularTempoRestanteAsync" },
+                { "Component", "AutoAvaliacaoService" },
+                { "IdAvaliacao", idAvaliacao.ToString() }
+            });
+            return "N/A";
+        }
+    }
+
+    public async Task<bool> ValidarPermissoesAsync(int idAssociado, int idProjeto, int idPeriodo)
+    {
+        try
+        {
+            var usuarioLogado = await _userContextService.GetUsuarioLogadoAsync();
+            if (usuarioLogado == null)
+            {
+                _messageBoxService.ShowError(_configuration["AutoAvaliacao:ValidationMessages:PermissaoNegada"]);
+                return false;
+            }
+
+            return await ValidarParametrosObrigatoriosAsync(idProjeto, idAssociado, idPeriodo);
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarPermissoesAsync" },
+                { "Component", "AutoAvaliacaoService" }
+            });
+            return false;
+        }
+    }
+
+    public async Task<bool> PodeEditarAvaliacaoAsync(int idAssociado, int idProjeto, int idPeriodo)
+    {
+        try
+        {
+            var performances = await ObterPerformancesAsync(idAssociado, idProjeto, idPeriodo);
+            return performances.Any(p => p.PodeEditar);
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "PodeEditarAvaliacaoAsync" },
+                { "Component", "AutoAvaliacaoService" }
+            });
+            return false;
+        }
+    }
+
+    private async Task<bool> ValidarParametrosObrigatoriosAsync(int idProjeto, int idAssociado, int idPeriodo)
+    {
+        if (idProjeto <= 0)
+        {
+            _messageBoxService.ShowInfo(_configuration["AutoAvaliacao:ValidationMessages:ProjetoObrigatorio"]);
+            return false;
+        }
+
+        if (idAssociado <= 0)
+        {
+            _messageBoxService.ShowInfo(_configuration["AutoAvaliacao:ValidationMessages:AssociadoObrigatorio"]);
+            return false;
+        }
+
+        if (idPeriodo <= 0)
+        {
+            _messageBoxService.ShowInfo(_configuration["AutoAvaliacao:ValidationMessages:PeriodoObrigatorio"]);
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task<string> CalcularTempoPeersAsync(int idAssociado)
+    {
+        try
+        {
+            return await _associadosService.CalcularTempoPeersAsync(idAssociado);
         }
         catch
         {
-            return "Erro ao calcular";
+            return "N/A";
         }
     }
 
-    public string TruncarTexto(string texto, int qtdCaracteres)
+    private async Task<string> CalcularTempoCargoAsync(int idAssociado)
     {
-        if (!string.IsNullOrEmpty(texto) && texto.Length > qtdCaracteres)
+        try
         {
-            return $"{texto.Substring(0, qtdCaracteres)}...";
+            return await _associadosService.CalcularTempoCargoAsync(idAssociado);
         }
-        return texto ?? string.Empty;
+        catch
+        {
+            return "N/A";
+        }
     }
 
-    private string GetDetalheNivelAtual(Competencia competencia, int nivelAssociado)
+    private async Task<List<PerformanceItemModel>> OrganizarPerformancesPorAbrangenciaAsync(
+        List<Performance> performances, int idAssociado, int idProjeto, int idPeriodo)
     {
-        return nivelAssociado switch
+        var listaPerformancesModel = new List<PerformanceItemModel>();
+        var abrangenciasContadas = new List<string>();
+        bool novaAbrangencia = true;
+        string setAbrangencia = "";
+
+        while (novaAbrangencia)
         {
-            1 => competencia.CompetenciaJRDetalhe ?? "",
-            2 => competencia.CompetenciaPLDetalhe ?? "",
-            3 => competencia.CompetenciaSRDetalhe ?? "",
-            _ => ""
+            novaAbrangencia = false;
+            setAbrangencia = "";
+
+            foreach (var item in performances)
+            {
+                bool addItem = false;
+                bool headerSeparador = false;
+
+                if (!string.IsNullOrEmpty(setAbrangencia))
+                {
+                    if (item.Abrangencia == setAbrangencia)
+                    {
+                        addItem = true;
+                        headerSeparador = false;
+                    }
+                }
+                else if (!abrangenciasContadas.Contains(item.Abrangencia ?? ""))
+                {
+                    abrangenciasContadas.Add(item.Abrangencia ?? "");
+                    setAbrangencia = item.Abrangencia ?? "";
+                    novaAbrangencia = true;
+                    headerSeparador = true;
+                    addItem = true;
+                }
+
+                if (addItem)
+                {
+                    var performanceModel = await CriarPerformanceItemModelAsync(item, headerSeparador, idAssociado, idProjeto, idPeriodo);
+                    listaPerformancesModel.Add(performanceModel);
+                }
+            }
+        }
+
+        return listaPerformancesModel;
+    }
+
+    private async Task<PerformanceItemModel> CriarPerformanceItemModelAsync(
+        Performance performance, bool headerSeparador, int idAssociado, int idProjeto, int idPeriodo)
+    {
+        var model = new PerformanceItemModel
+        {
+            IdPerformance = performance.IdPerformance,
+            Descricao = performance.Performance1,
+            Abaixo = performance.PerformanceAbaixo,
+            Esperado = performance.PerformanceEsperado,
+            Acima = performance.PerformanceAcima,
+            Abrangencia = performance.Abrangencia?.ToUpper() ?? "",
+            MostrarSeparadorAbrangencia = headerSeparador,
+            PodeEditar = performance.InputAutoavaliacao,
+            DisclaimerInput = performance.InputAutoavaliacao ? "" : "Esta nota não requer preenchimento do avaliado"
+        };
+
+        var avaliacao = await _avaliacoesService.ObterAvaliacaoPerformanceAsync(idAssociado, idProjeto, performance.IdPerformance, idPeriodo);
+        if (avaliacao != null)
+        {
+            model.NotaSelecionada = avaliacao.IdNotaNivel1AutoAvaliacao;
+            model.Observacoes = avaliacao.ComentariosAutoAvaliacao;
+            model.PodeEditar = model.PodeEditar && avaliacao.DataHoraFimAutoAvaliacao == null;
+        }
+        else
+        {
+            model.NotaSelecionada = performance.NotaPadraoAutoAvaliacao ?? 0;
+        }
+
+        return model;
+    }
+
+    private AvaliacaoPerformance CriarNovaAvaliacaoPerformance(
+        AutoAvaliacaoPerformanceViewModel model, PerformanceItemModel performance, Associado associado, int usuarioId)
+    {
+        return new AvaliacaoPerformance
+        {
+            IdEmpresa = associado.IdEmpresa,
+            IdAssociado = model.IdAssociado,
+            USRAutoAvaliacao = model.IdAssociado,
+            IdCargo = associado.IdCargo,
+            IdNivel = associado.IdNivel,
+            IdProjeto = model.IdProjeto,
+            IdPeriodo = model.IdPeriodo,
+            IdPerformance = performance.IdPerformance,
+            IdAvaliacaoStatus = 2, // Em Andamento
+            PosicaoAtualFluxoAvaliacao = "em_paralelo",
+            DataHoraInicio = DateTime.Now,
+            DHCAutoAvaliacao = DateTime.Now,
+            USR = usuarioId,
+            DHC = DateTime.Now,
+            ATV = 1,
+            IdNotaNivel1AutoAvaliacao = performance.NotaSelecionada,
+            ComentariosAutoAvaliacao = performance.Observacoes?.Trim() ?? "",
+            DataHoraInicioAutoAvaliacao = DateTime.Now
         };
     }
 
-    private string GetDetalheProximoNivel(Competencia competencia, Associado associado)
+    private void AtualizarAvaliacaoPerformance(AvaliacaoPerformance avaliacao, PerformanceItemModel performance, bool finalizarAvaliacao)
     {
-        if (associado.Cargo?.ProximoCargo != null)
+        avaliacao.IdNotaNivel1AutoAvaliacao = performance.NotaSelecionada;
+        avaliacao.ComentariosAutoAvaliacao = performance.Observacoes?.Trim() ?? "";
+
+        if (avaliacao.IdAvaliacaoStatus == 1) // Não Iniciada
         {
-            return competencia.CompetenciaJRDetalhe ?? "";
+            avaliacao.IdAvaliacaoStatus = 2; // Em Andamento
+            avaliacao.PosicaoAtualFluxoAvaliacao = "em_paralelo";
+            if (avaliacao.DataHoraInicio == DateTime.MinValue)
+                avaliacao.DataHoraInicio = DateTime.Now;
+            avaliacao.DataHoraInicioAutoAvaliacao = DateTime.Now;
         }
-        return "";
+
+        if (finalizarAvaliacao)
+        {
+            avaliacao.DataHoraFimAutoAvaliacao = DateTime.Now;
+        }
     }
-}
 
-public class AutoAvaliacaoDto
-{
-    public int IdProjeto { get; set; }
-    public int IdAssociado { get; set; }
-    public int IdPeriodo { get; set; }
-    public string TipoAvaliacao { get; set; } = string.Empty;
-    public string Escopo { get; set; } = string.Empty;
-    public int IdGestor { get; set; }
-    public int IdAvaliacao { get; set; }
-    public CabecalhoAvaliacaoDto Cabecalho { get; set; } = new();
-    public List<CompetenciaAvaliacaoDto> Competencias { get; set; } = new();
-    public string TempoRestante { get; set; } = string.Empty;
-    public bool IsValid { get; set; }
-}
+    private async Task AtualizarStatusAvaliacaoEmailAsync(int idAvaliacao, AvaliacaoPerformance avaliacao, bool finalizarAvaliacao)
+    {
+        var avaliacaoEmail = await _avaliacoesService.ObterAvaliacaoEmailAsync(idAvaliacao);
+        if (avaliacaoEmail != null)
+        {
+            avaliacaoEmail.idStatus = avaliacao.IdAvaliacaoStatus;
+            avaliacaoEmail.PosicaoAtualFluxoAvaliacao = avaliacao.PosicaoAtualFluxoAvaliacao;
+            await _avaliacoesService.AlterarAvaliacaoEmailAsync(avaliacaoEmail.idAvaliacao, avaliacaoEmail);
 
-public class CabecalhoAvaliacaoDto
-{
-    public Projeto Projeto { get; set; } = new();
-    public Associado Associado { get; set; } = new();
-    public Periodo Periodo { get; set; } = new();
-    public Cliente Cliente { get; set; } = new();
-    public string TempoPeers { get; set; } = string.Empty;
-    public string TempoCargo { get; set; } = string.Empty;
-}
-
-public class CompetenciaAvaliacaoDto
-{
-    public int IdCompetencia { get; set; }
-    public string SubCompetencia { get; set; } = string.Empty;
-    public string PalavrasChave { get; set; } = string.Empty;
-    public string DetalheNivelAtual { get; set; } = string.Empty;
-    public string DetalheProximoNivel { get; set; } = string.Empty;
-    public int NotaNivel1 { get; set; }
-    public int NotaNivel2 { get; set; }
-    public string Consideracoes { get; set; } = string.Empty;
-    public bool IsReadOnly { get; set; }
-    public bool InputEtapaAtual { get; set; }
-    public bool VisivelEtapaAtual { get; set; }
-    public bool InputNivel1 { get; set; }
-    public bool InputNivel2 { get; set; }
-    public bool VisivelNivel1 { get; set; }
-    public bool VisivelNivel2 { get; set; }
-    public int IdModo { get; set; }
+            if (finalizarAvaliacao)
+            {
+                await _avaliacoesService.AvancaProximaEtapaPerformanceAsync(avaliacao, avaliacaoEmail, avaliacaoEmail.TipoAvaliacao);
+            }
+        }
+    }
 }
