@@ -1,18 +1,22 @@
 using Peers.Moderno.Services.Common;
+using Microsoft.Extensions.Configuration;
 
 namespace Peers.Moderno.Services.AutoAvaliacao.Common;
 
 public interface IAccordionHelper
 {
-    string TruncarTexto(string texto, int maxLength);
-    string GerarIdAccordion(string prefixo, int id);
-    string GerarLinkAccordion(string texto, string targetId, int maxLength);
+    string TruncarTexto(string? texto, int tamanhoMaximo);
+    string GetTextoExpandido(string? texto, int tamanhoMaximo, string textoVerMais = "Ver+");
+    bool DeveExibirBotaoExpandir(string? texto, int tamanhoMaximo);
+    string GetIdAccordion(string prefixo, int id);
+    string GetClasseAccordion(bool isExpanded = false);
+    string GetAriaExpanded(bool isExpanded = false);
     AccordionConfig GetAccordionConfig();
-    bool ShouldShowExpandButton(string texto, int maxLength);
-    string GetExpandButtonText();
-    string FormatarTextoCompleto(string prefixo, string texto);
-    AccordionItem CriarAccordionItem(string id, string titulo, string conteudo, bool isExpanded = false);
-    List<AccordionItem> CriarAccordionsPerformance(int idPerformance, string abaixo, string esperado, string acima);
+    Dictionary<string, object> GetAccordionAttributes(string targetId, bool isExpanded = false);
+    string FormatarTextoComPrefixo(string? texto, string prefixo);
+    bool IsTextoVazio(string? texto);
+    int GetTamanhoMaximoPadrao();
+    string GetTextoVerMaisPadrao();
 }
 
 public class AccordionHelper : IAccordionHelper
@@ -20,162 +24,207 @@ public class AccordionHelper : IAccordionHelper
     private readonly IConfiguration _configuration;
     private readonly ITelemetryService _telemetryService;
 
-    public AccordionHelper(IConfiguration configuration, ITelemetryService telemetryService)
+    public AccordionHelper(
+        IConfiguration configuration,
+        ITelemetryService telemetryService)
     {
         _configuration = configuration;
         _telemetryService = telemetryService;
     }
 
-    public string TruncarTexto(string texto, int maxLength)
+    public string TruncarTexto(string? texto, int tamanhoMaximo)
     {
-        if (string.IsNullOrEmpty(texto))
-            return string.Empty;
+        try
+        {
+            if (string.IsNullOrWhiteSpace(texto))
+                return string.Empty;
 
-        if (texto.Length <= maxLength)
-            return texto;
+            if (texto.Length <= tamanhoMaximo)
+                return texto;
 
-        return texto.Substring(0, maxLength) + "...";
+            return texto.Substring(0, tamanhoMaximo) + "...";
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "TruncarTexto" },
+                { "Component", "AccordionHelper" },
+                { "TamanhoMaximo", tamanhoMaximo.ToString() }
+            });
+            return texto ?? string.Empty;
+        }
     }
 
-    public string GerarIdAccordion(string prefixo, int id)
+    public string GetTextoExpandido(string? texto, int tamanhoMaximo, string textoVerMais = "Ver+")
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(texto))
+                return string.Empty;
+
+            if (texto.Length <= tamanhoMaximo)
+                return texto;
+
+            var textoTruncado = TruncarTexto(texto, tamanhoMaximo);
+            return $"{textoTruncado} <span style='font-weight:bold'>{textoVerMais}</span>";
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "GetTextoExpandido" },
+                { "Component", "AccordionHelper" },
+                { "TamanhoMaximo", tamanhoMaximo.ToString() }
+            });
+            return texto ?? string.Empty;
+        }
+    }
+
+    public bool DeveExibirBotaoExpandir(string? texto, int tamanhoMaximo)
+    {
+        return !string.IsNullOrWhiteSpace(texto) && texto.Length > tamanhoMaximo;
+    }
+
+    public string GetIdAccordion(string prefixo, int id)
     {
         return $"{prefixo}_{id}";
     }
 
-    public string GerarLinkAccordion(string texto, string targetId, int maxLength)
+    public string GetClasseAccordion(bool isExpanded = false)
     {
-        var textoTruncado = TruncarTexto(texto, maxLength);
-        var showExpandButton = ShouldShowExpandButton(texto, maxLength);
-        
-        if (showExpandButton)
-        {
-            return $"{textoTruncado} <span style='font-weight:bold'>{GetExpandButtonText()}</span>";
-        }
-        
-        return textoTruncado;
+        return isExpanded ? "accordian-body collapse show" : "accordian-body collapse";
+    }
+
+    public string GetAriaExpanded(bool isExpanded = false)
+    {
+        return isExpanded.ToString().ToLower();
     }
 
     public AccordionConfig GetAccordionConfig()
     {
-        return new AccordionConfig
+        try
         {
-            MaxTextLength = _configuration.GetValue("AutoAvaliacao:MaxCompetenciaLength", 70),
-            ShowExpandButton = _configuration.GetValue("AutoAvaliacao:ShowVerMaisTexto", true),
-            ExpandButtonText = _configuration.GetValue("AutoAvaliacao:VerMaisTexto", "Ver+"),
-            EnableAccordions = _configuration.GetValue("AutoAvaliacao:ComponenteConfig:CompetenciaTable:EnableAccordions", true),
-            EnableStickyHeaders = _configuration.GetValue("AutoAvaliacao:ComponenteConfig:CompetenciaTable:EnableStickyHeaders", true)
+            return new AccordionConfig
+            {
+                TamanhoMaximo = _configuration.GetValue<int>("AutoAvaliacao:MaxCompetenciaLength", 70),
+                TextoVerMais = _configuration.GetValue<string>("AutoAvaliacao:VerMaisTexto", "Ver+") ?? "Ver+",
+                HabilitarAccordions = _configuration.GetValue<bool>("AutoAvaliacao:ComponenteConfig:CompetenciaTable:EnableAccordions", true),
+                ExibirBotaoExpandir = _configuration.GetValue<bool>("AutoAvaliacao:ComponenteConfig:CompetenciaTable:ShowExpandButton", true),
+                HabilitarCabecalhoFixo = _configuration.GetValue<bool>("AutoAvaliacao:ComponenteConfig:CompetenciaTable:EnableStickyHeaders", true)
+            };
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "GetAccordionConfig" },
+                { "Component", "AccordionHelper" }
+            });
+            
+            return new AccordionConfig
+            {
+                TamanhoMaximo = 70,
+                TextoVerMais = "Ver+",
+                HabilitarAccordions = true,
+                ExibirBotaoExpandir = true,
+                HabilitarCabecalhoFixo = true
+            };
+        }
+    }
+
+    public Dictionary<string, object> GetAccordionAttributes(string targetId, bool isExpanded = false)
+    {
+        return new Dictionary<string, object>
+        {
+            { "data-toggle", "collapse" },
+            { "data-target", $"#{targetId}" },
+            { "aria-expanded", GetAriaExpanded(isExpanded) },
+            { "aria-controls", targetId },
+            { "class", "accordion-toggle" }
         };
     }
 
-    public bool ShouldShowExpandButton(string texto, int maxLength)
+    public string FormatarTextoComPrefixo(string? texto, string prefixo)
     {
-        if (string.IsNullOrEmpty(texto))
-            return false;
-            
-        return texto.Length > maxLength && GetAccordionConfig().ShowExpandButton;
-    }
+        try
+        {
+            if (string.IsNullOrWhiteSpace(texto))
+                return string.Empty;
 
-    public string GetExpandButtonText()
-    {
-        return GetAccordionConfig().ExpandButtonText;
-    }
-
-    public string FormatarTextoCompleto(string prefixo, string texto)
-    {
-        if (string.IsNullOrEmpty(prefixo) || string.IsNullOrEmpty(texto))
+            return $"[{prefixo}] {texto}";
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "FormatarTextoComPrefixo" },
+                { "Component", "AccordionHelper" },
+                { "Prefixo", prefixo }
+            });
             return texto ?? string.Empty;
-            
-        return $"[{prefixo}] {texto}";
+        }
     }
 
-    public AccordionItem CriarAccordionItem(string id, string titulo, string conteudo, bool isExpanded = false)
+    public bool IsTextoVazio(string? texto)
     {
-        var config = GetAccordionConfig();
-        
-        return new AccordionItem
-        {
-            Id = id,
-            Titulo = titulo,
-            TituloTruncado = TruncarTexto(titulo, config.MaxTextLength),
-            Conteudo = conteudo,
-            IsExpanded = isExpanded,
-            ShowExpandButton = ShouldShowExpandButton(titulo, config.MaxTextLength),
-            ExpandButtonText = GetExpandButtonText()
-        };
+        return string.IsNullOrWhiteSpace(texto);
     }
 
-    public List<AccordionItem> CriarAccordionsPerformance(int idPerformance, string abaixo, string esperado, string acima)
+    public int GetTamanhoMaximoPadrao()
     {
-        var items = new List<AccordionItem>();
-        var config = GetAccordionConfig();
+        return _configuration.GetValue<int>("AutoAvaliacao:MaxCompetenciaLength", 70);
+    }
 
-        if (!string.IsNullOrEmpty(abaixo))
-        {
-            items.Add(new AccordionItem
-            {
-                Id = GerarIdAccordion("abaixo", idPerformance),
-                Titulo = TruncarTexto(abaixo, config.MaxTextLength),
-                Conteudo = FormatarTextoCompleto("Abaixo", abaixo),
-                ShowExpandButton = ShouldShowExpandButton(abaixo, config.MaxTextLength),
-                ExpandButtonText = GetExpandButtonText()
-            });
-        }
-
-        if (!string.IsNullOrEmpty(esperado))
-        {
-            items.Add(new AccordionItem
-            {
-                Id = GerarIdAccordion("esperado", idPerformance),
-                Titulo = TruncarTexto(esperado, config.MaxTextLength),
-                Conteudo = FormatarTextoCompleto("Esperado", esperado),
-                ShowExpandButton = ShouldShowExpandButton(esperado, config.MaxTextLength),
-                ExpandButtonText = GetExpandButtonText()
-            });
-        }
-
-        if (!string.IsNullOrEmpty(acima))
-        {
-            items.Add(new AccordionItem
-            {
-                Id = GerarIdAccordion("acima", idPerformance),
-                Titulo = TruncarTexto(acima, config.MaxTextLength),
-                Conteudo = FormatarTextoCompleto("Acima", acima),
-                ShowExpandButton = ShouldShowExpandButton(acima, config.MaxTextLength),
-                ExpandButtonText = GetExpandButtonText()
-            });
-        }
-
-        _telemetryService.TrackEvent("AccordionItemsCreated", new Dictionary<string, string>
-        {
-            { "IdPerformance", idPerformance.ToString() },
-            { "ItemsCount", items.Count.ToString() }
-        });
-
-        return items;
+    public string GetTextoVerMaisPadrao()
+    {
+        return _configuration.GetValue<string>("AutoAvaliacao:VerMaisTexto", "Ver+") ?? "Ver+";
     }
 }
 
 public class AccordionConfig
 {
-    public int MaxTextLength { get; set; } = 70;
-    public bool ShowExpandButton { get; set; } = true;
-    public string ExpandButtonText { get; set; } = "Ver+";
-    public bool EnableAccordions { get; set; } = true;
-    public bool EnableStickyHeaders { get; set; } = true;
+    public int TamanhoMaximo { get; set; } = 70;
+    public string TextoVerMais { get; set; } = "Ver+";
+    public bool HabilitarAccordions { get; set; } = true;
+    public bool ExibirBotaoExpandir { get; set; } = true;
+    public bool HabilitarCabecalhoFixo { get; set; } = true;
 }
 
-public class AccordionItem
+public static class AccordionExtensions
 {
-    public string Id { get; set; } = string.Empty;
-    public string Titulo { get; set; } = string.Empty;
-    public string TituloTruncado { get; set; } = string.Empty;
-    public string Conteudo { get; set; } = string.Empty;
-    public bool IsExpanded { get; set; } = false;
-    public bool ShowExpandButton { get; set; } = false;
-    public string ExpandButtonText { get; set; } = "Ver+";
-    public string CssClass { get; set; } = string.Empty;
-    public string TargetId => $"#{Id}";
-    public string DataTarget => $"#{Id}";
-    public string AriaExpanded => IsExpanded ? "true" : "false";
-    public string CollapseClass => IsExpanded ? "collapse show" : "collapse";
+    public static string ToAccordionId(this string prefixo, int id)
+    {
+        return $"{prefixo}_{id}";
+    }
+
+    public static string ToAccordionTarget(this string id)
+    {
+        return $"#{id}";
+    }
+
+    public static bool ShouldTruncate(this string? texto, int tamanhoMaximo)
+    {
+        return !string.IsNullOrWhiteSpace(texto) && texto.Length > tamanhoMaximo;
+    }
+
+    public static string TruncateWithEllipsis(this string? texto, int tamanhoMaximo)
+    {
+        if (string.IsNullOrWhiteSpace(texto) || texto.Length <= tamanhoMaximo)
+            return texto ?? string.Empty;
+
+        return texto.Substring(0, tamanhoMaximo) + "...";
+    }
+
+    public static Dictionary<string, object> ToBootstrapAccordionAttributes(this string targetId, bool isExpanded = false)
+    {
+        return new Dictionary<string, object>
+        {
+            { "data-toggle", "collapse" },
+            { "data-target", targetId.StartsWith("#") ? targetId : $"#{targetId}" },
+            { "aria-expanded", isExpanded.ToString().ToLower() },
+            { "aria-controls", targetId.TrimStart('#') },
+            { "class", "accordion-toggle" }
+        };
+    }
 }
