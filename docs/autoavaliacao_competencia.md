@@ -8,7 +8,7 @@ O módulo de AutoAvaliação de Competências é responsável por permitir que o
 
 ### Estrutura de Pastas
 
-
+```text
 Services/AutoAvaliacao/
 ├── AutoAvaliacaoService.cs          # Serviço principal de negócio
 ├── AutoAvaliacaoValidator.cs        # Validações específicas
@@ -20,7 +20,7 @@ Services/AutoAvaliacao/
 Components/Pages/
 ├── AutoAvaliacaoCompetencia.razor    # Componente principal da página
 └── AutoAvaliacaoCompetencia.razor.cs # Code-behind do componente
-
+```
 
 ### Serviços Principais
 
@@ -56,6 +56,7 @@ Implementação das validações com regras como:
 
 #### AutoAvaliacaoDto
 Objeto para transporte de dados entre UI e serviços:
+```text
 csharp
 public class AutoAvaliacaoDto
 {
@@ -69,7 +70,7 @@ public class AutoAvaliacaoDto
     public bool PodeEditar { get; set; }
     public bool PodeNavegar { get; set; }
 }
-
+```
 
 ## Componente Blazor
 
@@ -114,7 +115,7 @@ Componente principal que:
 ### appsettings.json
 Todas as configurações estão centralizadas na seção `AutoAvaliacao`:
 
-
+```json
 {
   "AutoAvaliacao": {
     "AutoSaveIntervalMinutes": 15,
@@ -130,20 +131,21 @@ Todas as configurações estão centralizadas na seção `AutoAvaliacao`:
     }
   }
 }
-
+```
 
 ## Registro de Dependências
 
 ### Program.cs
+```text
 csharp
 // AutoAvaliacao Services
 builder.Services.AddScoped<IAutoAvaliacaoService, AutoAvaliacaoService>();
 builder.Services.AddScoped<IAutoAvaliacaoValidator, AutoAvaliacaoValidator>();
-
+```
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa AutoAvaliação] --> B{Parâmetros válidos?}
     B -->|Não| C[Exibir erro e redirecionar]
@@ -183,7 +185,7 @@ flowchart TD
     W --> Y[Continuar na tela]
     X --> Z[Redirecionar ou bloquear]
     V --> AA[Performance/Finalização]
-
+```
 
 ## Estados da Avaliação
 
