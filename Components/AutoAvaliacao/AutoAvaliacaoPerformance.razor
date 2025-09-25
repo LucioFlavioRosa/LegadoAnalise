@@ -1,0 +1,341 @@
+@page "/autoavaliacao-performance"
+@rendermode InteractiveAuto
+@using Peers.Moderno.Services.AutoAvaliacao
+@using Peers.Moderno.Services.Common
+@using Peers.Moderno.Models
+@inject IAutoAvaliacaoPerformanceService AutoAvaliacaoService
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+@inject IUserContextService UserContextService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Auto Avaliação - Performance</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Auto Avaliação</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item"><a href="/">Avaliação / Auto Avaliação</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Performance</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Carregando...</span>
+            </div>
+        </div>
+    }
+    else if (avaliacaoData != null)
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="text-left">
+                                <button type="button" class="btn btn-danger" @onclick="IrParaCompetencia">Competencia</button>
+                                <button type="button" class="btn btn-facebook" disabled>Performance</button>
+                                <button type="button" class="btn btn-info" @onclick="IrParaFinalizacao">Ir para Finalização</button>
+                                <p></p>
+                            </div>
+                        </div>
+
+                        <div class="col-sm">
+                            <div class="row">
+                                <div class="col-md-1">
+                                    <label><b>Avaliado</b></label>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>@avaliacaoData.NomeAssociado</label>
+                                </div>
+                                <div class="col-md-1">
+                                    <label><b>Período</b></label>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>@avaliacaoData.Periodo</label>
+                                </div>
+                                <div class="col-md-1">
+                                    <label><b>Gestor</b></label>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>@avaliacaoData.NomeGestor</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <label><b>Tempo de Cargo:</b></label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>@avaliacaoData.TempoCargo</label>
+                                </div>
+                                <div class="col-md-2">
+                                    <label><b>Tempo de Peers</b></label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>@avaliacaoData.TempoPeers</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-1">
+                                    <label><b>Projeto</b></label>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>@avaliacaoData.NomeProjeto</label>
+                                </div>
+                                <div class="col-md-1">
+                                    <label><b>Cliente</b></label>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>@avaliacaoData.NomeCliente</label>
+                                </div>
+                                <div class="col-md-2">
+                                    <label><b>Tempo restante</b></label>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>@avaliacaoData.TempoRestante</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-4 offset-md-8">
+                            <div class="text-right">
+                                <button type="button" class="btn btn-dark" @onclick="SalvarAvaliacao" disabled="@isSaving">Salvar Avaliação</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+
+                <PerformanceTable Performances="@avaliacaoData.Performances" 
+                                OnNotaChanged="OnNotaChanged" 
+                                OnObservacaoChanged="OnObservacaoChanged" />
+
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-4 offset-md-8">
+                            <div class="text-right">
+                                <button type="button" class="btn btn-dark" @onclick="SalvarAvaliacao" disabled="@isSaving">Salvar Avaliação</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="col-md-5">
+                    <div class="text-left">
+                        <button type="button" class="btn btn-danger" @onclick="IrParaCompetencia">Competencia</button>
+                        <button type="button" class="btn btn-facebook" disabled>Performance</button>
+                        <button type="button" class="btn btn-info" @onclick="IrParaFinalizacao">Ir para Finalização</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (hasError)
+    {
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">Erro!</h4>
+            <p>@errorMessage</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string? IdProjeto { get; set; }
+    [Parameter] public string? IdAssociado { get; set; }
+    [Parameter] public string? IdPeriodo { get; set; }
+    [Parameter] public string? IdAvaliacao { get; set; }
+
+    private AutoAvaliacaoPerformanceData? avaliacaoData;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private bool hasError = false;
+    private string errorMessage = string.Empty;
+    private Timer? autoSaveTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            TelemetryService.TrackEvent("AutoAvaliacaoPerformance_PageLoad", new Dictionary<string, string>
+            {
+                { "IdProjeto", IdProjeto ?? "" },
+                { "IdAssociado", IdAssociado ?? "" },
+                { "IdPeriodo", IdPeriodo ?? "" }
+            });
+
+            await CarregarDadosAvaliacao();
+            ConfigurarAutoSave();
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "OnInitializedAsync" },
+                { "Component", "AutoAvaliacaoPerformance" }
+            });
+            
+            hasError = true;
+            errorMessage = "Erro ao carregar dados da avaliação";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task CarregarDadosAvaliacao()
+    {
+        if (!int.TryParse(IdProjeto, out int idProjeto) ||
+            !int.TryParse(IdAssociado, out int idAssociado) ||
+            !int.TryParse(IdPeriodo, out int idPeriodo))
+        {
+            hasError = true;
+            errorMessage = "Parâmetros inválidos";
+            return;
+        }
+
+        int idAvaliacao = int.TryParse(IdAvaliacao, out int id) ? id : 0;
+        
+        avaliacaoData = await AutoAvaliacaoService.CarregarDadosAvaliacaoAsync(idProjeto, idAssociado, idPeriodo, idAvaliacao);
+        
+        if (avaliacaoData == null)
+        {
+            hasError = true;
+            errorMessage = "Avaliação não encontrada";
+        }
+    }
+
+    private void ConfigurarAutoSave()
+    {
+        autoSaveTimer = new Timer(async _ => await AutoSave(), null, TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(15));
+    }
+
+    private async Task AutoSave()
+    {
+        if (avaliacaoData != null && !isSaving)
+        {
+            try
+            {
+                await AutoAvaliacaoService.SalvarAvaliacaoAsync(avaliacaoData, false);
+                TelemetryService.TrackEvent("AutoAvaliacaoPerformance_AutoSave");
+            }
+            catch (Exception ex)
+            {
+                TelemetryService.TrackException(ex, new Dictionary<string, string>
+                {
+                    { "Method", "AutoSave" },
+                    { "Component", "AutoAvaliacaoPerformance" }
+                });
+            }
+        }
+    }
+
+    private async Task SalvarAvaliacao()
+    {
+        if (avaliacaoData == null || isSaving) return;
+
+        try
+        {
+            isSaving = true;
+            var resultado = await AutoAvaliacaoService.SalvarAvaliacaoAsync(avaliacaoData, false);
+            
+            if (resultado.Sucesso)
+            {
+                MessageBoxService.ShowSuccess("Avaliação Salva com Sucesso.");
+                TelemetryService.TrackEvent("AutoAvaliacaoPerformance_SaveSuccess");
+            }
+            else
+            {
+                MessageBoxService.ShowError(resultado.MensagemErro ?? "Falha ao Incluir Performance da Avaliação.");
+                TelemetryService.TrackEvent("AutoAvaliacaoPerformance_SaveError", new Dictionary<string, string>
+                {
+                    { "Error", resultado.MensagemErro ?? "Unknown" }
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "SalvarAvaliacao" },
+                { "Component", "AutoAvaliacaoPerformance" }
+            });
+            MessageBoxService.ShowError("Erro interno ao salvar avaliação");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task IrParaCompetencia()
+    {
+        await SalvarAvaliacao();
+        Navigation.NavigateTo("/autoavaliacao-competencia");
+    }
+
+    private async Task IrParaFinalizacao()
+    {
+        await SalvarAvaliacao();
+        Navigation.NavigateTo($"/autoavaliacao?IdProjeto={IdProjeto}&IdAssociado={IdAssociado}&IdPeriodo={IdPeriodo}");
+    }
+
+    private void OnNotaChanged(int idPerformance, int nota)
+    {
+        if (avaliacaoData?.Performances != null)
+        {
+            var performance = avaliacaoData.Performances.FirstOrDefault(p => p.IdPerformance == idPerformance);
+            if (performance != null)
+            {
+                performance.NotaSelecionada = nota;
+                TelemetryService.TrackEvent("AutoAvaliacaoPerformance_NotaChanged", new Dictionary<string, string>
+                {
+                    { "IdPerformance", idPerformance.ToString() },
+                    { "Nota", nota.ToString() }
+                });
+            }
+        }
+    }
+
+    private void OnObservacaoChanged(int idPerformance, string observacao)
+    {
+        if (avaliacaoData?.Performances != null)
+        {
+            var performance = avaliacaoData.Performances.FirstOrDefault(p => p.IdPerformance == idPerformance);
+            if (performance != null)
+            {
+                performance.Observacao = observacao;
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        autoSaveTimer?.Dispose();
+    }
+}
