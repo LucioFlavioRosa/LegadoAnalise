@@ -3,41 +3,75 @@ using Microsoft.JSInterop;
 using Peers.Moderno.Services.AutoAvaliacao;
 using Peers.Moderno.Services.AutoAvaliacao.Common;
 using Peers.Moderno.Services.Common;
+using System.ComponentModel;
 
 namespace Peers.Moderno.Components.Pages;
 
 public partial class AutoAvaliacaoCompetencia : ComponentBase, IDisposable
 {
-    [Inject] private IAutoAvaliacaoService AutoAvaliacaoService { get; set; } = default!;
-    [Inject] private IMessageBoxService MessageBoxService { get; set; } = default!;
-    [Inject] private ITelemetryService TelemetryService { get; set; } = default!;
-    [Inject] private NavigationManager Navigation { get; set; } = default!;
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    [Parameter, SupplyParameterFromQuery] public int? IdProjeto { get; set; }
+    [Parameter, SupplyParameterFromQuery] public int? IdAssociado { get; set; }
+    [Parameter, SupplyParameterFromQuery] public int? IdPeriodo { get; set; }
+    [Parameter, SupplyParameterFromQuery] public string? TipoAvaliacao { get; set; }
+    [Parameter, SupplyParameterFromQuery] public string? Escopo { get; set; }
+    [Parameter, SupplyParameterFromQuery] public int? IdGestor { get; set; }
 
-    [Parameter] public string? IdProjeto { get; set; }
-    [Parameter] public string? IdAssociado { get; set; }
-    [Parameter] public string? IdPeriodo { get; set; }
-    [Parameter] public string? TipoAvaliacao { get; set; }
-    [Parameter] public string? Escopo { get; set; }
-    [Parameter] public string? IdGestor { get; set; }
-
-    private AutoAvaliacaoDto? AvaliacaoData;
-    private bool IsLoading = true;
-    private bool IsProcessing = false;
-    private DotNetObjectReference<AutoAvaliacaoCompetencia>? objRef;
+    private AutoAvaliacaoDto? avaliacaoData;
+    private bool isLoading = true;
+    private bool podeEditar = true;
+    private bool messageBoxVisible = false;
+    private string messageBoxMessage = string.Empty;
+    private string messageBoxType = "info";
+    private DotNetObjectReference<AutoAvaliacaoCompetencia>? dotNetRef;
 
     protected override async Task OnInitializedAsync()
     {
-        objRef = DotNetObjectReference.Create(this);
-        await CarregarDadosAvaliacao();
+        try
+        {
+            TelemetryService.TrackEvent("AutoAvaliacaoCompetencia_PageLoad", new Dictionary<string, string>
+            {
+                { "IdProjeto", IdProjeto?.ToString() ?? "null" },
+                { "IdAssociado", IdAssociado?.ToString() ?? "null" },
+                { "IdPeriodo", IdPeriodo?.ToString() ?? "null" },
+                { "TipoAvaliacao", TipoAvaliacao ?? "null" },
+                { "Escopo", Escopo ?? "null" }
+            });
+
+            await CarregarDadosAvaliacao();
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "OnInitializedAsync" },
+                { "Component", "AutoAvaliacaoCompetencia" }
+            });
+            
+            ShowMessage("Erro ao carregar a página de avaliação.", "danger");
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender && avaliacaoData != null && podeEditar)
         {
-            await ConfigurarAutoSave();
-            await ConfigurarScripts();
+            try
+            {
+                dotNetRef = DotNetObjectReference.Create(this);
+                await JSRuntime.InvokeVoidAsync("initAutoSave", dotNetRef);
+            }
+            catch (Exception ex)
+            {
+                TelemetryService.TrackException(ex, new Dictionary<string, string>
+                {
+                    { "Method", "OnAfterRenderAsync" },
+                    { "Component", "AutoAvaliacaoCompetencia" }
+                });
+            }
         }
     }
 
@@ -45,34 +79,40 @@ public partial class AutoAvaliacaoCompetencia : ComponentBase, IDisposable
     {
         try
         {
-            IsLoading = true;
-            StateHasChanged();
+            if (!IdProjeto.HasValue || !IdAssociado.HasValue || !IdPeriodo.HasValue || 
+                string.IsNullOrEmpty(TipoAvaliacao) || string.IsNullOrEmpty(Escopo))
+            {
+                ShowMessage("Parâmetros obrigatórios não informados.", "warning");
+                return;
+            }
 
-            var parametros = ObterParametrosUrl();
+            var request = new CarregarAvaliacaoRequest
+            {
+                IdProjeto = IdProjeto.Value,
+                IdAssociado = IdAssociado.Value,
+                IdPeriodo = IdPeriodo.Value,
+                TipoAvaliacao = TipoAvaliacao,
+                Escopo = Escopo,
+                IdGestor = IdGestor
+            };
+
+            var resultado = await AutoAvaliacaoService.CarregarAvaliacaoAsync(request);
             
-            if (!ValidarParametrosObrigatorios(parametros))
+            if (resultado.Sucesso)
             {
-                MessageBoxService.ShowError("Parâmetros obrigatórios não informados (Projeto, Associado, Período).");
-                return;
+                avaliacaoData = resultado.Dados;
+                podeEditar = avaliacaoData?.PodeEditar ?? false;
+                
+                TelemetryService.TrackEvent("AutoAvaliacaoCompetencia_DataLoaded", new Dictionary<string, string>
+                {
+                    { "CompetenciasCount", avaliacaoData?.Competencias?.Count.ToString() ?? "0" },
+                    { "PodeEditar", podeEditar.ToString() }
+                });
             }
-
-            AvaliacaoData = await AutoAvaliacaoService.CarregarDadosAvaliacaoAsync(parametros);
-
-            if (AvaliacaoData == null)
+            else
             {
-                MessageBoxService.ShowError("Não foi possível carregar os dados da avaliação.");
-                return;
+                ShowMessage(resultado.MensagemErro ?? "Erro ao carregar dados da avaliação.", "danger");
             }
-
-            TelemetryService.TrackEvent("AutoAvaliacaoCompetencia_Loaded", new Dictionary<string, string>
-            {
-                { "IdProjeto", parametros.IdProjeto.ToString() },
-                { "IdAssociado", parametros.IdAssociado.ToString() },
-                { "IdPeriodo", parametros.IdPeriodo.ToString() },
-                { "CompetenciasCount", AvaliacaoData.Competencias?.Count.ToString() ?? "0" },
-                { "TipoAvaliacao", parametros.TipoAvaliacao ?? "" },
-                { "Escopo", parametros.Escopo ?? "" }
-            });
         }
         catch (Exception ex)
         {
@@ -81,56 +121,44 @@ public partial class AutoAvaliacaoCompetencia : ComponentBase, IDisposable
                 { "Method", "CarregarDadosAvaliacao" },
                 { "Component", "AutoAvaliacaoCompetencia" }
             });
-            MessageBoxService.ShowError($"Erro ao carregar dados da avaliação: {ex.Message}");
-        }
-        finally
-        {
-            IsLoading = false;
-            StateHasChanged();
+            
+            ShowMessage("Erro interno ao carregar dados da avaliação.", "danger");
         }
     }
 
     private async Task SalvarAvaliacao()
     {
-        if (AvaliacaoData == null || IsProcessing) return;
+        if (avaliacaoData == null || !podeEditar)
+            return;
 
         try
         {
-            IsProcessing = true;
-            StateHasChanged();
-
-            var validacao = await AutoAvaliacaoService.ValidarAvaliacaoAsync(AvaliacaoData);
-            if (!validacao.Valida)
+            var request = new SalvarAvaliacaoRequest
             {
-                MessageBoxService.ShowError(validacao.MensagemErro ?? "Erro na validação da avaliação.");
-                return;
-            }
+                IdProjeto = IdProjeto!.Value,
+                IdAssociado = IdAssociado!.Value,
+                IdPeriodo = IdPeriodo!.Value,
+                TipoAvaliacao = TipoAvaliacao!,
+                Escopo = Escopo!,
+                IdGestor = IdGestor,
+                Competencias = avaliacaoData.Competencias,
+                FinalizarAvaliacao = false
+            };
 
-            var resultado = await AutoAvaliacaoService.SalvarAvaliacaoAsync(AvaliacaoData, false);
-
+            var resultado = await AutoAvaliacaoService.SalvarAvaliacaoAsync(request);
+            
             if (resultado.Sucesso)
             {
-                MessageBoxService.ShowSuccess("Avaliação salva com sucesso.");
+                ShowMessage("Avaliação salva com sucesso.", "success");
                 
                 TelemetryService.TrackEvent("AutoAvaliacaoCompetencia_Saved", new Dictionary<string, string>
                 {
-                    { "IdAvaliacao", AvaliacaoData.IdAvaliacao.ToString() },
-                    { "CompetenciasPreenchidas", resultado.CompetenciasPreenchidas.ToString() },
-                    { "CompetenciasTotal", AvaliacaoData.Competencias?.Count.ToString() ?? "0" }
+                    { "CompetenciasCount", avaliacaoData.Competencias?.Count.ToString() ?? "0" }
                 });
-
-                // Recarrega os dados para refletir o estado atual
-                await CarregarDadosAvaliacao();
             }
             else
             {
-                MessageBoxService.ShowError(resultado.MensagemErro ?? "Erro ao salvar avaliação.");
-                
-                TelemetryService.TrackEvent("AutoAvaliacaoCompetencia_SaveError", new Dictionary<string, string>
-                {
-                    { "IdAvaliacao", AvaliacaoData.IdAvaliacao.ToString() },
-                    { "ErrorMessage", resultado.MensagemErro ?? "Erro desconhecido" }
-                });
+                ShowMessage(resultado.MensagemErro ?? "Erro ao salvar avaliação.", "danger");
             }
         }
         catch (Exception ex)
@@ -138,161 +166,24 @@ public partial class AutoAvaliacaoCompetencia : ComponentBase, IDisposable
             TelemetryService.TrackException(ex, new Dictionary<string, string>
             {
                 { "Method", "SalvarAvaliacao" },
-                { "Component", "AutoAvaliacaoCompetencia" },
-                { "IdAvaliacao", AvaliacaoData?.IdAvaliacao.ToString() ?? "Unknown" }
+                { "Component", "AutoAvaliacaoCompetencia" }
             });
-            MessageBoxService.ShowError("Erro interno ao salvar avaliação.");
-        }
-        finally
-        {
-            IsProcessing = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task IrParaPerformance()
-    {
-        if (AvaliacaoData == null) return;
-
-        try
-        {
-            var validacao = await AutoAvaliacaoService.ValidarAvaliacaoAsync(AvaliacaoData);
-            if (!validacao.Valida)
-            {
-                MessageBoxService.ShowError(validacao.MensagemErro ?? "Erro na validação da avaliação.");
-                return;
-            }
-
-            // Salva antes de navegar
-            var resultadoSalvar = await AutoAvaliacaoService.SalvarAvaliacaoAsync(AvaliacaoData, false);
-            if (!resultadoSalvar.Sucesso)
-            {
-                MessageBoxService.ShowError("Erro ao salvar avaliação antes de navegar para Performance.");
-                return;
-            }
-
-            var parametros = ObterParametrosUrl();
-            var urlPerformance = $"/autoavaliacao-performance?IdProjeto={parametros.IdProjeto}&IdAssociado={parametros.IdAssociado}&IdPeriodo={parametros.IdPeriodo}&TipoAvaliacao={parametros.TipoAvaliacao}&Escopo={parametros.Escopo}&IdGestor={parametros.IdGestor}";
             
-            Navigation.NavigateTo(urlPerformance);
-        }
-        catch (Exception ex)
-        {
-            TelemetryService.TrackException(ex, new Dictionary<string, string>
-            {
-                { "Method", "IrParaPerformance" },
-                { "Component", "AutoAvaliacaoCompetencia" }
-            });
-            MessageBoxService.ShowError("Erro ao navegar para Performance.");
-        }
-    }
-
-    private async Task IrParaFinalizacao()
-    {
-        if (AvaliacaoData == null) return;
-
-        try
-        {
-            var validacao = await AutoAvaliacaoService.ValidarAvaliacaoAsync(AvaliacaoData);
-            if (!validacao.Valida)
-            {
-                MessageBoxService.ShowError(validacao.MensagemErro ?? "Erro na validação da avaliação.");
-                return;
-            }
-
-            // Salva antes de navegar
-            var resultadoSalvar = await AutoAvaliacaoService.SalvarAvaliacaoAsync(AvaliacaoData, false);
-            if (!resultadoSalvar.Sucesso)
-            {
-                MessageBoxService.ShowError("Erro ao salvar avaliação antes de finalizar.");
-                return;
-            }
-
-            var parametros = ObterParametrosUrl();
-            var urlFinalizacao = $"/autoavaliacao?IdProjeto={parametros.IdProjeto}&IdAssociado={parametros.IdAssociado}&IdPeriodo={parametros.IdPeriodo}&TipoAvaliacao={parametros.TipoAvaliacao}&Escopo={parametros.Escopo}&IdGestor={parametros.IdGestor}";
-            
-            Navigation.NavigateTo(urlFinalizacao);
-        }
-        catch (Exception ex)
-        {
-            TelemetryService.TrackException(ex, new Dictionary<string, string>
-            {
-                { "Method", "IrParaFinalizacao" },
-                { "Component", "AutoAvaliacaoCompetencia" }
-            });
-            MessageBoxService.ShowError("Erro ao navegar para Finalização.");
-        }
-    }
-
-    private AutoAvaliacaoParametrosDto ObterParametrosUrl()
-    {
-        var uri = new Uri(Navigation.Uri);
-        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-
-        return new AutoAvaliacaoParametrosDto
-        {
-            IdProjeto = int.TryParse(query.TryGetValue("IdProjeto", out var idProjeto) ? idProjeto.FirstOrDefault() : IdProjeto, out var projeto) ? projeto : 0,
-            IdAssociado = int.TryParse(query.TryGetValue("IdAssociado", out var idAssociado) ? idAssociado.FirstOrDefault() : IdAssociado, out var associado) ? associado : 0,
-            IdPeriodo = int.TryParse(query.TryGetValue("IdPeriodo", out var idPeriodo) ? idPeriodo.FirstOrDefault() : IdPeriodo, out var periodo) ? periodo : 0,
-            TipoAvaliacao = query.TryGetValue("TipoAvaliacao", out var tipoAvaliacao) ? tipoAvaliacao.FirstOrDefault() : TipoAvaliacao ?? "desempenho",
-            Escopo = query.TryGetValue("Escopo", out var escopo) ? escopo.FirstOrDefault() : Escopo ?? "projeto",
-            IdGestor = int.TryParse(query.TryGetValue("IdGestor", out var idGestor) ? idGestor.FirstOrDefault() : IdGestor, out var gestor) ? gestor : 0
-        };
-    }
-
-    private bool ValidarParametrosObrigatorios(AutoAvaliacaoParametrosDto parametros)
-    {
-        return parametros.IdProjeto > 0 && 
-               parametros.IdAssociado > 0 && 
-               parametros.IdPeriodo > 0 &&
-               !string.IsNullOrEmpty(parametros.TipoAvaliacao) &&
-               !string.IsNullOrEmpty(parametros.Escopo);
-    }
-
-    private async Task ConfigurarAutoSave()
-    {
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("configureAutoSave", objRef);
-        }
-        catch (Exception ex)
-        {
-            TelemetryService.TrackException(ex, new Dictionary<string, string>
-            {
-                { "Method", "ConfigurarAutoSave" },
-                { "Component", "AutoAvaliacaoCompetencia" }
-            });
-        }
-    }
-
-    private async Task ConfigurarScripts()
-    {
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("initializeBootstrapComponents");
-        }
-        catch (Exception ex)
-        {
-            TelemetryService.TrackException(ex, new Dictionary<string, string>
-            {
-                { "Method", "ConfigurarScripts" },
-                { "Component", "AutoAvaliacaoCompetencia" }
-            });
+            ShowMessage("Erro interno ao salvar avaliação.", "danger");
         }
     }
 
     [JSInvokable]
     public async Task AutoSave()
     {
-        if (!IsProcessing && AvaliacaoData != null)
+        if (avaliacaoData != null && podeEditar)
         {
             try
             {
+                await JSRuntime.InvokeVoidAsync("showMessage", "success", "SALVANDO!!", 9000);
                 await SalvarAvaliacao();
-                TelemetryService.TrackEvent("AutoAvaliacaoCompetencia_AutoSaved", new Dictionary<string, string>
-                {
-                    { "IdAvaliacao", AvaliacaoData.IdAvaliacao.ToString() }
-                });
+                
+                TelemetryService.TrackEvent("AutoAvaliacaoCompetencia_AutoSaved");
             }
             catch (Exception ex)
             {
@@ -305,7 +196,107 @@ public partial class AutoAvaliacaoCompetencia : ComponentBase, IDisposable
         }
     }
 
-    private string TruncarTexto(string? texto, int qtdCaracteres)
+    private async Task IrParaPerformance()
+    {
+        if (avaliacaoData == null)
+            return;
+
+        try
+        {
+            var request = new SalvarAvaliacaoRequest
+            {
+                IdProjeto = IdProjeto!.Value,
+                IdAssociado = IdAssociado!.Value,
+                IdPeriodo = IdPeriodo!.Value,
+                TipoAvaliacao = TipoAvaliacao!,
+                Escopo = Escopo!,
+                IdGestor = IdGestor,
+                Competencias = avaliacaoData.Competencias,
+                FinalizarAvaliacao = false
+            };
+
+            var resultado = await AutoAvaliacaoService.SalvarAvaliacaoAsync(request);
+            
+            if (resultado.Sucesso)
+            {
+                var url = $"/autoavaliacao-performance?IdProjeto={IdProjeto}&IdAssociado={IdAssociado}&IdPeriodo={IdPeriodo}&TipoAvaliacao={TipoAvaliacao}&Escopo={Escopo}";
+                if (IdGestor.HasValue)
+                    url += $"&IdGestor={IdGestor}";
+                    
+                Navigation.NavigateTo(url);
+            }
+            else
+            {
+                ShowMessage(resultado.MensagemErro ?? "Erro ao salvar avaliação antes de navegar.", "danger");
+            }
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "IrParaPerformance" },
+                { "Component", "AutoAvaliacaoCompetencia" }
+            });
+            
+            ShowMessage("Erro ao navegar para Performance.", "danger");
+        }
+    }
+
+    private async Task IrParaFinalizacao()
+    {
+        if (avaliacaoData == null)
+            return;
+
+        try
+        {
+            var request = new SalvarAvaliacaoRequest
+            {
+                IdProjeto = IdProjeto!.Value,
+                IdAssociado = IdAssociado!.Value,
+                IdPeriodo = IdPeriodo!.Value,
+                TipoAvaliacao = TipoAvaliacao!,
+                Escopo = Escopo!,
+                IdGestor = IdGestor,
+                Competencias = avaliacaoData.Competencias,
+                FinalizarAvaliacao = false
+            };
+
+            var resultado = await AutoAvaliacaoService.SalvarAvaliacaoAsync(request);
+            
+            if (resultado.Sucesso)
+            {
+                var url = $"/autoavaliacao?IdProjeto={IdProjeto}&IdAssociado={IdAssociado}&IdPeriodo={IdPeriodo}&TipoAvaliacao={TipoAvaliacao}&Escopo={Escopo}";
+                if (IdGestor.HasValue)
+                    url += $"&IdGestor={IdGestor}";
+                    
+                Navigation.NavigateTo(url);
+            }
+            else
+            {
+                ShowMessage(resultado.MensagemErro ?? "Erro ao salvar avaliação antes de navegar.", "danger");
+            }
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "IrParaFinalizacao" },
+                { "Component", "AutoAvaliacaoCompetencia" }
+            });
+            
+            ShowMessage("Erro ao navegar para Finalização.", "danger");
+        }
+    }
+
+    private void ShowMessage(string message, string type)
+    {
+        messageBoxMessage = message;
+        messageBoxType = type;
+        messageBoxVisible = true;
+        StateHasChanged();
+    }
+
+    private static string TruncarTexto(string? texto, int qtdCaracteres)
     {
         if (string.IsNullOrEmpty(texto))
             return string.Empty;
@@ -320,6 +311,17 @@ public partial class AutoAvaliacaoCompetencia : ComponentBase, IDisposable
 
     public void Dispose()
     {
-        objRef?.Dispose();
+        try
+        {
+            if (dotNetRef != null)
+            {
+                JSRuntime.InvokeVoidAsync("clearAutoSave");
+                dotNetRef.Dispose();
+            }
+        }
+        catch
+        {
+            // Ignore disposal errors
+        }
     }
 }
