@@ -39,6 +39,7 @@ using Peers.Moderno.Services.Projetos.Common;
 using Peers.Moderno.Services.SubCompetencias;
 using Peers.Moderno.Services.SubCompetencias.Common;
 using Peers.Moderno.Services.Common.Avaliacoes;
+using Peers.Moderno.Services.AutoAvaliacao;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.AI;
