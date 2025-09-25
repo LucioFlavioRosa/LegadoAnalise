@@ -8,7 +8,7 @@ O sistema de autoavaliação é uma funcionalidade central da plataforma Peers q
 
 ### Estrutura de Pastas
 
-
+```text
 Services/
 ├── Avaliacoes/
 │   ├── AutoAvaliacaoService.cs
@@ -28,7 +28,7 @@ Services/
 │   └── TelemetryService.cs
 └── Associados/
     └── AssociadosService.cs
-
+```
 
 ### Componentes Principais
 
@@ -57,6 +57,8 @@ Services/
 ### Modelos de Dados
 
 #### ProjetoModel
+
+```text
 csharp
 public class ProjetoModel
 {
@@ -70,9 +72,10 @@ public class ProjetoModel
     public ProjetoStatus Status { get; set; }
     public List<ProjetosAssociadosModel> Associados { get; set; }
 }
-
+```
 
 #### ProjetosAssociadosModel
+```text
 csharp
 public class ProjetosAssociadosModel
 {
@@ -91,14 +94,14 @@ public class ProjetosAssociadosModel
     public bool ExibirBotaoFinalizar { get; set; }
     public bool AvaliacaoLiberada { get; set; }
 }
-
+```
 
 ## Integração dos Serviços
 
 ### Injeção de Dependência
 
 Todos os serviços são registrados no `Program.cs`:
-
+```text
 csharp
 // AutoAvaliacao Services
 builder.Services.AddScoped<IAutoAvaliacaoService, AutoAvaliacaoService>();
@@ -113,13 +116,13 @@ builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>(
 // Avaliacoes Common Services
 builder.Services.AddScoped<IEmailUtils, EmailUtils>();
 builder.Services.AddScoped<IWorkflowUtils, WorkflowUtils>();
-
+```
 
 ### Configurações
 
 As configurações específicas da autoavaliação estão centralizadas no `appsettings.json`:
 
-
+```json
 "AutoAvaliacao": {
   "MaxExportRecords": 50000,
   "MaxImportRecords": 10000,
@@ -142,13 +145,13 @@ As configurações específicas da autoavaliação estão centralizadas no `apps
     "Finalizada": "Finalizada"
   }
 }
-
+```
 
 ## Fluxo de Funcionamento
 
 ### Processo de Autoavaliação
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa Autoavaliação] --> B[UserContextService obtém usuário logado]
     B --> C[AutoAvaliacaoService carrega combos]
@@ -175,11 +178,11 @@ flowchart TD
     M --> V[Tela de Competências]
     N --> K
     U --> K
-
+```
 
 ### Fluxo de Dados
 
-mermaid
+```mermaid
 flowchart LR
     A[Blazor Component] --> B[AutoAvaliacaoService]
     B --> C[AssociadosService]
@@ -203,7 +206,7 @@ flowchart LR
     J --> M[Session]
     K --> N[UI Messages]
     L --> O[Application Insights]
-
+```
 
 ### Estados da Avaliação
 
