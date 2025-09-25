@@ -150,6 +150,155 @@ public static class ComboHelper
     {
         return ativo ? "badge-success" : "badge-secondary";
     }
+
+    // Novos métodos específicos para AutoAvaliação
+    public static List<ComboItem> GetStatusAvaliacaoItems()
+    {
+        return new List<ComboItem>
+        {
+            new ComboItem { Value = "", Text = "[Selecionar]" },
+            new ComboItem { Value = "nao_iniciado", Text = "Não iniciado" },
+            new ComboItem { Value = "em_andamento", Text = "Em andamento" },
+            new ComboItem { Value = "concluido", Text = "Concluído" },
+            new ComboItem { Value = "finalizado", Text = "Finalizado" }
+        };
+    }
+
+    public static List<ComboItem> CreateProjetosCombo<T>(IEnumerable<T> projetos, Func<T, string> idSelector, Func<T, string> nomeSelector)
+    {
+        return CreateComboFromList(projetos, idSelector, nomeSelector, true);
+    }
+
+    public static List<ComboItem> CreateClientesCombo<T>(IEnumerable<T> clientes, Func<T, string> idSelector, Func<T, string> nomeSelector)
+    {
+        return CreateComboFromList(clientes, idSelector, nomeSelector, true);
+    }
+
+    public static List<ComboItem> CreatePeriodosCombo<T>(IEnumerable<T> periodos, Func<T, string> idSelector, Func<T, string> periodoSelector)
+    {
+        return CreateComboFromList(periodos, idSelector, periodoSelector, true);
+    }
+
+    public static List<ComboItem> GetEtapasAvaliacaoItems()
+    {
+        return new List<ComboItem>
+        {
+            new ComboItem { Value = "", Text = "[Selecionar]" },
+            new ComboItem { Value = "nao_iniciada", Text = "Não Iniciada" },
+            new ComboItem { Value = "auto_avaliacao", Text = "Em Auto-avaliação" },
+            new ComboItem { Value = "avaliacao_cegas", Text = "Em Av. às Cegas" },
+            new ComboItem { Value = "avaliacao_gestor", Text = "Em Av. Gestor" },
+            new ComboItem { Value = "feedback", Text = "Em Feedback" },
+            new ComboItem { Value = "avaliacao_mentor", Text = "Em Cons. Mentor" },
+            new ComboItem { Value = "finalizada", Text = "Finalizada" }
+        };
+    }
+
+    public static string GetEtapaAvaliacaoText(string? etapa)
+    {
+        return etapa switch
+        {
+            "nao_iniciada" => "Não Iniciada",
+            "auto_avaliacao" => "Em Auto-avaliação",
+            "avaliacao_cegas" => "Em Av. às Cegas",
+            "avaliacao_gestor" => "Em Av. Gestor",
+            "feedback" => "Em Feedback",
+            "avaliacao_mentor" => "Em Cons. Mentor",
+            "finalizada" => "Finalizada",
+            _ => "Não Iniciada"
+        };
+    }
+
+    public static string GetStatusAvaliacaoText(string? status)
+    {
+        return status switch
+        {
+            "nao_iniciado" => "Não iniciado",
+            "em_andamento" => "Em andamento",
+            "concluido" => "Concluído",
+            "finalizado" => "Finalizado",
+            _ => "Não iniciado"
+        };
+    }
+
+    public static string GetStatusAvaliacaoBadgeClass(string? status)
+    {
+        return status switch
+        {
+            "nao_iniciado" => "badge-secondary",
+            "em_andamento" => "badge-warning",
+            "concluido" => "badge-success",
+            "finalizado" => "badge-primary",
+            _ => "badge-secondary"
+        };
+    }
+
+    public static List<ComboItem> GetRotuloBotaoItems()
+    {
+        return new List<ComboItem>
+        {
+            new ComboItem { Value = "iniciar", Text = "Iniciar Avaliação" },
+            new ComboItem { Value = "continuar", Text = "Continuar Avaliação" },
+            new ComboItem { Value = "ver", Text = "Ver Avaliação" },
+            new ComboItem { Value = "finalizar", Text = "Finalizar Avaliação" }
+        };
+    }
+
+    public static string GetRotuloBotaoText(string? rotulo)
+    {
+        return rotulo switch
+        {
+            "iniciar" => "Iniciar Avaliação",
+            "continuar" => "Continuar Avaliação",
+            "ver" => "Ver Avaliação",
+            "finalizar" => "Finalizar Avaliação",
+            _ => "Iniciar Avaliação"
+        };
+    }
+
+    public static string GetRotuloBotaoCssClass(string? rotulo)
+    {
+        return rotulo switch
+        {
+            "iniciar" => "btn btn-success",
+            "continuar" => "btn btn-warning",
+            "ver" => "btn btn-info",
+            "finalizar" => "btn btn-danger",
+            _ => "btn btn-success"
+        };
+    }
+
+    public static bool ShouldShowFinalizarButton(string? status, string? etapa)
+    {
+        return status == "em_andamento" && 
+               (etapa == "auto_avaliacao" || etapa == "avaliacao_cegas");
+    }
+
+    public static bool IsAvaliacaoLiberada(string? status)
+    {
+        return !string.IsNullOrEmpty(status) && status != "nao_iniciado";
+    }
+
+    public static List<ComboItem> GetTiposAvaliacaoAutoAvaliacao()
+    {
+        return new List<ComboItem>
+        {
+            new ComboItem { Value = "", Text = "[Selecionar]" },
+            new ComboItem { Value = "desempenho", Text = "Desempenho" },
+            new ComboItem { Value = "lideranca", Text = "Liderança" }
+        };
+    }
+
+    public static List<ComboItem> GetEscoposAutoAvaliacao()
+    {
+        return new List<ComboItem>
+        {
+            new ComboItem { Value = "", Text = "[Selecionar]" },
+            new ComboItem { Value = "projeto", Text = "Projeto" },
+            new ComboItem { Value = "lider", Text = "Líder" },
+            new ComboItem { Value = "backoffice", Text = "Backoffice" }
+        };
+    }
 }
 
 public class ComboItem
