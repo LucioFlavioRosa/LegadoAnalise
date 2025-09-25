@@ -1,246 +1,469 @@
 using Peers.Moderno.Services.Common;
+using Microsoft.Extensions.Configuration;
 
 namespace Peers.Moderno.Services.AutoAvaliacao.Common;
 
 public interface IValidationHelper
 {
-    ValidationResult ValidarParametrosObrigatorios(int? idProjeto, int? idAssociado, int? idPeriodo);
-    ValidationResult ValidarAvaliacaoCompleta(List<int?> notasCompetencia, List<int?> notasPerformance, bool requireAllFilled = true);
-    ValidationResult ValidarConsistenciaNotas(List<(int? nivel1, int? nivel2)> paresNotas);
-    ValidationResult ValidarPilaresPreenchidos(Dictionary<string, List<int?>> notasPorPilar);
-    ValidationResult ValidarPermissaoEdicao(bool isFinalized, bool hasPermission);
-    ValidationResult ValidarTempoRestante(DateTime? dataLimite);
+    ValidationResult ValidarProjetoObrigatorio(int? idProjeto);
+    ValidationResult ValidarAssociadoObrigatorio(int? idAssociado);
+    ValidationResult ValidarPeriodoObrigatorio(int? idPeriodo);
+    ValidationResult ValidarGestorObrigatorio(int? idGestor);
+    ValidationResult ValidarTipoAvaliacaoObrigatorio(string? tipoAvaliacao);
+    ValidationResult ValidarEscopoObrigatorio(string? escopo);
+    ValidationResult ValidarCompetenciasPreenchidas(List<int?> notas);
+    ValidationResult ValidarPerformancesPreenchidas(List<int?> notas);
+    ValidationResult ValidarPermissaoUsuario(int userProfileId, int minProfileRequired);
+    ValidationResult ValidarAvaliacaoFinalizada(bool isFinalizada);
+    ValidationResult ValidarPrazosAvaliacao(DateTime? dataInicio, DateTime? dataFim);
+    ValidationResult ValidarContextoAvaliacao(int? idProjeto, int? idAssociado, int? idPeriodo);
+    List<ValidationResult> ValidarTodosRequisitos(ValidationContext context);
     string GetMensagemValidacao(string chave, params object[] parametros);
-    bool IsValidationEnabled();
 }
 
 public class ValidationHelper : IValidationHelper
 {
     private readonly IConfiguration _configuration;
     private readonly ITelemetryService _telemetryService;
-    private readonly INotaHelper _notaHelper;
+    private readonly IMessageBoxService _messageBoxService;
+    private readonly IUserContextService _userContextService;
 
     public ValidationHelper(
         IConfiguration configuration,
         ITelemetryService telemetryService,
-        INotaHelper notaHelper)
+        IMessageBoxService messageBoxService,
+        IUserContextService userContextService)
     {
         _configuration = configuration;
         _telemetryService = telemetryService;
-        _notaHelper = notaHelper;
+        _messageBoxService = messageBoxService;
+        _userContextService = userContextService;
     }
 
-    public ValidationResult ValidarParametrosObrigatorios(int? idProjeto, int? idAssociado, int? idPeriodo)
+    public ValidationResult ValidarProjetoObrigatorio(int? idProjeto)
     {
-        var errors = new List<string>();
-
-        if (!idProjeto.HasValue || idProjeto.Value <= 0)
+        try
         {
-            errors.Add(GetMensagemValidacao("ProjetoObrigatorio"));
-        }
-
-        if (!idAssociado.HasValue || idAssociado.Value <= 0)
-        {
-            errors.Add(GetMensagemValidacao("AssociadoObrigatorio"));
-        }
-
-        if (!idPeriodo.HasValue || idPeriodo.Value <= 0)
-        {
-            errors.Add(GetMensagemValidacao("PeriodoObrigatorio"));
-        }
-
-        if (errors.Any())
-        {
-            _telemetryService.TrackEvent("ValidationError_ParametrosObrigatorios", new Dictionary<string, string>
+            if (!idProjeto.HasValue || idProjeto.Value <= 0)
             {
-                { "ErrorCount", errors.Count.ToString() },
-                { "IdProjeto", idProjeto?.ToString() ?? "null" },
-                { "IdAssociado", idAssociado?.ToString() ?? "null" },
-                { "IdPeriodo", idPeriodo?.ToString() ?? "null" }
-            });
-
-            return ValidationResult.Error(string.Join("; ", errors));
-        }
-
-        return ValidationResult.Success();
-    }
-
-    public ValidationResult ValidarAvaliacaoCompleta(List<int?> notasCompetencia, List<int?> notasPerformance, bool requireAllFilled = true)
-    {
-        var errors = new List<string>();
-
-        if (requireAllFilled)
-        {
-            if (!_notaHelper.ValidarPreenchimentoCompleto(notasCompetencia, true))
-            {
-                errors.Add(GetMensagemValidacao("CompetenciasNaoPreenchidas"));
+                var mensagem = GetMensagemValidacao("ProjetoObrigatorio");
+                _messageBoxService.ShowInfo(mensagem);
+                return ValidationResult.Error(mensagem);
             }
 
-            if (!_notaHelper.ValidarPreenchimentoCompleto(notasPerformance, true))
-            {
-                errors.Add(GetMensagemValidacao("PerformancesNaoPreenchidas"));
-            }
-        }
-
-        if (!notasCompetencia.Any())
-        {
-            errors.Add(GetMensagemValidacao("CompetenciasNaoParametrizadas"));
-        }
-
-        if (!notasPerformance.Any())
-        {
-            errors.Add(GetMensagemValidacao("PerformancesNaoParametrizadas"));
-        }
-
-        if (errors.Any())
-        {
-            _telemetryService.TrackEvent("ValidationError_AvaliacaoIncompleta", new Dictionary<string, string>
-            {
-                { "ErrorCount", errors.Count.ToString() },
-                { "CompetenciasCount", notasCompetencia.Count.ToString() },
-                { "PerformancesCount", notasPerformance.Count.ToString() }
-            });
-
-            return ValidationResult.Error(string.Join("; ", errors));
-        }
-
-        return ValidationResult.Success();
-    }
-
-    public ValidationResult ValidarConsistenciaNotas(List<(int? nivel1, int? nivel2)> paresNotas)
-    {
-        var inconsistencias = new List<string>();
-        var ajustesNecessarios = new List<string>();
-
-        foreach (var (nivel1, nivel2) in paresNotas)
-        {
-            if (!_notaHelper.ValidarNotasConsistencia(nivel1, nivel2))
-            {
-                inconsistencias.Add($"Nota Nível 1: {_notaHelper.GetNotaTexto(nivel1)}, Nível 2: {_notaHelper.GetNotaTexto(nivel2)}");
-            }
-
-            if (_notaHelper.IsNotaNaoSeAplica(nivel1) && !_notaHelper.IsNotaNaoSeAplica(nivel2))
-            {
-                ajustesNecessarios.Add($"Ajuste necessário: Nível 1 = Não se aplica, Nível 2 deve ser Não se aplica");
-            }
-        }
-
-        if (inconsistencias.Any())
-        {
-            _telemetryService.TrackEvent("ValidationError_NotasInconsistentes", new Dictionary<string, string>
-            {
-                { "InconsistenciasCount", inconsistencias.Count.ToString() },
-                { "AjustesCount", ajustesNecessarios.Count.ToString() }
-            });
-
-            var errorMessage = GetMensagemValidacao("NotasInconsistentes");
-            if (ajustesNecessarios.Any())
-            {
-                errorMessage += " " + GetMensagemValidacao("NotaNaoSeAplicaInconsistente");
-            }
-
-            return ValidationResult.Error(errorMessage);
-        }
-
-        return ValidationResult.Success();
-    }
-
-    public ValidationResult ValidarPilaresPreenchidos(Dictionary<string, List<int?>> notasPorPilar)
-    {
-        var pilaresVazios = new List<string>();
-
-        foreach (var pilar in notasPorPilar)
-        {
-            var notasMensuravelNivel1 = pilar.Value.Count(n => _notaHelper.IsNotaValida(n) && !_notaHelper.IsNotaNaoSeAplica(n));
-            
-            if (notasMensuravelNivel1 == 0)
-            {
-                pilaresVazios.Add(pilar.Key);
-            }
-        }
-
-        if (pilaresVazios.Any())
-        {
-            _telemetryService.TrackEvent("ValidationError_PilaresVazios", new Dictionary<string, string>
-            {
-                { "PilaresVaziosCount", pilaresVazios.Count.ToString() },
-                { "PilaresVazios", string.Join(", ", pilaresVazios) }
-            });
-
-            return ValidationResult.Error(GetMensagemValidacao("PilarVazio"));
-        }
-
-        return ValidationResult.Success();
-    }
-
-    public ValidationResult ValidarPermissaoEdicao(bool isFinalized, bool hasPermission)
-    {
-        if (isFinalized)
-        {
-            return ValidationResult.Error("Avaliação já foi finalizada e não pode ser editada.");
-        }
-
-        if (!hasPermission)
-        {
-            return ValidationResult.Error(GetMensagemValidacao("PermissaoNegada"));
-        }
-
-        return ValidationResult.Success();
-    }
-
-    public ValidationResult ValidarTempoRestante(DateTime? dataLimite)
-    {
-        if (!dataLimite.HasValue)
-        {
             return ValidationResult.Success();
         }
-
-        if (DateTime.Now > dataLimite.Value)
+        catch (Exception ex)
         {
-            return ValidationResult.Warning("Prazo da avaliação expirado. Utilize o período de compensação se disponível.");
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarProjetoObrigatorio" },
+                { "Component", "ValidationHelper" },
+                { "IdProjeto", idProjeto?.ToString() ?? "null" }
+            });
+            return ValidationResult.Error("Erro interno na validação do projeto");
         }
+    }
 
-        var tempoRestante = dataLimite.Value - DateTime.Now;
-        if (tempoRestante.TotalHours < 24)
+    public ValidationResult ValidarAssociadoObrigatorio(int? idAssociado)
+    {
+        try
         {
-            return ValidationResult.Warning($"Atenção: Restam apenas {tempoRestante.TotalHours:F1} horas para finalizar a avaliação.");
-        }
+            if (!idAssociado.HasValue || idAssociado.Value <= 0)
+            {
+                var mensagem = GetMensagemValidacao("AssociadoObrigatorio");
+                _messageBoxService.ShowInfo(mensagem);
+                return ValidationResult.Error(mensagem);
+            }
 
-        return ValidationResult.Success();
+            return ValidationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarAssociadoObrigatorio" },
+                { "Component", "ValidationHelper" },
+                { "IdAssociado", idAssociado?.ToString() ?? "null" }
+            });
+            return ValidationResult.Error("Erro interno na validação do associado");
+        }
+    }
+
+    public ValidationResult ValidarPeriodoObrigatorio(int? idPeriodo)
+    {
+        try
+        {
+            if (!idPeriodo.HasValue || idPeriodo.Value <= 0)
+            {
+                var mensagem = GetMensagemValidacao("PeriodoObrigatorio");
+                _messageBoxService.ShowInfo(mensagem);
+                return ValidationResult.Error(mensagem);
+            }
+
+            return ValidationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarPeriodoObrigatorio" },
+                { "Component", "ValidationHelper" },
+                { "IdPeriodo", idPeriodo?.ToString() ?? "null" }
+            });
+            return ValidationResult.Error("Erro interno na validação do período");
+        }
+    }
+
+    public ValidationResult ValidarGestorObrigatorio(int? idGestor)
+    {
+        try
+        {
+            if (!idGestor.HasValue || idGestor.Value <= 0)
+            {
+                var mensagem = GetMensagemValidacao("GestorObrigatorio");
+                _messageBoxService.ShowInfo(mensagem);
+                return ValidationResult.Error(mensagem);
+            }
+
+            return ValidationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarGestorObrigatorio" },
+                { "Component", "ValidationHelper" },
+                { "IdGestor", idGestor?.ToString() ?? "null" }
+            });
+            return ValidationResult.Error("Erro interno na validação do gestor");
+        }
+    }
+
+    public ValidationResult ValidarTipoAvaliacaoObrigatorio(string? tipoAvaliacao)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(tipoAvaliacao))
+            {
+                var mensagem = GetMensagemValidacao("TipoAvaliacaoObrigatorio");
+                _messageBoxService.ShowInfo(mensagem);
+                return ValidationResult.Error(mensagem);
+            }
+
+            return ValidationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarTipoAvaliacaoObrigatorio" },
+                { "Component", "ValidationHelper" },
+                { "TipoAvaliacao", tipoAvaliacao ?? "null" }
+            });
+            return ValidationResult.Error("Erro interno na validação do tipo de avaliação");
+        }
+    }
+
+    public ValidationResult ValidarEscopoObrigatorio(string? escopo)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(escopo))
+            {
+                var mensagem = GetMensagemValidacao("EscopoObrigatorio");
+                _messageBoxService.ShowInfo(mensagem);
+                return ValidationResult.Error(mensagem);
+            }
+
+            return ValidationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarEscopoObrigatorio" },
+                { "Component", "ValidationHelper" },
+                { "Escopo", escopo ?? "null" }
+            });
+            return ValidationResult.Error("Erro interno na validação do escopo");
+        }
+    }
+
+    public ValidationResult ValidarCompetenciasPreenchidas(List<int?> notas)
+    {
+        try
+        {
+            var notasVazias = notas.Where(n => !n.HasValue || n.Value == 0).Count();
+            
+            if (notasVazias > 0)
+            {
+                var mensagem = GetMensagemValidacao("CompetenciasNaoPreenchidas");
+                _messageBoxService.ShowError(mensagem);
+                return ValidationResult.Error(mensagem);
+            }
+
+            return ValidationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarCompetenciasPreenchidas" },
+                { "Component", "ValidationHelper" },
+                { "TotalNotas", notas.Count.ToString() }
+            });
+            return ValidationResult.Error("Erro interno na validação das competências");
+        }
+    }
+
+    public ValidationResult ValidarPerformancesPreenchidas(List<int?> notas)
+    {
+        try
+        {
+            var notasVazias = notas.Where(n => !n.HasValue || n.Value == 0).Count();
+            
+            if (notasVazias > 0)
+            {
+                var mensagem = GetMensagemValidacao("PerformancesNaoPreenchidas");
+                _messageBoxService.ShowError(mensagem);
+                return ValidationResult.Error(mensagem);
+            }
+
+            return ValidationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarPerformancesPreenchidas" },
+                { "Component", "ValidationHelper" },
+                { "TotalNotas", notas.Count.ToString() }
+            });
+            return ValidationResult.Error("Erro interno na validação das performances");
+        }
+    }
+
+    public ValidationResult ValidarPermissaoUsuario(int userProfileId, int minProfileRequired)
+    {
+        try
+        {
+            if (userProfileId < minProfileRequired)
+            {
+                var mensagem = GetMensagemValidacao("PermissaoNegada");
+                _messageBoxService.ShowError(mensagem);
+                return ValidationResult.Error(mensagem);
+            }
+
+            return ValidationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarPermissaoUsuario" },
+                { "Component", "ValidationHelper" },
+                { "UserProfileId", userProfileId.ToString() },
+                { "MinProfileRequired", minProfileRequired.ToString() }
+            });
+            return ValidationResult.Error("Erro interno na validação de permissão");
+        }
+    }
+
+    public ValidationResult ValidarAvaliacaoFinalizada(bool isFinalizada)
+    {
+        try
+        {
+            if (isFinalizada)
+            {
+                var mensagem = "Avaliação já foi finalizada e não pode ser alterada";
+                _messageBoxService.ShowWarning(mensagem);
+                return ValidationResult.Error(mensagem);
+            }
+
+            return ValidationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarAvaliacaoFinalizada" },
+                { "Component", "ValidationHelper" },
+                { "IsFinalizada", isFinalizada.ToString() }
+            });
+            return ValidationResult.Error("Erro interno na validação do status da avaliação");
+        }
+    }
+
+    public ValidationResult ValidarPrazosAvaliacao(DateTime? dataInicio, DateTime? dataFim)
+    {
+        try
+        {
+            var agora = DateTime.Now;
+
+            if (dataInicio.HasValue && agora < dataInicio.Value)
+            {
+                var mensagem = "Avaliação ainda não foi liberada";
+                _messageBoxService.ShowWarning(mensagem);
+                return ValidationResult.Error(mensagem);
+            }
+
+            if (dataFim.HasValue && agora > dataFim.Value)
+            {
+                var mensagem = "Prazo para avaliação expirado";
+                _messageBoxService.ShowWarning(mensagem);
+                return ValidationResult.Error(mensagem);
+            }
+
+            return ValidationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarPrazosAvaliacao" },
+                { "Component", "ValidationHelper" },
+                { "DataInicio", dataInicio?.ToString() ?? "null" },
+                { "DataFim", dataFim?.ToString() ?? "null" }
+            });
+            return ValidationResult.Error("Erro interno na validação dos prazos");
+        }
+    }
+
+    public ValidationResult ValidarContextoAvaliacao(int? idProjeto, int? idAssociado, int? idPeriodo)
+    {
+        try
+        {
+            var resultados = new List<ValidationResult>
+            {
+                ValidarProjetoObrigatorio(idProjeto),
+                ValidarAssociadoObrigatorio(idAssociado),
+                ValidarPeriodoObrigatorio(idPeriodo)
+            };
+
+            var erros = resultados.Where(r => !r.IsValid).ToList();
+            
+            if (erros.Any())
+            {
+                var mensagensErro = string.Join("; ", erros.Select(e => e.ErrorMessage));
+                return ValidationResult.Error(mensagensErro);
+            }
+
+            return ValidationResult.Success();
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarContextoAvaliacao" },
+                { "Component", "ValidationHelper" }
+            });
+            return ValidationResult.Error("Erro interno na validação do contexto");
+        }
+    }
+
+    public List<ValidationResult> ValidarTodosRequisitos(ValidationContext context)
+    {
+        try
+        {
+            var resultados = new List<ValidationResult>();
+
+            resultados.Add(ValidarContextoAvaliacao(context.IdProjeto, context.IdAssociado, context.IdPeriodo));
+            
+            if (context.ValidarCompetencias && context.NotasCompetencias != null)
+            {
+                resultados.Add(ValidarCompetenciasPreenchidas(context.NotasCompetencias));
+            }
+            
+            if (context.ValidarPerformances && context.NotasPerformances != null)
+            {
+                resultados.Add(ValidarPerformancesPreenchidas(context.NotasPerformances));
+            }
+            
+            if (context.ValidarPermissoes)
+            {
+                resultados.Add(ValidarPermissaoUsuario(context.UserProfileId, context.MinProfileRequired));
+            }
+            
+            if (context.ValidarPrazos)
+            {
+                resultados.Add(ValidarPrazosAvaliacao(context.DataInicio, context.DataFim));
+            }
+
+            _telemetryService.TrackEvent("ValidationCompleted", new Dictionary<string, string>
+            {
+                { "TotalValidations", resultados.Count.ToString() },
+                { "FailedValidations", resultados.Count(r => !r.IsValid).ToString() },
+                { "Context", context.ToString() }
+            });
+
+            return resultados;
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "ValidarTodosRequisitos" },
+                { "Component", "ValidationHelper" }
+            });
+            return new List<ValidationResult> { ValidationResult.Error("Erro interno na validação geral") };
+        }
     }
 
     public string GetMensagemValidacao(string chave, params object[] parametros)
     {
-        var mensagem = _configuration[$"AutoAvaliacao:ValidationMessages:{chave}"] ?? chave;
-        
-        if (parametros.Any())
+        try
         {
-            try
+            var mensagem = _configuration[$"AutoAvaliacao:ValidationMessages:{chave}"];
+            
+            if (string.IsNullOrEmpty(mensagem))
+            {
+                return GetMensagemPadrao(chave);
+            }
+
+            if (parametros.Length > 0)
             {
                 return string.Format(mensagem, parametros);
             }
-            catch
-            {
-                return mensagem;
-            }
+
+            return mensagem;
         }
-        
-        return mensagem;
+        catch (Exception ex)
+        {
+            _telemetryService.TrackException(ex, new Dictionary<string, string>
+            {
+                { "Method", "GetMensagemValidacao" },
+                { "Component", "ValidationHelper" },
+                { "Chave", chave }
+            });
+            return GetMensagemPadrao(chave);
+        }
     }
 
-    public bool IsValidationEnabled()
+    private string GetMensagemPadrao(string chave)
     {
-        return _configuration.GetValue("AutoAvaliacao:EnableValidation", true);
+        return chave switch
+        {
+            "ProjetoObrigatorio" => "É obrigatório a seleção de um Projeto.",
+            "AssociadoObrigatorio" => "É obrigatório a seleção de um Associado.",
+            "PeriodoObrigatorio" => "É obrigatório a seleção de um Período.",
+            "GestorObrigatorio" => "É obrigatório a seleção de um Gestor.",
+            "TipoAvaliacaoObrigatorio" => "É obrigatório a seleção de um tipo de avaliação.",
+            "EscopoObrigatorio" => "É obrigatório a seleção de um escopo.",
+            "CompetenciasNaoPreenchidas" => "É obrigatório digitar todas as notas da Avaliação Competência antes de finalizar a Avaliação",
+            "PerformancesNaoPreenchidas" => "É obrigatório digitar todas as notas da Avaliação Performance antes de finalizar a Avaliação",
+            "PermissaoNegada" => "Você não tem permissão para esta operação",
+            _ => "Erro de validação"
+        };
     }
 }
 
 public class ValidationResult
 {
     public bool IsValid { get; private set; }
-    public bool IsWarning { get; private set; }
-    public string Message { get; private set; } = string.Empty;
-    public List<string> Errors { get; private set; } = new List<string>();
-    public List<string> Warnings { get; private set; } = new List<string>();
+    public string ErrorMessage { get; private set; } = string.Empty;
+    public string WarningMessage { get; private set; } = string.Empty;
+    public Dictionary<string, object> AdditionalData { get; private set; } = new();
 
     private ValidationResult() { }
 
@@ -249,36 +472,52 @@ public class ValidationResult
         return new ValidationResult { IsValid = true };
     }
 
-    public static ValidationResult Error(string message)
+    public static ValidationResult Error(string errorMessage)
     {
         return new ValidationResult
         {
             IsValid = false,
-            Message = message,
-            Errors = new List<string> { message }
+            ErrorMessage = errorMessage
         };
     }
 
-    public static ValidationResult Warning(string message)
+    public static ValidationResult Warning(string warningMessage)
     {
         return new ValidationResult
         {
             IsValid = true,
-            IsWarning = true,
-            Message = message,
-            Warnings = new List<string> { message }
+            WarningMessage = warningMessage
         };
     }
 
-    public static ValidationResult Multiple(List<string> errors, List<string> warnings = null)
+    public ValidationResult WithData(string key, object value)
     {
-        return new ValidationResult
-        {
-            IsValid = !errors.Any(),
-            IsWarning = warnings?.Any() == true,
-            Message = errors.Any() ? string.Join("; ", errors) : (warnings?.Any() == true ? string.Join("; ", warnings) : string.Empty),
-            Errors = errors ?? new List<string>(),
-            Warnings = warnings ?? new List<string>()
-        };
+        AdditionalData[key] = value;
+        return this;
+    }
+}
+
+public class ValidationContext
+{
+    public int? IdProjeto { get; set; }
+    public int? IdAssociado { get; set; }
+    public int? IdPeriodo { get; set; }
+    public int? IdGestor { get; set; }
+    public string? TipoAvaliacao { get; set; }
+    public string? Escopo { get; set; }
+    public List<int?>? NotasCompetencias { get; set; }
+    public List<int?>? NotasPerformances { get; set; }
+    public int UserProfileId { get; set; }
+    public int MinProfileRequired { get; set; } = 1;
+    public DateTime? DataInicio { get; set; }
+    public DateTime? DataFim { get; set; }
+    public bool ValidarCompetencias { get; set; } = false;
+    public bool ValidarPerformances { get; set; } = false;
+    public bool ValidarPermissoes { get; set; } = false;
+    public bool ValidarPrazos { get; set; } = false;
+
+    public override string ToString()
+    {
+        return $"ValidationContext[Projeto:{IdProjeto}, Associado:{IdAssociado}, Periodo:{IdPeriodo}]";
     }
 }
