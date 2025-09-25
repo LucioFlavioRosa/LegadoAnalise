@@ -299,6 +299,108 @@ public static class ComboHelper
             new ComboItem { Value = "backoffice", Text = "Backoffice" }
         };
     }
+
+    // Novos métodos específicos para Performance
+    public static List<ComboItem> GetNotasPerformanceItems(bool includeSelecionar = true)
+    {
+        var items = new List<ComboItem>();
+        
+        if (includeSelecionar)
+        {
+            items.Add(new ComboItem { Value = "0", Text = "[Selecionar]", IsDisabled = true });
+        }
+        
+        items.AddRange(new List<ComboItem>
+        {
+            new ComboItem { Value = "1", Text = "1" },
+            new ComboItem { Value = "2", Text = "2" },
+            new ComboItem { Value = "3", Text = "3" },
+            new ComboItem { Value = "4", Text = "4" },
+            new ComboItem { Value = "5", Text = "N/A" }
+        });
+        
+        return items;
+    }
+
+    public static string GetNotaPerformanceText(int? nota)
+    {
+        return nota switch
+        {
+            1 => "1",
+            2 => "2",
+            3 => "3",
+            4 => "4",
+            5 => "N/A",
+            _ => "[Selecionar]"
+        };
+    }
+
+    public static bool IsNotaValida(int? nota)
+    {
+        return nota.HasValue && nota.Value > 0 && nota.Value <= 5;
+    }
+
+    public static List<ComboItem> GetAbrangenciaPerformanceItems()
+    {
+        return new List<ComboItem>
+        {
+            new ComboItem { Value = "Individual", Text = "Individual" },
+            new ComboItem { Value = "Coletivo", Text = "Coletivo" }
+        };
+    }
+
+    public static string GetAbrangenciaPerformanceText(string? abrangencia)
+    {
+        return abrangencia switch
+        {
+            "Individual" => "Individual",
+            "Coletivo" => "Coletivo",
+            _ => "Individual"
+        };
+    }
+
+    public static List<ComboItem> GetInputAutoavaliacaoItems()
+    {
+        return new List<ComboItem>
+        {
+            new ComboItem { Value = "true", Text = "Sim" },
+            new ComboItem { Value = "false", Text = "Não" }
+        };
+    }
+
+    public static string GetInputAutoavaliacaoText(bool inputAutoavaliacao)
+    {
+        return inputAutoavaliacao ? "Sim" : "Não";
+    }
+
+    public static bool ShouldDisableNota(bool inputAutoavaliacao, bool avaliacaoFinalizada)
+    {
+        return !inputAutoavaliacao || avaliacaoFinalizada;
+    }
+
+    public static string GetDisclaimerInputText(bool inputAutoavaliacao)
+    {
+        return inputAutoavaliacao ? "" : "Esta nota não requer preenchimento do avaliado";
+    }
+
+    public static List<ComboItem> GetStatusPerformanceItems()
+    {
+        return new List<ComboItem>
+        {
+            new ComboItem { Value = "1", Text = "Ativo" },
+            new ComboItem { Value = "0", Text = "Inativo" }
+        };
+    }
+
+    public static string GetStatusPerformanceText(bool ativo)
+    {
+        return ativo ? "Ativo" : "Inativo";
+    }
+
+    public static string GetStatusPerformanceBadgeClass(bool ativo)
+    {
+        return ativo ? "badge-success" : "badge-secondary";
+    }
 }
 
 public class ComboItem
