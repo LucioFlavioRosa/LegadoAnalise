@@ -41,6 +41,7 @@ using Peers.Moderno.Services.SubCompetencias.Common;
 using Peers.Moderno.Services.Common.Avaliacoes;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Extensions.AI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,6 +98,18 @@ builder.Services.AddAuthentication(options =>
     options.Scope.Add("profile");
     options.Scope.Add("email");
 });
+
+// AI Services - Preparação para integração futura
+if (builder.Configuration.GetValue<bool>("AutoAvaliacao:Features:EnableAIIntegration"))
+{
+    builder.Services.AddSingleton<IChatClient>(serviceProvider =>
+    {
+        // Configuração stub para futura integração com Azure OpenAI ou outros provedores
+        return new ChatClientBuilder()
+            .UseFunctionInvocation()
+            .Build();
+    });
+}
 
 // Common Services
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
@@ -211,6 +224,9 @@ builder.Services.AddScoped<IWorkflowUtils, WorkflowUtils>();
 // AutoAvaliacao Services - Novos serviços para migração de Web Forms
 builder.Services.AddScoped<IAutoAvaliacaoService, AutoAvaliacaoService>();
 
+// AI Services for AutoAvaliacao - Preparação para integração futura
+builder.Services.AddScoped<IAvaliacaoIAService, AvaliacaoIAService>();
+
 // FrentesInternas Services - Novos serviços adicionados
 builder.Services.AddScoped<IFrentesInternasService, FrentesInternasService>();
 
@@ -251,6 +267,13 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
+}
+
+// AOT Optimization - Configuração condicional para otimização em produção
+if (app.Environment.IsProduction())
+{
+    app.UseResponseCompression();
+    app.UseResponseCaching();
 }
 
 app.UseHttpsRedirection();
