@@ -39,6 +39,8 @@ using Peers.Moderno.Services.Projetos.Common;
 using Peers.Moderno.Services.SubCompetencias;
 using Peers.Moderno.Services.SubCompetencias.Common;
 using Peers.Moderno.Services.Common.Avaliacoes;
+using Peers.Moderno.Services.AutoAvaliacao;
+using Peers.Moderno.Services.AutoAvaliacao.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.AI;
@@ -223,6 +225,9 @@ builder.Services.AddScoped<IWorkflowUtils, WorkflowUtils>();
 
 // AutoAvaliacao Services - Novos serviços para migração de Web Forms
 builder.Services.AddScoped<IAutoAvaliacaoService, AutoAvaliacaoService>();
+
+// AutoAvaliacao Common Services - Novos serviços para migração de Web Forms
+builder.Services.AddScoped<IAutoAvaliacaoValidator, AutoAvaliacaoValidator>();
 
 // AI Services for AutoAvaliacao - Preparação para integração futura
 builder.Services.AddScoped<IAvaliacaoIAService, AvaliacaoIAService>();
