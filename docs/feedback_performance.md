@@ -16,12 +16,12 @@ Este módulo realiza a migração da página de Feedback de Performance do model
 ## Registro de Serviços (Dependency Injection)
 
 Os serviços foram registrados no container de DI em `Program.cs`:
-
+```text
 csharp
 builder.Services.AddScoped<IFeedbackPerformanceService, FeedbackPerformanceService>();
 builder.Services.AddScoped<IFeedbackPerformanceHelper, FeedbackPerformanceHelper>();
 builder.Services.AddScoped<IFeedbackPerformanceValidator, FeedbackPerformanceValidator>();
-
+```
 
 ## Configuração
 
@@ -36,7 +36,7 @@ As configurações específicas do fluxo de feedback de performance estão centr
 
 ## Fluxo de Funcionamento
 
-mermaid
+```mermaid
 flowchart TD
     Start([Início]) --> PaginaFeedbackPerformance[FeedbackPerformance.razor]
     PaginaFeedbackPerformance -->|Carrega dados| FeedbackPerformanceService
@@ -49,7 +49,7 @@ flowchart TD
     FeedbackPerformanceService -->|Atualiza status| ApplicationDbContext
     PaginaFeedbackPerformance -->|Exibe mensagens| MessageBoxService
     ApplicationDbContext -->|Consulta/Atualiza| BancoDeDados[(SQL Server)]
-
+```
 
 ## Integração com Outras Partes do Sistema
 
