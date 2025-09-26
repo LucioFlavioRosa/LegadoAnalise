@@ -53,7 +53,6 @@ using Peers.Moderno.Services.Feedback.Common;
 using Services.FeedbackPerformance;
 using Services.FeedbackPerformance.Common;
 // AvaliacoesGestor Services
-using Services.AvaliacoesGestor;
 using Services.AvaliacoesGestor.Common;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -304,7 +303,7 @@ builder.Services.AddScoped<IFeedbackComboHelper, FeedbackComboHelper>();
 
 // AvaliacoesGestor Services - Registro dos novos serviços e helpers
 builder.Services.AddScoped<IAvaliacoesGestorService, AvaliacoesGestorService>();
-builder.Services.AddScoped<IAvaliacoesGestorHelper, AvaliacoesGestorHelper>();
+builder.Services.AddScoped<AvaliacoesGestorHelper>();
 
 var app = builder.Build();
 
