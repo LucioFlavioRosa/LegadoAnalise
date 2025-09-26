@@ -44,6 +44,8 @@ using Peers.Moderno.Services.AutoAvaliacao.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.AI;
+using Peers.Moderno.Services.Mentoria;
+using Peers.Moderno.Services.Mentoria.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -274,6 +276,10 @@ builder.Services.AddScoped<ITiposProjetosService, TiposProjetosService>();
 // Avaliacoes Services - Registro dos novos serviços do fluxo de avaliação
 builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoService, Services.Avaliacoes.AvaliacaoService>();
 builder.Services.AddScoped<Services.Avaliacoes.Common.IAvaliacaoUtils, Services.Avaliacoes.Common.AvaliacaoUtils>();
+
+// Mentoria Services - Registro dos novos serviços e helpers
+builder.Services.AddScoped<IMentoriaService, MentoriaService>();
+builder.Services.AddScoped<IMentoriaHelper, MentoriaHelper>();
 
 var app = builder.Build();
 
