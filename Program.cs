@@ -58,6 +58,8 @@ using Services.AvaliacoesGestor.Common;
 // AvaliacaoCompetenciaService
 using Services.Avaliacoes;
 using Services.Avaliacoes.Common;
+// AvaliacoesGestorasCegas Performance Services
+using Services.AvaliacoesGestorasCegas;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -311,6 +313,9 @@ builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorHel
 
 // AvaliacaoCompetenciaService - Registro do serviço de avaliação de competências (Passo 8)
 builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoCompetenciaService, Services.Avaliacoes.AvaliacaoCompetenciaService>();
+
+// AvaliacoesGestorasCegas Performance Services - Passo 6
+builder.Services.AddScoped<IAvaliacaoGestorasCegasPerformanceService, AvaliacaoGestorasCegasPerformanceService>();
 
 var app = builder.Build();
 
