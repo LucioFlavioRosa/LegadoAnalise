@@ -13,7 +13,7 @@ A etapa de consolidação da avaliação foi migrada do modelo Web Forms para a 
 
 ## 3. Fluxo de Integração (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     A[ConsolidacaoPage.razor] -->|Injeta| B(ConsolidacaoService)
     A -->|Usa| C(CompetenciasTable.razor)
@@ -29,7 +29,7 @@ flowchart TD
     A -->|Injeta| J(UserContextService)
     A -->|Injeta| K(TelemetryService)
     A -->|Usa| L(Accordion.razor)
-
+```
 
 ## 4. Sugestões de Melhorias Futuras
 
