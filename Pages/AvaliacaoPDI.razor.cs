@@ -1,0 +1,1 @@
+// Este arquivo foi criado para manter a separação de lógica do componente AvaliacaoPDI. Toda a lógica foi implementada diretamente no arquivo .razor para facilitar a leitura e manutenção inicial. Caso necessário, a lógica pode ser movida para este arquivo posteriormente, seguindo o padrão de code-behind do Blazor.
