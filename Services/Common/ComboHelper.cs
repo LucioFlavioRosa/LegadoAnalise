@@ -5,7 +5,7 @@ using Peers.Moderno.Models;
 using Peers.Moderno.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Peers.Moderno.Services.Common;
+namespace Services.Common;
 
 public static class ComboHelper
 {
