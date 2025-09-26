@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Peers.Moderno.Models;
 using Peers.Moderno.Data;
 using Microsoft.EntityFrameworkCore;
@@ -113,7 +114,6 @@ public static class ComboHelper
         return status == 1 ? "Ativo" : "Inativo";
     }
 
-    // Métodos para combos dinâmicos de Projetos, Clientes, Períodos e Status
     public static async Task<List<ComboItem>> GetProjetosComboAsync(ApplicationDbContext db, int? gestorId = null, int? clienteId = null, int? status = null, int? periodoId = null)
     {
         var query = db.Projetos.AsQueryable();
@@ -152,7 +152,6 @@ public static class ComboHelper
 
     public static async Task<List<ComboItem>> GetStatusComboAsync(ApplicationDbContext db)
     {
-        // Supondo que status de projetos estejam em uma tabela ou enum
         var statusList = new List<ComboItem>
         {
             new ComboItem { Value = "", Text = "[Selecionar]" },
