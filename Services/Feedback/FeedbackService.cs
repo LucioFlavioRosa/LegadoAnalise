@@ -1,92 +1,62 @@
+using Peers.Moderno.Data;
+using Peers.Moderno.Models;
 using Peers.Moderno.Services.Feedback.Common;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Peers.Moderno.Services.Feedback;
 
+public interface IFeedbackService
+{
+    Task<List<Competencia>> GetCompetenciasAsync(int idAssociado, int idProjeto, int idPeriodo, string tipoAvaliacao, string escopo, int idAvaliacao);
+    Task<bool> SalvarFeedbackAsync(List<FeedbackCompetenciaInput> feedbacks, int idAssociado, int idProjeto, int idPeriodo, string tipoAvaliacao, string escopo, int idAvaliacao, bool finalizar = false);
+}
+
 public class FeedbackService : IFeedbackService
 {
-    private readonly IFeedbackComboHelper _comboHelper;
-    private readonly IFeedbackRepository _repository;
+    private readonly ApplicationDbContext _context;
+    private readonly IFeedbackValidator _validator;
 
-    public FeedbackService(IFeedbackComboHelper comboHelper, IFeedbackRepository repository)
+    public FeedbackService(ApplicationDbContext context, IFeedbackValidator validator)
     {
-        _comboHelper = comboHelper;
-        _repository = repository;
+        _context = context;
+        _validator = validator;
     }
 
-    public async Task<List<ProjetoFeedbackModel>> ListarProjetosAsync(int gestorId, int? projetoId = null, int? statusId = null, int? periodoId = null, int? clienteId = null)
+    public async Task<List<Competencia>> GetCompetenciasAsync(int idAssociado, int idProjeto, int idPeriodo, string tipoAvaliacao, string escopo, int idAvaliacao)
     {
-        return await _repository.ListarProjetosAsync(gestorId, projetoId, statusId, periodoId, clienteId);
+        // Exemplo: buscar competências vinculadas ao associado/projeto/periodo
+        return await _context.Competencias
+            .Include(c => c.Cargo)
+            .Include(c => c.Eixo)
+            .Include(c => c.SubCompetencia)
+            .Include(c => c.Dimensao)
+            .Where(c => c.Cargo.IdCargo == _context.Associados.Where(a => a.Id == idAssociado).Select(a => a.IdCargo).FirstOrDefault())
+            .ToListAsync();
     }
 
-    public async Task<List<ClienteFeedbackModel>> ListarClientesAsync()
+    public async Task<bool> SalvarFeedbackAsync(List<FeedbackCompetenciaInput> feedbacks, int idAssociado, int idProjeto, int idPeriodo, string tipoAvaliacao, string escopo, int idAvaliacao, bool finalizar = false)
     {
-        return await _comboHelper.ListarClientesAsync();
+        foreach (var feedback in feedbacks)
+        {
+            var competencia = await _context.Competencias.FindAsync(feedback.IdCompetencia);
+            if (competencia == null)
+                continue;
+            if (!_validator.ValidarNotas(feedback.NotaNivel1, feedback.NotaNivel2))
+                return false;
+            // Aqui seria feita a atualização dos campos de feedback na entidade apropriada
+            // Exemplo: competencia.NotaNivel1Feedback = feedback.NotaNivel1;
+            //          competencia.NotaNivel2Feedback = feedback.NotaNivel2;
+            //          competencia.ComentariosFeedback = feedback.Comentario;
+        }
+        await _context.SaveChangesAsync();
+        return true;
     }
+}
 
-    public async Task<List<PeriodoFeedbackModel>> ListarPeriodosAsync(int empresaId)
-    {
-        return await _comboHelper.ListarPeriodosAsync(empresaId);
-    }
-
-    public async Task<List<StatusFeedbackModel>> ListarStatusAsync()
-    {
-        return await _comboHelper.ListarStatusAsync();
-    }
-
-    public async Task<List<ProjetoFeedbackModel>> FiltrarAvaliacoesAsync(FeedbackFiltroModel filtro, int gestorId, int empresaId)
-    {
-        return await _repository.FiltrarAvaliacoesAsync(filtro, gestorId, empresaId);
-    }
-
-    public async Task<FeedbackAvaliacaoEmailModel?> ObterAvaliacaoEmailAsync(int idAvaliacao)
-    {
-        return await _repository.ObterAvaliacaoEmailAsync(idAvaliacao);
-    }
-
-    public async Task<List<AvaliacaoPerformanceModel>> ObterAvaliacoesPerformanceAsync(int idAssociado, int idProjeto, int idPeriodo, string etapa, bool apenasFeedback)
-    {
-        return await _repository.ObterAvaliacoesPerformanceAsync(idAssociado, idProjeto, idPeriodo, etapa, apenasFeedback);
-    }
-
-    public async Task<List<AvaliacaoCompetenciaModel>> ObterAvaliacoesCompetenciasAsync(int idAssociado, int idProjeto, int idPeriodo, string etapa, string tipoAvaliacao, string escopo, int idAvaliacaoEmail)
-    {
-        return await _repository.ObterAvaliacoesCompetenciasAsync(idAssociado, idProjeto, idPeriodo, etapa, tipoAvaliacao, escopo, idAvaliacaoEmail);
-    }
-
-    public async Task<AssociadoFeedbackModel?> ObterAssociadoAsync(int idAssociado)
-    {
-        return await _repository.ObterAssociadoAsync(idAssociado);
-    }
-
-    public async Task<StatusFeedbackModel?> ObterStatusAvaliacaoAsync(string statusNome)
-    {
-        return await _repository.ObterStatusAvaliacaoAsync(statusNome);
-    }
-
-    public async Task AlterarAvaliacaoPerformanceAsync(int idAvaliacaoPerformance, AvaliacaoPerformanceModel avaliacao)
-    {
-        await _repository.AlterarAvaliacaoPerformanceAsync(idAvaliacaoPerformance, avaliacao);
-    }
-
-    public async Task AlterarAvaliacaoCompetenciaAsync(int idAvaliacaoCompetencia, AvaliacaoCompetenciaModel avaliacao)
-    {
-        await _repository.AlterarAvaliacaoCompetenciaAsync(idAvaliacaoCompetencia, avaliacao);
-    }
-
-    public async Task AvancarProximaEtapaPerformanceAsync(AvaliacaoPerformanceModel avaliacao, FeedbackAvaliacaoEmailModel avaliacaoEmail, string tipoAvaliacao)
-    {
-        await _repository.AvancarProximaEtapaPerformanceAsync(avaliacao, avaliacaoEmail, tipoAvaliacao);
-    }
-
-    public async Task AvancarProximaEtapaCompetenciaAsync(AvaliacaoCompetenciaModel avaliacao, FeedbackAvaliacaoEmailModel avaliacaoEmail, string tipoAvaliacao)
-    {
-        await _repository.AvancarProximaEtapaCompetenciaAsync(avaliacao, avaliacaoEmail, tipoAvaliacao);
-    }
-
-    public async Task AvancarProximaEtapaEmailAsync(FeedbackAvaliacaoEmailModel avaliacaoEmail)
-    {
-        await _repository.AvancarProximaEtapaEmailAsync(avaliacaoEmail);
-    }
+public class FeedbackCompetenciaInput
+{
+    public int IdCompetencia { get; set; }
+    public int NotaNivel1 { get; set; }
+    public int NotaNivel2 { get; set; }
+    public string Comentario { get; set; } = string.Empty;
 }
