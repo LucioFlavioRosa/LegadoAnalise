@@ -121,6 +121,11 @@ public static class ComboHelper
         return item?.Text ?? "[Selecionar]";
     }
 
+    public static string GetStatusText(int status)
+    {
+        return status == 1 ? "Ativo" : "Inativo";
+    }
+
     // Métodos específicos para SubCompetências
     public static List<ComboItem> GetSubCompetenciasStatusItems()
     {
@@ -300,7 +305,6 @@ public static class ComboHelper
         };
     }
 
-    // Novos métodos específicos para Performance
     public static List<ComboItem> GetNotasPerformanceItems(bool includeSelecionar = true)
     {
         var items = new List<ComboItem>();
