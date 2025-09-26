@@ -1,189 +1,125 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Peers.Moderno.Data;
 using Peers.Moderno.Models;
-using Peers.Moderno.Services.Common;
 using Services.AvaliacoesGestor.Common;
+using Peers.Moderno.Services.Common;
 
-namespace Services.AvaliacoesGestor;
-
-public interface IAvaliacoesGestorService
+namespace Services.AvaliacoesGestor
 {
-    Task<List<ProjetoModel>> BuscarAvaliacoesGestorAsync(AvaliacaoGestorFiltro filtro, int userId, int userProfileId);
-    Task FinalizarAvaliacaoAsync(int idAvaliacao, int userId);
-    Task LiberarVisualizacaoLiderAsync(int idAvaliacao, int userId);
-    Task<List<ComboItem>> CarregarProjetosAsync(int userId);
-    Task<List<ComboItem>> CarregarClientesAsync();
-    Task<List<ComboItem>> CarregarPeriodosAsync(int empresaId);
-    Task<List<ComboItem>> CarregarStatusAsync();
-    List<ComboItem> CarregarEtapas();
-}
-
-public class AvaliacoesGestorService : IAvaliacoesGestorService
-{
-    private readonly ApplicationDbContext _db;
-    private readonly IMessageBoxService _messageBoxService;
-    public AvaliacoesGestorService(ApplicationDbContext db, IMessageBoxService messageBoxService)
+    public interface IAvaliacoesGestorService
     {
-        _db = db;
-        _messageBoxService = messageBoxService;
+        Task<AvaliacaoGestorDto> CarregarAvaliacaoGestorAsync(int idProjeto, int idAssociado, int idPeriodo, int idGestor, string tipoAvaliacao, string escopo);
+        Task<bool> SalvarAvaliacaoCompetenciasAsync(AvaliacaoGestorDto avaliacao, bool finalizar = false);
+        Task<bool> ValidarAvaliacaoAsync(AvaliacaoGestorDto avaliacao);
     }
 
-    public async Task<List<ComboItem>> CarregarProjetosAsync(int userId)
+    public class AvaliacoesGestorService : IAvaliacoesGestorService
     {
-        var projetos = await _db.Projetos
-            .Where(p => p.AssociadoGestor.Id == userId && p.Ativo)
-            .ToListAsync();
-        return AvaliacoesGestorHelper.GetProjetosCombo(projetos);
-    }
+        private readonly ApplicationDbContext _db;
+        private readonly AvaliacoesGestorHelper _helper;
+        private readonly IValidationHelper _validationHelper;
+        private readonly IMessageBoxService _messageBoxService;
 
-    public async Task<List<ComboItem>> CarregarClientesAsync()
-    {
-        var clientes = await _db.Clientes.Where(c => c.Ativo).ToListAsync();
-        return AvaliacoesGestorHelper.GetClientesCombo(clientes);
-    }
-
-    public async Task<List<ComboItem>> CarregarPeriodosAsync(int empresaId)
-    {
-        var periodos = await _db.PeriodosAvaliacoes
-            .Where(p => p.IdEmpresa == empresaId)
-            .OrderByDescending(p => p.IdPeriodo)
-            .ToListAsync();
-        return AvaliacoesGestorHelper.GetPeriodosCombo(periodos);
-    }
-
-    public async Task<List<ComboItem>> CarregarStatusAsync()
-    {
-        var statusList = await _db.Set<PROJETOSSTATUS>().ToListAsync();
-        return AvaliacoesGestorHelper.GetStatusCombo(statusList);
-    }
-
-    public List<ComboItem> CarregarEtapas()
-    {
-        return AvaliacoesGestorHelper.GetEtapasAvaliacaoItems();
-    }
-
-    public async Task<List<ProjetoModel>> BuscarAvaliacoesGestorAsync(AvaliacaoGestorFiltro filtro, int userId, int userProfileId)
-    {
-        var projetosQuery = _db.Projetos
-            .Include(p => p.Cliente)
-            .Include(p => p.AssociadoGestor)
-            .Include(p => p.AssociadoResponsavel)
-            .Where(p => p.Ativo);
-
-        if (AvaliacoesGestorHelper.IsProjetoSelecionado(filtro.IdProjeto))
+        public AvaliacoesGestorService(
+            ApplicationDbContext db,
+            AvaliacoesGestorHelper helper,
+            IValidationHelper validationHelper,
+            IMessageBoxService messageBoxService)
         {
-            int idProjeto = int.Parse(filtro.IdProjeto);
-            projetosQuery = projetosQuery.Where(p => p.Id == idProjeto);
-        }
-        if (AvaliacoesGestorHelper.IsClienteSelecionado(filtro.IdCliente))
-        {
-            int idCliente = int.Parse(filtro.IdCliente);
-            projetosQuery = projetosQuery.Where(p => p.Cliente.IdCliente == idCliente);
-        }
-        if (AvaliacoesGestorHelper.IsStatusSelecionado(filtro.IdStatus))
-        {
-            int idStatus = int.Parse(filtro.IdStatus);
-            projetosQuery = projetosQuery.Where(p => p.Status.IdStatus == idStatus);
+            _db = db;
+            _helper = helper;
+            _validationHelper = validationHelper;
+            _messageBoxService = messageBoxService;
         }
 
-        var projetos = await projetosQuery.ToListAsync();
-        var periodos = await _db.PeriodosAvaliacoes.ToListAsync();
-
-        var listaProjetosAvaliacoes = new List<ProjetoModel>();
-
-        foreach (var projeto in projetos)
+        public async Task<AvaliacaoGestorDto> CarregarAvaliacaoGestorAsync(int idProjeto, int idAssociado, int idPeriodo, int idGestor, string tipoAvaliacao, string escopo)
         {
-            var projetoModel = new ProjetoModel
+            var projeto = await _db.Projetos.Include(p => p.Cliente).FirstOrDefaultAsync(p => p.Id == idProjeto);
+            var associado = await _db.Associados.Include(a => a.Cargo).FirstOrDefaultAsync(a => a.Id == idAssociado);
+            var periodo = await _db.PeriodosAvaliacoes.FirstOrDefaultAsync(p => p.IdPeriodo == idPeriodo);
+            var gestor = await _db.Associados.FirstOrDefaultAsync(a => a.Id == idGestor);
+
+            var avaliacaoEmail = await _db.AvaliacoesEmail.FirstOrDefaultAsync(a => a.IdAssociado == idAssociado && a.IdProjeto == idProjeto && a.IdPeriodo == idPeriodo && a.TipoAvaliacao == tipoAvaliacao && a.Escopo == escopo && a.IdGestor == idGestor);
+            if (avaliacaoEmail == null)
+                throw new Exception("Avaliação não encontrada");
+
+            var competencias = await _helper.ObterCompetenciasParaAvaliacaoAsync(associado, projeto, periodo, tipoAvaliacao, escopo, avaliacaoEmail);
+            var competenciasDto = await _helper.MapearCompetenciasParaDtoAsync(competencias, associado, projeto, periodo, tipoAvaliacao, escopo, avaliacaoEmail);
+
+            return new AvaliacaoGestorDto
             {
-                Id = projeto.Id,
-                Nome = projeto.Nome,
-                DataInicio = AvaliacoesGestorHelper.FormatData(projeto.DataInicio),
-                DataTermino = AvaliacoesGestorHelper.FormatData(projeto.DataFim),
-                Gestor = projeto.AssociadoGestor,
-                Responsavel = projeto.AssociadoResponsavel,
-                Status = projeto.Status,
-                Cliente = projeto.Cliente,
-                Associados = new List<ProjetosAssociadosModel>(),
-                Lideres = new List<ProjetosAssociadosModel>()
+                Projeto = projeto,
+                Associado = associado,
+                Gestor = gestor,
+                Periodo = periodo,
+                AvaliacaoEmail = avaliacaoEmail,
+                Competencias = competenciasDto,
+                TipoAvaliacao = tipoAvaliacao,
+                Escopo = escopo
             };
+        }
 
-            // Simulação: buscar associados do projeto e avaliações (deve ser adaptado conforme modelo real)
-            var associadosProjeto = await _db.AssociadosProjetos
-                .Include(ap => ap.Associado)
-                .Where(ap => ap.IdProjeto == projeto.Id)
-                .ToListAsync();
-
-            foreach (var ap in associadosProjeto)
+        public async Task<bool> SalvarAvaliacaoCompetenciasAsync(AvaliacaoGestorDto avaliacao, bool finalizar = false)
+        {
+            foreach (var comp in avaliacao.Competencias)
             {
-                var associado = ap.Associado;
-                var associadoModel = new ProjetosAssociadosModel
-                {
-                    Id = ap.Id,
-                    Projeto = projeto,
-                    Associado = associado,
-                    DataInicio = AvaliacoesGestorHelper.FormatData(ap.DataInicio),
-                    DataTermino = AvaliacoesGestorHelper.FormatData(ap.DataFim),
-                    Periodo = periodos.FirstOrDefault(),
-                    TipoAvaliacao = "desempenho",
-                    Escopo = "projeto",
-                    FotoAssociado = AvaliacoesGestorHelper.GetFotoAssociado(associado),
-                    Gestor = projeto.AssociadoGestor,
-                    Avaliador = projeto.AssociadoGestor,
-                    Status = projeto.Status,
-                    RotuloBotao = "Iniciar Avaliação",
-                    ExibirBotaoFinalizar = false,
-                    ExibirBotaoLiberarLider = false,
-                    ExibirRotuloEtapa = "",
-                    Etapa = "Não Iniciada",
-                    AvaliacaoLiberada = false,
-                    IdEmail = ""
-                };
-                projetoModel.Associados.Add(associadoModel);
+                var avaliacaoComp = await _db.AvaliacoesCompetenciasNotas.FirstOrDefaultAsync(a => a.IdNota == comp.IdAvaliacaoCompetencia);
+                if (avaliacaoComp == null)
+                    continue;
+                avaliacaoComp.IdNotaNivel1AvaliacaoGestor = comp.NotaNivel1Gestor;
+                avaliacaoComp.IdNotaNivel2AvaliacaoGestor = comp.NotaNivel2Gestor;
+                avaliacaoComp.ComentariosAvaliacaoGestor = comp.ConsideracoesGestor;
+                avaliacaoComp.DHCAvaliacaoGestor = DateTime.UtcNow;
+                if (finalizar)
+                    avaliacaoComp.DataHoraFimAvaliacaoGestor = DateTime.UtcNow;
+                _db.AvaliacoesCompetenciasNotas.Update(avaliacaoComp);
             }
-            if (projetoModel.Associados.Count > 0 || projetoModel.Lideres.Count > 0)
-                listaProjetosAvaliacoes.Add(projetoModel);
+            await _db.SaveChangesAsync();
+            return true;
         }
-        return listaProjetosAvaliacoes;
-    }
 
-    public async Task FinalizarAvaliacaoAsync(int idAvaliacao, int userId)
-    {
-        var avaliacaoEmail = await _db.AvaliacoesEmail.FirstOrDefaultAsync(a => a.idAvaliacao == idAvaliacao);
-        if (avaliacaoEmail == null)
+        public async Task<bool> ValidarAvaliacaoAsync(AvaliacaoGestorDto avaliacao)
         {
-            _messageBoxService.ShowWarning("Avaliação não encontrada");
-            return;
+            return _helper.ValidarCompetencias(avaliacao.Competencias);
         }
-        // Simulação: lógica de finalização (deve ser adaptada para lógica real)
-        avaliacaoEmail.PosicaoAtualFluxoAvaliacao = "Finalizada";
-        avaliacaoEmail.DataLiberacao = DateTime.Now;
-        await _db.SaveChangesAsync();
-        _messageBoxService.ShowSuccess("Avaliação Finalizada com Sucesso");
     }
 
-    public async Task LiberarVisualizacaoLiderAsync(int idAvaliacao, int userId)
+    public class AvaliacaoGestorDto
     {
-        var avaliacaoEmail = await _db.AvaliacoesEmail.FirstOrDefaultAsync(a => a.idAvaliacao == idAvaliacao);
-        if (avaliacaoEmail == null)
-        {
-            _messageBoxService.ShowWarning("Avaliação não encontrada");
-            return;
-        }
-        // Simulação: lógica de liberação (deve ser adaptada para lógica real)
-        avaliacaoEmail.Liberado = true;
-        await _db.SaveChangesAsync();
-        _messageBoxService.ShowSuccess("Visualização liberada ao líder");
+        public Projeto Projeto { get; set; }
+        public Associado Associado { get; set; }
+        public Associado Gestor { get; set; }
+        public PERIODOSAVALIACOES Periodo { get; set; }
+        public AvaliacaoEmail AvaliacaoEmail { get; set; }
+        public List<CompetenciaGestorDto> Competencias { get; set; } = new();
+        public string TipoAvaliacao { get; set; } = string.Empty;
+        public string Escopo { get; set; } = string.Empty;
     }
-}
 
-public class AvaliacaoGestorFiltro
-{
-    public string? IdProjeto { get; set; }
-    public string? IdCliente { get; set; }
-    public string? IdPeriodo { get; set; }
-    public string? IdStatus { get; set; }
-    public string? Etapa { get; set; }
+    public class CompetenciaGestorDto
+    {
+        public int IdAvaliacaoCompetencia { get; set; }
+        public int IdCompetencia { get; set; }
+        public string NomeCompetencia { get; set; } = string.Empty;
+        public string SubCompetencia { get; set; } = string.Empty;
+        public string PalavrasChave { get; set; } = string.Empty;
+        public string DetalheNivelAtual { get; set; } = string.Empty;
+        public string DetalheProximoNivel { get; set; } = string.Empty;
+        public int? NotaNivel1Gestor { get; set; }
+        public int? NotaNivel2Gestor { get; set; }
+        public string ConsideracoesGestor { get; set; } = string.Empty;
+        public int IdModo { get; set; }
+        public bool InputNivel1 { get; set; }
+        public bool InputNivel2 { get; set; }
+        public bool VisivelNivel1 { get; set; }
+        public bool VisivelNivel2 { get; set; }
+        public string TextoNotaNivel1 { get; set; } = string.Empty;
+        public string TextoNotaNivel2 { get; set; } = string.Empty;
+        public string ObservacaoAvaliado { get; set; } = string.Empty;
+        public string ObservacaoCegas { get; set; } = string.Empty;
+    }
 }
