@@ -1,0 +1,133 @@
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Avaliacoes.Common
+
+<div class="table-responsive">
+    <table class="table table-striped border dtInit">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Projeto</th>
+                <th>Cliente</th>
+                <th>Status(Ativo/Inativo)</th>
+                <th>Dt. Início Projeto</th>
+                <th>Dt. Término Projeto</th>
+                <th>Responsável</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Projetos?.Any() == true)
+            {
+                @foreach (var projeto in Projetos)
+                {
+                    <tr>
+                        <td>@projeto.Id</td>
+                        <td>@projeto.Nome</td>
+                        <td>@projeto.Cliente?.Nome</td>
+                        <td>@AvaliacaoUtils.GetStatusProjetoText(projeto.Status)</td>
+                        <td>@AvaliacaoUtils.GetDataFormatada(projeto.DataInicio)</td>
+                        <td>@AvaliacaoUtils.GetDataFormatada(projeto.DataTermino)</td>
+                        <td>@projeto.Responsavel?.Nome</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td colspan="6">
+                            @if (projeto.Associados?.Any() == true)
+                            {
+                                <table class="table table-striped border dtInit">
+                                    <thead>
+                                        <tr>
+                                            <th>Foto</th>
+                                            <th>Profissional</th>
+                                            <th>Cargo</th>
+                                            <th>Período</th>
+                                            <th>Gestor</th>
+                                            <th>Avaliador</th>
+                                            <th>Mentor</th>
+                                            <th>Etapa</th>
+                                            <th>Tipo de Avaliação</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var associado in projeto.Associados)
+                                        {
+                                            <tr>
+                                                <td><img src="@associado.FotoAssociado?.Imagem" width="120" height="120" /></td>
+                                                <td>@associado.Associado?.Nome</td>
+                                                <td>@associado.Associado?.Cargo?.Nome</td>
+                                                <td>@associado.Periodo?.Nome</td>
+                                                <td>@associado.Gestor?.Nome</td>
+                                                <td>@associado.Avaliador?.Nome</td>
+                                                <td>@associado.Mentor?.Nome</td>
+                                                <td>@AvaliacaoUtils.GetEtapaDescricao(associado.Etapa, associado.TipoAvaliacao)</td>
+                                                <td>@associado.TipoAvaliacaoShow</td>
+                                                <td style="text-align:right;">
+                                                    <a href="autoavalizacao_competencia.aspx?IdProjeto=@associado.Projeto?.Id&IdAssociado=@associado.Associado?.Id&IdPeriodo=@associado.Periodo?.Id&TipoAvaliacao=@associado.TipoAvaliacao&Escopo=@associado.Escopo&idGestor=@associado.Gestor?.Id">
+                                                        <button type="button" class="btn btn-info" hidden="@(associado.ExibirBotaoResponder != "" ? "false" : "true")">@associado.RotuloBotao</button>
+                                                    </a>
+                                                    @if (associado.ExibirBotaoFinalizar)
+                                                    {
+                                                        <button type="button" class="btn btn-dark" @onclick="() => OnFinalizarAvaliacao.InvokeAsync(associado.IdEmail)">Finalizar Avaliação</button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            @if (projeto.Lideres?.Any() == true)
+                            {
+                                <table class="table table-striped border dtInit">
+                                    <thead>
+                                        <tr>
+                                            <th>Foto</th>
+                                            <th>Profissional</th>
+                                            <th>Cargo</th>
+                                            <th>Período</th>
+                                            <th>Liderado</th>
+                                            <th>Etapa</th>
+                                            <th>Tipo de Avaliação</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var lider in projeto.Lideres)
+                                        {
+                                            <tr>
+                                                <td><img src="@lider.FotoAssociado?.Imagem" width="120" height="120" /></td>
+                                                <td>@lider.Associado?.Nome</td>
+                                                <td>@lider.Associado?.Cargo?.Nome</td>
+                                                <td>@lider.Periodo?.Nome</td>
+                                                <td>@lider.Gestor?.Nome</td>
+                                                <td>@AvaliacaoUtils.GetEtapaDescricao(lider.Etapa, lider.TipoAvaliacao)</td>
+                                                <td>@lider.TipoAvaliacaoShow</td>
+                                                <td style="text-align:right;">
+                                                    <a href="autoavalizacao_competencia.aspx?IdProjeto=@lider.Projeto?.Id&IdAssociado=@lider.Associado?.Id&IdPeriodo=@lider.Periodo?.Id&TipoAvaliacao=@lider.TipoAvaliacao&Escopo=@lider.Escopo&idGestor=@lider.Gestor?.Id">
+                                                        <button type="button" class="btn btn-info" hidden="@(lider.ExibirBotaoResponder != "" ? "false" : "true")">@lider.RotuloBotao</button>
+                                                    </a>
+                                                    @if (lider.ExibirBotaoFinalizar)
+                                                    {
+                                                        <button type="button" class="btn btn-dark" @onclick="() => OnFinalizarAvaliacao.InvokeAsync(lider.IdEmail)">Finalizar Avaliação</button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="7">Nenhum projeto encontrado.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter] public List<ProjetoModel>? Projetos { get; set; }
+    [Parameter] public EventCallback<string> OnFinalizarAvaliacao { get; set; }
+}
