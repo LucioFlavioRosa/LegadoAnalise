@@ -44,6 +44,9 @@ using Peers.Moderno.Services.AutoAvaliacao.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.AI;
+// Novos usings para PDI
+using Services.PDI;
+using Services.PDI.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -116,6 +119,10 @@ if (builder.Configuration.GetValue<bool>("AutoAvaliacao:Features:EnableAIIntegra
 // Common Services
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 builder.Services.AddScoped<IMessageBoxService, MessageBoxService>();
+
+// Novos serviços PDI
+builder.Services.AddScoped<IPDIService, PDIService>();
+builder.Services.AddScoped<IPDIHelper, PDIHelper>();
 
 // New Common Services - Index Page Migration
 builder.Services.AddScoped<IUserContextService, UserContextService>();
