@@ -1,41 +1,56 @@
-# Avaliação Gestor Performance – Arquitetura, Integração e Fluxo
+# Avaliação Gestor Performance - Documentação Técnica
 
 ## Visão Geral
 
-Esta documentação descreve a arquitetura, funcionamento e integração dos serviços e helpers criados para a funcionalidade de avaliação de performance do gestor, migrada do Web Forms para Blazor Híbrido .NET 9. Toda a lógica de negócio foi extraída do code-behind e centralizada em serviços e helpers reutilizáveis, promovendo desacoplamento, testabilidade e facilidade de manutenção.
+Este documento descreve a arquitetura, integração e fluxo do processo de Avaliação de Performance do Gestor, migrado do Web Forms para Blazor Híbrido .NET 9, com foco em reutilização de serviços e helpers centralizados em `Services/Common`.
 
-## Estrutura dos Serviços e Helpers
+### Estrutura de Serviços e Helpers
 
-- **IAvaliacoesGestorService**: Interface que define contratos para carregamento, validação, salvamento e finalização das avaliações de performance do gestor.
-- **AvaliacoesGestorService**: Implementação concreta da interface, responsável por toda a lógica de negócio, integração com o banco de dados (via ApplicationDbContext) e regras de fluxo.
-- **AvaliacoesGestorHelper**: Helper estático com funções auxiliares reutilizáveis, como truncamento de texto, organização de abrangências e validação de preenchimento.
-- **ComboHelper**: Reutilizado para combos de notas, abrangências e status.
-- **MessageBoxService**: Reutilizado para exibição de mensagens de feedback ao usuário.
+- **Data/ApplicationDbContext.cs**: Responsável pelo mapeamento das entidades de domínio, incluindo todas as tabelas e relacionamentos necessários para avaliações de performance, garantindo compatibilidade total com o legado.
+- **Services/Common/ComboHelper.cs**: Centraliza métodos para geração de combos reutilizáveis (notas, status, abrangências, etc.), facilitando a manutenção e padronização dos selects em múltiplos componentes.
+- **Services/Common/MessageBoxService.cs**: Serviço singleton para exibição de mensagens de sucesso, erro, aviso e informação, substituindo o antigo MessageBoxHandler.ascx.
+- **Services/Common/FormatHelper.cs**: Centraliza funções utilitárias para formatação de notas, percentuais, valores e datas, garantindo padronização visual na UI.
 
-## Integração com o Blazor
+## Integração dos Serviços
 
-O componente Blazor (`Pages/AvaliacoesGestorPerformance.razor`) injeta IAvaliacoesGestorService e utiliza seus métodos para carregar dados, salvar avaliações e validar preenchimento. Helpers são utilizados para lógica de UI e validação local. O fluxo de mensagens e feedback é feito via MessageBoxService.
+- Todos os serviços são registrados no DI container em `Program.cs`.
+- Os componentes Blazor consomem os serviços via injeção (`[Inject]` ou `@inject`).
+- O `ComboHelper` é utilizado para popular combos de notas e status em todas as telas de avaliação.
+- O `MessageBoxService` é utilizado para exibir mensagens reativas ao usuário, substituindo controles antigos.
+- O `FormatHelper` é utilizado em bindings e templates para exibir valores formatados.
 
 ## Fluxo do Processo (Mermaid)
 
 mermaid
 flowchart TD
-    Start([Início]) --> CarregarDados["Carregar Dados da Avaliação (IAvaliacoesGestorService.CarregarDadosAsync)"]
-    CarregarDados --> RenderizarUI["Renderizar UI Blazor (AvaliacoesGestorPerformance.razor)"]
-    RenderizarUI --> UsuarioPreenche["Usuário preenche notas e observações"]
-    UsuarioPreenche --> SalvarOuFinalizar["Salvar/Finalizar Avaliação (IAvaliacoesGestorService.SalvarAvaliacoesAsync)"]
-    SalvarOuFinalizar --> Validar["Validar Preenchimento (IAvaliacoesGestorService.ValidarPreenchimentoAsync)"]
-    Validar -->|Validação OK| FeedbackSucesso["Exibir mensagem de sucesso (MessageBoxService)"]
-    Validar -->|Erro| FeedbackErro["Exibir mensagem de erro (MessageBoxService)"]
-    FeedbackSucesso --> Fim([Fim])
-    FeedbackErro --> UsuarioPreenche
+    Start[Início - Página Avaliação Gestor Performance]
+    LoadData[Carregamento de Dados via IAvaliacoesGestorService]
+    ShowForm[Renderização do Formulário Blazor]
+    ComboNotas[Combo de Notas via ComboHelper]
+    MsgBox[Exibição de Mensagens via MessageBoxService]
+    Format[Formatação de Valores via FormatHelper]
+    Save[Salvar/Finalizar Avaliação]
+    End[Fim]
+
+    Start --> LoadData
+    LoadData --> ShowForm
+    ShowForm --> ComboNotas
+    ShowForm --> MsgBox
+    ShowForm --> Format
+    ShowForm --> Save
+    Save --> MsgBox
+    Save --> End
 
 
 ## Sugestões de Melhorias Futuras
 
-- **Integração com IA**: Implementar sugestões automáticas de feedback e observações usando Azure OpenAI.
-- **Testes Automatizados**: Adicionar testes unitários e de integração para os serviços e helpers.
-- **Otimização AOT**: Avaliar ganhos de performance com Ahead-of-Time Compilation.
-- **Validação em Tempo Real**: Melhorar experiência do usuário com validações instantâneas no frontend.
-- **Auditoria e Logs**: Centralizar logs de alterações e ações do gestor para compliance.
-- **Internacionalização**: Preparar textos e mensagens para múltiplos idiomas.
+- **Automação de Testes:** Implementar testes automatizados para os serviços e helpers, garantindo maior robustez e cobertura.
+- **Integração com IA:** Utilizar IA para sugerir feedbacks automáticos e análise de desempenho.
+- **Otimização de Performance:** Avaliar uso de AOT e otimizações específicas para grandes volumes de dados.
+- **Componentização Avançada:** Quebrar grandes formulários em componentes menores e reutilizáveis.
+- **Internacionalização:** Preparar os helpers e mensagens para múltiplos idiomas.
+- **Monitoramento Avançado:** Expandir o uso de Application Insights para rastrear eventos de uso detalhados.
+
+---
+
+Este documento deve ser atualizado a cada evolução relevante do fluxo de avaliação ou dos serviços comuns.
