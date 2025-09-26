@@ -268,6 +268,10 @@ builder.Services.AddScoped<IProjetosComboHelper, ProjetosComboHelper>();
 // Tipos Projetos Services - Migração de Web Forms para Blazor
 builder.Services.AddScoped<ITiposProjetosService, TiposProjetosService>();
 
+// Avaliacoes Services - Registro dos novos serviços do fluxo de avaliação
+builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoService, Services.Avaliacoes.AvaliacaoService>();
+builder.Services.AddScoped<Services.Avaliacoes.Common.IAvaliacaoUtils, Services.Avaliacoes.Common.AvaliacaoUtils>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
