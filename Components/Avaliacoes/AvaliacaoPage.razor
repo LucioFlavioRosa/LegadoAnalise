@@ -1,0 +1,67 @@
+@page "/avaliacao"
+@using Peers.Moderno.Models
+@using Peers.Moderno.Services.Avaliacoes
+@inject IAvaliacaoService AvaliacaoService
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+
+<PageTitle>Avaliação</PageTitle>
+
+<AvaliacaoFiltro OnFiltroAplicado="BuscarAvaliacoes" />
+
+@if (IsLoading)
+{
+    <div class="alert alert-info">Carregando avaliações...</div>
+}
+else
+{
+    <AvaliacaoTabela Projetos="Projetos" OnFinalizarAvaliacao="FinalizarAvaliacao" />
+}
+
+@code {
+    private List<ProjetoModel> Projetos { get; set; } = new();
+    private bool IsLoading { get; set; } = false;
+
+    private async Task BuscarAvaliacoes(FiltroAvaliacaoModel filtro)
+    {
+        IsLoading = true;
+        try
+        {
+            Projetos = await AvaliacaoService.BuscarAvaliacoesAsync(filtro);
+            TelemetryService.TrackEvent("AvaliacoesCarregadas", new Dictionary<string, string> {
+                { "ProjetosCount", Projetos.Count.ToString() }
+            });
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError("Erro ao buscar avaliações: " + ex.Message);
+            TelemetryService.TrackException(ex);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task FinalizarAvaliacao(string idEmail)
+    {
+        try
+        {
+            var resultado = await AvaliacaoService.FinalizarAvaliacaoAsync(idEmail);
+            if (resultado.Sucesso)
+            {
+                MessageBoxService.ShowSuccess(resultado.Mensagem);
+                await BuscarAvaliacoes(new FiltroAvaliacaoModel());
+            }
+            else
+            {
+                MessageBoxService.ShowWarning(resultado.Mensagem);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError("Erro ao finalizar avaliação: " + ex.Message);
+            TelemetryService.TrackException(ex);
+        }
+    }
+}

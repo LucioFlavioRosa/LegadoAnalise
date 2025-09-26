@@ -1,0 +1,96 @@
+@using Peers.Moderno.Services.Avaliacoes
+@using Peers.Moderno.Services.Common
+@inject IAvaliacaoService AvaliacaoService
+@inject IComboHelper ComboHelper
+@inject IMessageBoxService MessageBoxService
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h4 class="card-title">Filtro avaliações</h4>
+        <div class="form-body" style="position:sticky;z-index:1;top:0">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Projeto</label>
+                        <select class="form-control p-0 select2" style="width: 100%" @bind="SelectedProjetoId">
+                            @foreach (var item in ProjetosCombo)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <select class="form-control p-0 select2" style="width: 100%" @bind="SelectedClienteId">
+                            @foreach (var item in ClientesCombo)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>Período</label>
+                        <select class="form-control p-0 select2" style="width: 100%" @bind="SelectedPeriodoId">
+                            @foreach (var item in PeriodosCombo)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select class="form-control p-0 select2" style="width: 100%" @bind="SelectedStatusId">
+                            @foreach (var item in StatusCombo)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-danger w-100" @onclick="OnFiltrar">Filtrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<FiltroAvaliacaoModel> OnFiltroAplicado { get; set; }
+
+    public string? SelectedProjetoId { get; set; }
+    public string? SelectedClienteId { get; set; }
+    public string? SelectedPeriodoId { get; set; }
+    public string? SelectedStatusId { get; set; }
+
+    public List<ComboItem> ProjetosCombo { get; set; } = new();
+    public List<ComboItem> ClientesCombo { get; set; } = new();
+    public List<ComboItem> PeriodosCombo { get; set; } = new();
+    public List<ComboItem> StatusCombo { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ProjetosCombo = await AvaliacaoService.CarregaProjetosComboAsync();
+        ClientesCombo = await AvaliacaoService.CarregaClientesComboAsync();
+        PeriodosCombo = await AvaliacaoService.CarregaPeriodosComboAsync();
+        StatusCombo = await AvaliacaoService.CarregaStatusComboAsync();
+    }
+
+    private async Task OnFiltrar()
+    {
+        var filtro = new FiltroAvaliacaoModel
+        {
+            ProjetoId = SelectedProjetoId,
+            ClienteId = SelectedClienteId,
+            PeriodoId = SelectedPeriodoId,
+            StatusId = SelectedStatusId
+        };
+        await OnFiltroAplicado.InvokeAsync(filtro);
+    }
+}
