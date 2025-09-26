@@ -1,0 +1,93 @@
+@using Peers.Moderno.Services.Common
+@implements IDisposable
+@inject IMessageBoxService MessageBoxService
+@inject IJSRuntime JSRuntime
+
+@if (IsVisible)
+{
+    <div class="alert alert-@GetAlertClass() alert-dismissible fade show" role="alert">
+        <strong>@Title</strong>
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <br />
+            @((MarkupString)Message)
+        }
+        @if (ShowCloseButton)
+        {
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" @onclick="Hide"></button>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string Title { get; set; } = "ATENÇÃO!";
+    [Parameter] public string Message { get; set; } = string.Empty;
+    [Parameter] public MessageBoxType Type { get; set; } = MessageBoxType.Info;
+    [Parameter] public bool ShowCloseButton { get; set; } = true;
+    [Parameter] public int AutoHideDelay { get; set; } = 5000;
+    [Parameter] public EventCallback OnHidden { get; set; }
+    
+    private bool IsVisible { get; set; } = false;
+    private Timer? _autoHideTimer;
+
+    protected override void OnInitialized()
+    {
+        MessageBoxService.OnMessageReceived += HandleMessageReceived;
+    }
+
+    private void HandleMessageReceived(MessageBoxEventArgs args)
+    {
+        Message = args.Message;
+        Type = args.Type;
+        Show();
+    }
+
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+        
+        if (AutoHideDelay > 0)
+        {
+            _autoHideTimer?.Dispose();
+            _autoHideTimer = new Timer(async _ => await Hide(), null, AutoHideDelay, Timeout.Infinite);
+        }
+    }
+
+    public async Task Show(string message, MessageBoxType type = MessageBoxType.Info, string? title = null)
+    {
+        Message = message;
+        Type = type;
+        if (!string.IsNullOrEmpty(title))
+            Title = title;
+            
+        Show();
+        await Task.CompletedTask;
+    }
+
+    public async Task Hide()
+    {
+        IsVisible = false;
+        _autoHideTimer?.Dispose();
+        await InvokeAsync(StateHasChanged);
+        await OnHidden.InvokeAsync();
+    }
+
+    private string GetAlertClass()
+    {
+        return Type switch
+        {
+            MessageBoxType.Success => "success",
+            MessageBoxType.Error => "danger",
+            MessageBoxType.Warning => "warning",
+            MessageBoxType.Info => "info",
+            _ => "info"
+        };
+    }
+
+    public void Dispose()
+    {
+        MessageBoxService.OnMessageReceived -= HandleMessageReceived;
+        _autoHideTimer?.Dispose();
+    }
+}
