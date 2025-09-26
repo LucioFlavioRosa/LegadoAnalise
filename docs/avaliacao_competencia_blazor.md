@@ -19,15 +19,15 @@ O componente consome o serviço de domínio para carregar, validar e salvar aval
 
 ```mermaid
 flowchart TD
-    Start[Usuário acessa /avaliacao-competencia] --> LoadViewModel[Blazor chama AvaliacaoCompetenciaService.ObterAvaliacaoCompetenciaViewModelAsync]
-    LoadViewModel --> RenderizaTela[Renderização da tela com dados de contexto]
-    RenderizaTela --> InteracaoUsuario[Usuário preenche notas e considerações]
-    InteracaoUsuario --> Salvar[Usuário clica em "Salvar Avaliação"]
-    Salvar --> Validacao[Chama AvaliacaoCompetenciaService.SalvarAvaliacaoCompetenciaAsync]
-    Validacao -->|Sucesso| MensagemSucesso[Exibe mensagem de sucesso]
-    Validacao -->|Erro| MensagemErro[Exibe mensagem de erro]
-    MensagemSucesso --> Fim[Fim]
-    MensagemErro --> Fim
+    Start[Usuário acessa /avaliacao-competencia] --> LoadViewModel[Blazor chama AvaliacaoCompetenciaService.ObterAvaliacaoCompetenciaViewModelAsync];
+    LoadViewModel --> RenderizaTela[Renderização da tela com dados de contexto];
+    RenderizaTela --> InteracaoUsuario[Usuário preenche notas e considerações];
+    InteracaoUsuario --> Salvar[Usuário clica em "Salvar Avaliação"];
+    Salvar --> Validacao[Chama AvaliacaoCompetenciaService.SalvarAvaliacaoCompetenciaAsync];
+    Validacao -->|Sucesso| MensagemSucesso[Exibe mensagem de sucesso];
+    Validacao -->|Erro| MensagemErro[Exibe mensagem de erro];
+    MensagemSucesso --> Fim[Fim];
+    MensagemErro --> Fim;
 ```
 
 ## Funcionamento
