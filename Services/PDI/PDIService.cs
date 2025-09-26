@@ -2,114 +2,124 @@ using Data;
 using Microsoft.EntityFrameworkCore;
 using Services.PDI.Common;
 using Services.PDI.Common.Models;
-using System.Linq;
-
-namespace Services.PDI;
 
 public class PDIService : IPDIService
 {
     private readonly ApplicationDbContext _db;
-
     public PDIService(ApplicationDbContext db)
     {
         _db = db;
     }
 
-    public async Task<List<PDIPeriodosModel>> ObterPeriodosAsync(int idAssociado)
+    public async Task<List<PDIPeriodoModel>> GetPeriodosAsync(int idAssociado)
     {
-        var respostas = await _db.Set<PDI_RESPOSTAS>()
+        var pdiRespostas = await _db.Set<PDI_RESPOSTAS>()
             .Include(x => x.PERIODOSAVALIACOES)
             .Where(x => x.idAssociado == idAssociado)
             .ToListAsync();
-
-        var periodos = respostas
-            .Select(x => x.PERIODOSAVALIACOES)
-            .Distinct()
-            .OrderBy(p => p.IdPeriodo)
-            .ToList();
-
-        var periodoUltimo = periodos.LastOrDefault();
-        var modelos = new List<PDIPeriodosModel>();
-        for (var j = 0; j < periodos.Count; j++)
+        var pdiPeriodos = pdiRespostas.Select(x => x.PERIODOSAVALIACOES).Distinct().ToList();
+        var periodoUltimo = pdiPeriodos.LastOrDefault();
+        var result = new List<PDIPeriodoModel>();
+        for (var j = 0; j < pdiPeriodos.Count; j++)
         {
-            var periodo = periodos[j];
-            var model = new PDIPeriodosModel
+            var getPeriodo = pdiPeriodos[j];
+            var addPeriodo = new PDIPeriodoModel
             {
                 Id = $"tab-{j}",
-                Active = j == periodos.Count - 1 ? "active in show" : string.Empty,
-                Arialabelled = $"tab-{j}-tab",
-                Periodo = periodo.Periodo
+                Active = (j == pdiPeriodos.Count - 1 ? "active in show" : string.Empty),
+                AriaLabelled = $"tab-{j}-tab",
+                Periodo = getPeriodo.Periodo
             };
-            modelos.Add(model);
+            result.Add(addPeriodo);
         }
-        return modelos;
+        return result;
     }
 
-    public async Task<List<PDIQuestoesModel>> ObterQuestoesAsync(int idPeriodo)
+    public async Task<List<PDIColunaModel>> GetColunasAsync(int idAssociado, int idPeriodo)
     {
-        var questoes = await _db.Set<PDI_QUESTOES>()
-            .Where(q => q.PDI_RESPOSTAS.Any(r => r.idPeriodo == idPeriodo))
-            .Select(q => new PDIQuestoesModel
-            {
-                IdPDIQuestoes = q.idPDIQuestoes,
-                Titulo = q.Titulo,
-                Subtitulo = q.Subtitulo,
-                ColunaPosicao = q.ColunaPosicao,
-                ColunaTamanho = q.ColunaTamanho,
-                FixTamanho = q.FixTamanho,
-                Icone = q.Icone,
-                BordaEsquerda = q.BordaEsquerda,
-                BordaDireita = q.BordaDireita,
-                BordaCima = q.BordaCima,
-                BordaBaixo = q.BordaBaixo
-            })
+        var pdiServiceQuestoes = await _db.Set<PDI_QUESTOES>().ToListAsync();
+        var pdiRespostas = await _db.Set<PDI_RESPOSTAS>()
+            .Where(x => x.idAssociado == idAssociado && x.idPeriodo == idPeriodo)
             .ToListAsync();
-        return questoes;
-    }
-
-    public async Task<List<PDIRespostasModel>> ObterRespostasAsync(int idAssociado, int idPeriodo)
-    {
-        var respostas = await _db.Set<PDI_RESPOSTAS>()
-            .Include(r => r.PDI_QUESTOES)
-            .Where(r => r.idAssociado == idAssociado && r.idPeriodo == idPeriodo)
-            .ToListAsync();
-
-        var periodoUltimo = await _db.Set<PERIODOSAVALIACOES>().OrderByDescending(p => p.IdPeriodo).FirstOrDefaultAsync();
-        var corAzul = "#021240";
-        var modelos = new List<PDIRespostasModel>();
-
-        foreach (var resposta in respostas)
+        var periodoUltimo = await _db.Set<PERIODOSAVALIACOES>().OrderByDescending(x => x.IdPeriodo).FirstOrDefaultAsync();
+        var pdiQuestoes = pdiServiceQuestoes;
+        if (idPeriodo != periodoUltimo?.IdPeriodo)
         {
-            var questao = resposta.PDI_QUESTOES;
-            var model = new PDIRespostasModel
-            {
-                Titulo = string.IsNullOrWhiteSpace(questao.Titulo) ? "TITULO" : questao.Titulo,
-                TituloStyle = string.IsNullOrWhiteSpace(questao.Titulo) ? "white" : corAzul,
-                Subtitulo = questao.Subtitulo,
-                SubtituloStyle = !string.IsNullOrWhiteSpace(questao.Subtitulo) ? "style=\"align-self:center;background-color:#F2F2F2;font-weight:bolder;width:40%;min-width:80px;text-align:center;padding:2px\"" : string.Empty,
-                FlexGrow = questao.ColunaTamanho.ToString().Replace(",", ".") + (questao.FixTamanho > -1 ? $";min-height:{questao.FixTamanho}%;max-height:{questao.FixTamanho}%" : string.Empty),
-                Icone = string.IsNullOrWhiteSpace(questao.Icone) ? "assets/images/icon/empty.png" : questao.Icone,
-                BorderStyle = (questao.BordaEsquerda ? string.Empty : "border-left:none;") +
-                              (questao.BordaDireita ? string.Empty : "border-right:none;") +
-                              (questao.BordaCima ? string.Empty : "border-top:none;") +
-                              (questao.BordaBaixo ? string.Empty : "border-bottom:none;"),
-                Resposta = (resposta.Resposta ?? string.Empty).Replace('\n', ' ').Replace('\r', ' '),
-                RespostaEnabled = resposta.idPeriodo == periodoUltimo?.IdPeriodo,
-                IdPDIResposta = resposta.idPDIRespostas,
-                OnInput = resposta.idPeriodo == periodoUltimo?.IdPeriodo ? $"action_AtualizaResposta('{resposta.idPDIRespostas}', this); return false; this.focus();" : string.Empty
-            };
-            modelos.Add(model);
+            var questoesIds = pdiRespostas.Select(x => x.idPDIQuestao).Distinct().ToList();
+            pdiQuestoes = pdiServiceQuestoes.Where(x => questoesIds.Contains(x.idPDIQuestoes)).ToList();
         }
-        return modelos;
+        var lastColuna = pdiQuestoes.Select(x => x.ColunaPosicao).DefaultIfEmpty(0).Max();
+        var colunas = new List<PDIColunaModel>();
+        for (var i = 1; i <= lastColuna; i++)
+        {
+            var pdiColuna = pdiQuestoes.Where(x => x.ColunaPosicao == i).ToList();
+            var addColuna = new PDIColunaModel();
+            foreach (var getQuestao in pdiColuna)
+            {
+                var addRespostas = new PDIRespostaModel
+                {
+                    Titulo = !string.IsNullOrEmpty(getQuestao.Titulo) ? getQuestao.Titulo : "TITULO",
+                    TituloStyle = string.IsNullOrEmpty(getQuestao.Titulo) ? "white" : "#021240",
+                    Subtitulo = getQuestao.Subtitulo,
+                    SubtituloStyle = !string.IsNullOrEmpty(getQuestao.Subtitulo) ? "style=\"align-self:center;background-color:#F2F2F2;font-weight:bolder;width:40%;min-width:80px;text-align:center;padding:2px\"" : string.Empty,
+                    FlexGrow = getQuestao.ColunaTamanho.ToString().Replace(",", ".") + (getQuestao.FixTamanho > -1 ? $";min-height:{getQuestao.FixTamanho}%;max-height:{getQuestao.FixTamanho}%" : string.Empty),
+                    Icone = !string.IsNullOrEmpty(getQuestao.Icone) ? getQuestao.Icone : "assets/images/icon/empty.png",
+                    BorderStyle = (getQuestao.BordaEsquerda == false ? "border-left:none;" : string.Empty) +
+                                  (getQuestao.BordaDireita == false ? "border-right:none;" : string.Empty) +
+                                  (getQuestao.BordaCima == false ? "border-top:none;" : string.Empty) +
+                                  (getQuestao.BordaBaixo == false ? "border-bottom:none;" : string.Empty)
+                };
+                var getResposta = pdiRespostas.FirstOrDefault(x => x.idPDIQuestao == getQuestao.idPDIQuestoes);
+                if (getResposta != null)
+                {
+                    addRespostas.Resposta = getResposta.Resposta.Replace("\n", "fsdfsdfs").Replace("\r", "fsdfsdfs");
+                    addRespostas.RespostaEnabled = idPeriodo == periodoUltimo?.IdPeriodo;
+                    addRespostas.IdPDIResposta = getResposta.idPDIRespostas;
+                    addRespostas.OnInput = addRespostas.RespostaEnabled ? $"AtualizarResposta({getResposta.idPDIRespostas}, this.value)" : string.Empty;
+                }
+                addColuna.PDIRespostas.Add(addRespostas);
+            }
+            colunas.Add(addColuna);
+        }
+        return colunas;
+    }
+
+    public async Task<List<PDIRespostaModel>> GetRespostasAsync(int idAssociado, int idPeriodo)
+    {
+        var colunas = await GetColunasAsync(idAssociado, idPeriodo);
+        return colunas.SelectMany(c => c.PDIRespostas).ToList();
     }
 
     public async Task AtualizarRespostaAsync(int idPDIResposta, string resposta)
     {
-        var respostaObj = await _db.Set<PDI_RESPOSTAS>().FirstOrDefaultAsync(r => r.idPDIRespostas == idPDIResposta);
-        if (respostaObj != null)
+        var pdiResposta = await _db.Set<PDI_RESPOSTAS>().FirstOrDefaultAsync(x => x.idPDIRespostas == idPDIResposta);
+        if (pdiResposta != null)
         {
-            respostaObj.Resposta = resposta;
+            pdiResposta.Resposta = resposta;
             await _db.SaveChangesAsync();
         }
+    }
+
+    public async Task ValidaPDIRespostasAsync(int idAssociado, int idPeriodo)
+    {
+        var pdiQuestoes = await _db.Set<PDI_QUESTOES>().ToListAsync();
+        var pdiRespostas = await _db.Set<PDI_RESPOSTAS>().Where(x => x.idAssociado == idAssociado && x.idPeriodo == idPeriodo).ToListAsync();
+        foreach (var getQuestao in pdiQuestoes)
+        {
+            var getResposta = pdiRespostas.Where(x => x.idPDIQuestao == getQuestao.idPDIQuestoes).ToList();
+            if (getResposta == null || getResposta.Count == 0)
+            {
+                var addPDIResposta = new PDI_RESPOSTAS
+                {
+                    idAssociado = idAssociado,
+                    idPeriodo = idPeriodo,
+                    idPDIQuestao = getQuestao.idPDIQuestoes,
+                    Resposta = "Preencha aqui",
+                    DHC = DateTime.Now
+                };
+                _db.Set<PDI_RESPOSTAS>().Add(addPDIResposta);
+            }
+        }
+        await _db.SaveChangesAsync();
     }
 }
