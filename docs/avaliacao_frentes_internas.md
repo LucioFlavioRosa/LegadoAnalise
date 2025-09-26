@@ -32,7 +32,7 @@ As configurações específicas de Frentes Internas estão centralizadas na seç
 
 ## Fluxo de Funcionamento (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa página Avaliação Frentes Internas] --> B(Carregamento do componente AvaliacaoFrentesInternas.razor)
     B --> C{Obtém usuário logado via UserContextService}
@@ -55,7 +55,7 @@ flowchart TD
         G
         H
     end
-
+```
 
 ## Boas Práticas e Reutilização
 
