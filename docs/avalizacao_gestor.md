@@ -1,48 +1,58 @@
-# Documentação: Avaliação do Gestor (Blazor)
+# Avaliação do Gestor - Blazor Híbrido (.NET 9)
 
 ## Visão Geral
 
-Este módulo implementa a funcionalidade de Avaliação do Gestor, migrada do Web Forms para Blazor (.NET 9), centralizando toda a lógica de negócio em serviços injetáveis e utilizando componentes reutilizáveis para combos, tabelas e mensagens. O componente principal é `AvaliacoesGestor.razor`.
+Este módulo corresponde à migração da página de Avaliação do Gestor do antigo Web Forms (`avalizacao_gestor.aspx`) para a arquitetura Blazor Híbrido .NET 9, com foco em desacoplamento, reutilização e modernização. Toda a lógica de negócio foi extraída para serviços injetáveis, e a interface foi reescrita como componente Blazor interativo.
 
-## Componentes e Serviços Envolvidos
+## Estrutura e Integração
 
-- **Components/AvaliacoesGestor/AvaliacoesGestor.razor**: Interface principal da página de avaliações do gestor, com filtros, tabelas e ações.
-- **Components/AvaliacoesGestor/AvaliacoesGestor.razor.cs**: Code-behind com lógica de carregamento, busca, finalização e liberação.
-- **Services/AvaliacoesGestor/AvaliacoesGestorService.cs**: Serviço de negócio centralizando toda a lógica da avaliação do gestor.
-- **Services/AvaliacoesGestor/Common/AvaliacoesGestorHelper.cs**: Helper para combos, status, etapas e validações específicas.
-- **Services/Common/ComboHelper.cs, FormatHelper.cs, MessageBoxService.cs**: Helpers e serviços reutilizáveis para combos, formatação e mensagens.
+- **Serviços Reutilizáveis:**
+  - `Services/AvaliacoesGestor/AvaliacoesGestorService.cs`: centraliza toda a lógica de negócio da avaliação do gestor.
+  - `Services/AvaliacoesGestor/Common/AvaliacoesGestorHelper.cs`: utilitários para manipulação de combos, status, etapas e validações, reutilizando helpers comuns.
+  - `Services/Common/ComboHelper.cs`, `FormatHelper.cs`, `VisibilityHelper.cs`: utilitários globais compartilhados.
+- **Componentes Blazor:**
+  - `Components/AvaliacoesGestor/AvaliacoesGestor.razor`: interface da página, com filtros, tabelas e ações.
+  - `Components/AvaliacoesGestor/AvaliacoesGestor.razor.cs`: code-behind do componente, realizando binding e chamadas aos serviços.
+- **Configuração:**
+  - Parâmetros e mensagens em `appsettings.json` na seção `AvaliacoesGestor`.
+- **Injeção de Dependência:**
+  - Serviços registrados em `Program.cs` para uso em toda a aplicação.
 
-## Integração e Fluxo de Funcionamento
-
-O componente Blazor injeta os serviços necessários e, ao inicializar, carrega os combos de filtro e busca as avaliações do gestor e de liderados. O usuário pode filtrar, finalizar avaliações ou liberar visualização para o líder. Todas as ações são processadas via métodos assíncronos dos serviços, e mensagens de sucesso/erro são exibidas via MessageBoxService.
-
-### Diagrama de Fluxo (Mermaid)
+## Fluxo de Funcionamento
 
 mermaid
 flowchart TD
-    Start([Início]) --> LoadCombos[Carregar Combos de Filtro]
-    LoadCombos --> BuscarAvaliacoes[Buscar Avaliações do Gestor]
-    BuscarAvaliacoes --> MostrarTabela[Exibir Tabela de Projetos/Avaliações]
-    MostrarTabela -->|Filtrar| BuscarAvaliacoes
-    MostrarTabela -->|Finalizar Avaliação| FinalizarAvaliacao[Chamar Service: FinalizarAvaliacaoAsync]
-    MostrarTabela -->|Liberar Líder| LiberarLider[Chamar Service: LiberarLiderAsync]
-    FinalizarAvaliacao --> BuscarAvaliacoes
-    LiberarLider --> BuscarAvaliacoes
-    BuscarAvaliacoes --> MostrarTabela
+    Start[Usuário acessa Avaliação do Gestor] --> Filtros[Preenche filtros de Projeto, Cliente, Período, Status, Etapa]
+    Filtros --> |Busca| Service[AvaliacoesGestorService]
+    Service --> Helper[AvaliacoesGestorHelper]
+    Service --> DbContext[ApplicationDbContext]
+    Service --> ComboHelper
+    Service --> FormatHelper
+    Service --> VisibilityHelper
+    Service --> |Retorna dados| Component[Componente Blazor AvaliacoesGestor.razor]
+    Component --> Tabela[Tabela de Projetos e Avaliações]
+    Tabela --> |Ação: Finalizar/Liberar| Service
+    Service --> |Atualiza| Component
+    Component --> MessageBox[Exibe mensagens ao usuário]
 
+
+- O usuário acessa a página e preenche os filtros.
+- O componente Blazor chama o serviço `AvaliacoesGestorService` para buscar os dados.
+- O serviço utiliza helpers e o contexto de dados para montar as listas de projetos e avaliações.
+- Os dados são exibidos na tabela, com botões de ação conforme o status de cada avaliação.
+- Ao finalizar ou liberar uma avaliação, o serviço executa as regras de negócio e retorna o status para o componente, que exibe mensagens apropriadas.
 
 ## Sugestões de Melhorias Futuras
 
-- Implementar paginação e ordenação avançada nas tabelas.
-- Adicionar exportação de relatórios em Excel diretamente da interface.
-- Integrar com IA para análise automatizada das avaliações e sugestões de desenvolvimento.
-- Adicionar testes automatizados para garantir a robustez do fluxo.
-- Melhorar a experiência mobile com responsividade aprimorada.
-- Permitir customização dinâmica dos filtros e colunas exibidas.
+- **Testes Automatizados:** Implementar testes unitários e de integração para os serviços e componentes Blazor.
+- **Otimização de Performance:** Utilizar caching de dados de combos e filtros para reduzir consultas repetidas.
+- **Integração com IA:** Analisar padrões de avaliação e sugerir melhorias automáticas usando Azure OpenAI.
+- **Internacionalização:** Centralizar todas as mensagens em arquivos de recursos para facilitar tradução.
+- **Aprimoramento de UX:** Adicionar loading indicators e feedback visual para operações assíncronas.
+- **Monitoramento:** Expandir telemetria para rastrear uso detalhado dos recursos da página.
 
 ## Observações
 
-- Toda a lógica de negócio foi extraída para serviços injetáveis, facilitando manutenção e testes.
-- Os helpers comuns foram reutilizados ao máximo, seguindo a arquitetura modular proposta.
-- O fluxo de permissões e visibilidade segue as regras do sistema original.
-- A documentação será atualizada conforme evolução do módulo.
+- Toda a lógica de negócio foi centralizada em serviços para máxima reutilização e fácil manutenção.
+- Helpers comuns são utilizados para garantir consistência entre diferentes áreas do sistema.
+- O fluxo de dados é desacoplado da interface, facilitando futuras migrações ou integrações.
