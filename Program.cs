@@ -44,6 +44,9 @@ using Peers.Moderno.Services.AutoAvaliacao.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.AI;
+// Adicionado para PDI
+using Services.PDI.Common;
+using Services.PDI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -274,6 +277,9 @@ builder.Services.AddScoped<ITiposProjetosService, TiposProjetosService>();
 // Avaliacoes Services - Registro dos novos serviços do fluxo de avaliação
 builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoService, Services.Avaliacoes.AvaliacaoService>();
 builder.Services.AddScoped<Services.Avaliacoes.Common.IAvaliacaoUtils, Services.Avaliacoes.Common.AvaliacaoUtils>();
+
+// Registro do serviço de PDI
+builder.Services.AddScoped<IPDIService, PDIService>();
 
 var app = builder.Build();
 
