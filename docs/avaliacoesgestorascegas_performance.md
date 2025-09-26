@@ -14,7 +14,7 @@ Este módulo implementa a funcionalidade de avaliação de performance às cegas
 
 ## Fluxo do Processo
 
-mermaid
+```mermaid
 flowchart TD
     Start[Início - Navegação para Avaliação às Cegas Performance]
     LoadCabecalho[Carregar Dados do Cabeçalho (Projeto, Associado, Período, Gestor)]
@@ -34,7 +34,7 @@ flowchart TD
     UserEdit --> BtnFinalizar
     BtnSalvar --> Validar --> Salvar --> Feedback --> RenderTable
     BtnFinalizar --> Validar --> Salvar --> Feedback --> Navegar --> End
-
+```
 
 ## Sugestões de Melhorias
 
