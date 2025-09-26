@@ -28,7 +28,7 @@ Este documento descreve o funcionamento, integração e fluxo do processo de ava
 
 ## Fluxo do Processo
 
-mermaid
+```mermaid
 flowchart TD
     Start([Início]) --> PaginaAvalGestor["Página: CompetenciaGestor.razor"]
     PaginaAvalGestor -->|Carrega contexto e dados| AvaliacoesGestorService
@@ -53,7 +53,7 @@ flowchart TD
         ApplicationDbContext
         BancoDados
     end
-
+```
 
 ## Sugestões de Melhorias Futuras
 
