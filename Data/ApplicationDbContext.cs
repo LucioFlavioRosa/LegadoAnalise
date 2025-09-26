@@ -46,6 +46,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<AssociadoProjeto> AssociadosProjetos { get; set; }
     public DbSet<TipoProjeto> TiposProjetos { get; set; }
 
+    // DbSets para PDI
+    public DbSet<PDI_RESPOSTAS> PDIRespostas { get; set; }
+    public DbSet<PDI_QUESTOES> PDIQuestoes { get; set; }
+    public DbSet<PERIODOSAVALIACOES> PeriodosAvaliacoes { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -373,6 +378,31 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.IdTipo);
             entity.ToTable("TIPOS_PROJETOS");
             entity.Property(e => e.Nome).HasColumnName("ProjetoTipo");
+        });
+
+        // Configuração das entidades do PDI
+        modelBuilder.Entity<PDI_RESPOSTAS>(entity =>
+        {
+            entity.HasKey(e => e.idPDIRespostas);
+            entity.ToTable("PDI_RESPOSTAS");
+            entity.HasOne(e => e.PERIODOSAVALIACOES)
+                .WithMany()
+                .HasForeignKey(e => e.idPeriodo)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.PDI_QUESTOES)
+                .WithMany()
+                .HasForeignKey(e => e.idPDIQuestao)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<PDI_QUESTOES>(entity =>
+        {
+            entity.HasKey(e => e.idPDIQuestoes);
+            entity.ToTable("PDI_QUESTOES");
+        });
+        modelBuilder.Entity<PERIODOSAVALIACOES>(entity =>
+        {
+            entity.HasKey(e => e.IdPeriodo);
+            entity.ToTable("PERIODOSAVALIACOES");
         });
     }
 }
