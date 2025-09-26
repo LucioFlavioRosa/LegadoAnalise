@@ -18,7 +18,7 @@ Este documento detalha a arquitetura, funcionamento e integração do novo fluxo
 
 ## Fluxo do Processo
 
-mermaid
+```mermaid
 flowchart TD
     Start([Início]) --> Pagina[AvaliacoesGestorPerformance.razor]
     Pagina -->|Carrega dados| SvcAvaliacoesGestor[IAvaliacoesGestorService]
@@ -30,7 +30,7 @@ flowchart TD
     SvcAvaliacoesGestor -->|Valida/Trunca| AvaliacoesGestorHelper[AvaliacoesGestorHelper]
     Pagina -->|Lê configuração| AppSettings[appsettings.json]
     End([Fim])
-
+```
 
 ### Descrição do Fluxo
 1. O componente Blazor é iniciado e lê as configurações do fluxo no `appsettings.json`.
