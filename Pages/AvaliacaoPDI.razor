@@ -1,0 +1,107 @@
+@rendermode InteractiveAuto
+@page "/avaliacao-pdi"
+
+@inject Services.PDI.Common.IPDIService PDIService
+@inject IMessageBoxService MessageBoxService
+
+<PageTitle>Preenchimento PDI</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Preenchimento PDI</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">PDI</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+@if (periodos is not null && periodos.Count > 0)
+{
+    <ul class="nav nav-pills mb-3" id="pills-tab2" role="tablist">
+        @foreach (var periodo in periodos)
+        {
+            <li class="nav-item">
+                <a class="nav-link btn btn-facebook @(periodo.Active)" id="@periodo.Id" data-toggle="pill" href="#@periodo.Id" role="tab"
+                   aria-controls="@periodo.Id" aria-selected="@(periodo.Active == "active" ? "true" : "false")" @onclick="() => SelecionarPeriodo(periodo)">@periodo.Periodo</a>
+            </li>
+        }
+    </ul>
+}
+
+@if (periodoSelecionado is not null)
+{
+    <div class="tab-content" id="pills-tabContent">
+        <div class="tab-pane fade show active" id="@periodoSelecionado.Id" role="tabpanel" aria-labelledby="@periodoSelecionado.AriaLabelled">
+            <h4>@periodoSelecionado.Periodo</h4>
+            <div style="display:flex;flex-direction:row;height:900px;width:100%">
+                @foreach (var coluna in periodoSelecionado.PDIColunas)
+                {
+                    <div style="display:flex;flex-direction:column;flex-grow:1;min-width:16%;max-width:18%">
+                        @foreach (var resposta in coluna.PDIRespostas)
+                        {
+                            <div style="flex-grow:@resposta.FlexGrow;background-color:white;border:solid 0.6em;border-color:#E5F419;@resposta.BorderStyle;display:flex;flex-direction:column;justify-content:space-between;gap:2px">
+                                <div style="display:flex;flex-direction:row;align-items:center;justify-content:start;min-height:50px">
+                                    <img width="40px" height="40px" src="@resposta.Icone" />
+                                    <label style="color:@resposta.TituloStyle;font-weight:bold"> @resposta.Titulo </label>
+                                </div>
+                                <textarea class="form-control" style="width:90%;align-self:center;height:100%;border:thin solid #F0F0F0" @bind="resposta.Resposta" @onchange="async (e) => await AtualizarResposta(resposta)"></textarea>
+                                <label @attributes="(string.IsNullOrEmpty(resposta.SubtituloStyle) ? null : new Dictionary<string, object> { { "style", resposta.SubtituloStyle } })"> @resposta.Subtitulo </label>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Services.PDI.Common.Models.PDIPeriodoModel> periodos = new();
+    private Services.PDI.Common.Models.PDIPeriodoModel? periodoSelecionado;
+    private int idAssociado = 1; // TODO: substituir pelo usuário logado
+
+    protected override async Task OnInitializedAsync()
+    {
+        periodos = await PDIService.GetPeriodosAsync(idAssociado);
+        if (periodos.Count > 0)
+        {
+            foreach (var p in periodos)
+            {
+                p.PDIColunas = await PDIService.GetColunasAsync(idAssociado, ObterIdPeriodo(p));
+            }
+            periodoSelecionado = periodos.LastOrDefault();
+        }
+    }
+
+    private void SelecionarPeriodo(Services.PDI.Common.Models.PDIPeriodoModel periodo)
+    {
+        periodoSelecionado = periodo;
+    }
+
+    private int ObterIdPeriodo(Services.PDI.Common.Models.PDIPeriodoModel periodo)
+    {
+        if (int.TryParse(periodo.Id.Replace("tab-", ""), out var idx) && periodos.Count > idx)
+        {
+            var pdiRespostas = periodos[idx];
+            // Aqui poderia buscar o idPeriodo real se necessário
+        }
+        // Fallback: buscar pelo último período
+        return 0;
+    }
+
+    private async Task AtualizarResposta(Services.PDI.Common.Models.PDIRespostaModel resposta)
+    {
+        if (resposta.IdPDIResposta > 0)
+        {
+            await PDIService.AtualizarRespostaAsync(resposta.IdPDIResposta, resposta.Resposta);
+            MessageBoxService.ShowSuccess("Resposta atualizada com sucesso!");
+        }
+    }
+}
