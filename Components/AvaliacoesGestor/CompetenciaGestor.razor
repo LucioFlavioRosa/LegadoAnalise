@@ -1,0 +1,96 @@
+@page "/avaliacoesgestor/competencias/{IdProjeto:int}/{IdAssociado:int}/{IdPeriodo:int}/{IdGestor:int}"
+@inject Services.AvaliacoesGestor.IAvaliacoesGestorService AvaliacoesGestorService
+@inject Peers.Moderno.Services.Common.IMessageBoxService MessageBoxService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Avaliação de Competências do Gestor</PageTitle>
+
+@if (IsLoading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Carregando...</span>
+    </div>
+}
+else if (Avaliacao == null)
+{
+    <div class="alert alert-danger">Erro ao carregar avaliação.</div>
+}
+else
+{
+    <div class="container-fluid page-content">
+        <div class="card col-md-12" style="position:sticky;z-index:4;top:10.5%;border-color: rgba(0, 0, 0, .25); border-width: 1px">
+            <div class="card-body">
+                <h5 class="font-medium text-uppercase mb-0">Avaliação Gestor</h5>
+                <div class="row">
+                    <div class="col-md-3"><b>Avaliado:</b> @Avaliacao.Associado.Nome</div>
+                    <div class="col-md-3"><b>Gestor:</b> @Avaliacao.Gestor.Nome</div>
+                    <div class="col-md-3"><b>Projeto:</b> @Avaliacao.Projeto.Nome</div>
+                    <div class="col-md-3"><b>Período:</b> @Avaliacao.Periodo.Descricao</div>
+                </div>
+            </div>
+        </div>
+        <div class="card col-md-12">
+            <div class="card-body">
+                <EditForm Model="Avaliacao" OnValidSubmit="SalvarAvaliacao">
+                    <div class="table-responsive" style="overflow-y:auto !important; height:600px">
+                        <table class="table table-striped border" style="width: 100% !important">
+                            <thead>
+                                <tr>
+                                    <th>SubCompetência</th>
+                                    <th>Palavras-chave</th>
+                                    <th>Detalhe Nível Atual</th>
+                                    <th>Nota Nível Atual</th>
+                                    <th>Detalhe Próximo Nível</th>
+                                    <th>Nota Próximo Nível</th>
+                                    <th>Considerações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var comp in Avaliacao.Competencias)
+                                {
+                                    <tr>
+                                        <td>@comp.SubCompetencia</td>
+                                        <td>@comp.PalavrasChave</td>
+                                        <td>@comp.DetalheNivelAtual</td>
+                                        <td>
+                                            <InputSelect @bind-Value="comp.NotaNivel1Gestor" class="form-control">
+                                                <option value="0">[Selecionar]</option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">N/A</option>
+                                            </InputSelect>
+                                        </td>
+                                        <td>@comp.DetalheProximoNivel</td>
+                                        <td>
+                                            <InputSelect @bind-Value="comp.NotaNivel2Gestor" class="form-control">
+                                                <option value="0">[Selecionar]</option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                                <option value="5">N/A</option>
+                                            </InputSelect>
+                                        </td>
+                                        <td>
+                                            <InputTextArea @bind-Value="comp.ConsideracoesGestor" class="form-control" rows="2" />
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="form-body mt-3">
+                        <div class="row">
+                            <div class="col-md-12 text-right">
+                                <button type="submit" class="btn btn-dark">Salvar Avaliação</button>
+                                <button type="button" class="btn btn-info ml-2" @onclick="FinalizarAvaliacao">Finalizar Avaliação</button>
+                            </div>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}

@@ -1,59 +1,49 @@
-# Documentação: Avaliação de Competências do Gestor - Blazor/Serviços
+# Avaliação de Competências do Gestor - Blazor
 
 ## Visão Geral
 
-Este módulo implementa a lógica centralizada e reutilizável para a avaliação de competências do gestor, migrando regras de negócio, validações e helpers para serviços modernos e desacoplados, prontos para uso em componentes Blazor e outras camadas da aplicação.
+Este módulo implementa a avaliação de competências do gestor, migrando o fluxo do Web Forms para um componente Blazor moderno, com centralização de regras de negócio em serviços e helpers reutilizáveis. Toda a lógica de manipulação, validação e persistência das avaliações foi extraída para serviços injetáveis, promovendo reuso, testabilidade e manutenção facilitada.
 
-### Serviços/Helpers Criados ou Atualizados
+## Estrutura dos Arquivos
 
-- **CompetenciaHelper**: Centraliza regras de truncamento de texto, validação e consistência de notas, regras de negócio de pilar.
-- **ValidationHelper**: Centraliza validações genéricas e integra com CompetenciaHelper para regras de negócio específicas.
-- **MessageBoxService**: Serviço de mensagens aprimorado, agora com suporte a título e delay customizáveis.
-- **ComboHelper**: Centraliza geração de combos de notas, tipos de avaliação, escopos e outros, com suporte a pesos e seleção padrão.
+- `Services/AvaliacoesGestor/AvaliacoesGestorService.cs`: Serviço principal de orquestração da avaliação de competências do gestor.
+- `Services/AvaliacoesGestor/Common/AvaliacoesGestorHelper.cs`: Helper com regras de negócio, mapeamento e validação das competências.
+- `Components/AvaliacoesGestor/CompetenciaGestor.razor`: Componente Blazor da interface de avaliação.
+- `Components/AvaliacoesGestor/CompetenciaGestor.razor.cs`: Code-behind do componente, com integração aos serviços e lógica de UI.
 
-## Integração e Fluxo de Uso
+## Funcionamento e Integração
 
-- Os componentes Blazor de avaliação de competências injetam os serviços/Helpers.
-- O ComboHelper fornece as listas de opções para os combos de notas, tipos e escopos.
-- O ValidationHelper e CompetenciaHelper são usados para validação de inputs, consistência de notas e regras de negócio antes de salvar ou finalizar a avaliação.
-- O MessageBoxService exibe mensagens de feedback ao usuário, com título e tempo customizáveis.
+1. O componente Blazor é acessado via rota `/avaliacoesgestor/competencias/{IdProjeto}/{IdAssociado}/{IdPeriodo}/{IdGestor}`.
+2. Ao inicializar, o componente injeta e utiliza o `IAvaliacoesGestorService` para carregar todos os dados necessários da avaliação, incluindo projeto, associado, gestor, período e competências.
+3. As competências são exibidas em uma tabela editável, com combos para notas e campos para considerações.
+4. O usuário pode salvar ou finalizar a avaliação. Ambas as ações validam os dados via serviço antes de persistir.
+5. Toda a lógica de validação, consistência de notas e regras de negócio está centralizada no helper reutilizável.
+6. Mensagens ao usuário são exibidas via `IMessageBoxService`.
 
-## Exemplo de Uso (Blazor)
-
-csharp
-@inject IMessageBoxService MessageBoxService
-@code {
-    void Salvar()
-    {
-        if (!ValidationHelper.ValidarNotasObrigatorias(notaNivel1, notaNivel2))
-        {
-            MessageBoxService.ShowError("Selecione uma nota para cada nível.", "Erro", 5000);
-            return;
-        }
-        // ...
-    }
-}
-
-
-## Fluxo do Processo (Mermaid)
+## Fluxo do Processo
 
 mermaid
 flowchart TD
-    Start([Início]) --> PaginaAvalGestor["Página: Avaliação Gestor (Blazor)"]
-    PaginaAvalGestor -->|Obtém combos| ComboHelper
-    PaginaAvalGestor -->|Valida inputs| ValidationHelper
-    PaginaAvalGestor -->|Regras de negócio| CompetenciaHelper
-    PaginaAvalGestor -->|Exibe mensagens| MessageBoxService
-    PaginaAvalGestor -->|Salva dados| BackendAPI
-    BackendAPI -->|Persistência| ApplicationDbContext
-    PaginaAvalGestor --> End([Fim])
+    Start([Início]) --> Pagina[CompetenciaGestor.razor]
+    Pagina -->|OnInitializedAsync| SVC[AvaliacoesGestorService]
+    SVC -->|Carregar dados| DB[(ApplicationDbContext)]
+    Pagina -->|Exibe tabela| Usuario
+    Usuario -->|Edita e clica Salvar| Pagina
+    Pagina -->|SalvarAvaliacao| SVC
+    SVC -->|Validar e Persistir| DB
+    Pagina -->|Exibe mensagem| MessageBoxService
+    Usuario -->|Clica Finalizar| Pagina
+    Pagina -->|FinalizarAvaliacao| SVC
+    SVC -->|Valida, Persiste e Finaliza| DB
+    Pagina -->|Redireciona| End([Fim])
 
 
-## Sugestões de Melhorias Futuras
+## Sugestões de Melhorias
 
-- Implementar testes unitários para todos os helpers e serviços.
-- Internacionalizar mensagens do MessageBoxService.
-- Permitir configuração dinâmica dos combos de notas via banco de dados.
-- Expandir o CompetenciaHelper para suportar regras de negócio parametrizáveis por tipo de avaliação.
-- Integrar validações assíncronas para cenários de múltiplos usuários.
-- Documentar exemplos de integração com componentes Blazor prontos.
+- Implementar paginação e filtros na tabela de competências para avaliações com grande volume.
+- Adicionar logs de auditoria para rastrear alterações e finalizações.
+- Permitir comentários por competência e anexos de evidências.
+- Internacionalização dos textos e mensagens.
+- Testes automatizados de integração e UI.
+- Melhorar acessibilidade (ARIA, navegação por teclado).
+- Implementar auto-save incremental para evitar perda de dados.
