@@ -1,0 +1,391 @@
+@rendermode InteractiveAuto
+@using Peers.Moderno.Services.Feedback
+@using Peers.Moderno.Services.Feedback.Common
+@inject FeedbackService FeedbackService
+@inject IMessageBoxService MessageBoxService
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+
+<PageTitle>Feedback de Competências</PageTitle>
+
+<div class="page-breadcrumb border-bottom" style="position:fixed;z-index:1;width:100%">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Feedback</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item"><a href="/feedback">Avaliação / Feedback</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Competência</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid" style="overflow:initial !important">
+    <div class="card col-md-10" style="position:fixed;z-index:1; margin-top:21px;border-color:rgba(0, 0, 0, .25);border-width:1px">
+        <div class="card-body">
+            <div class="accordion" id="accordionDetalhes">
+                <div class="card">
+                    <div class="card-header" id="headingDetalhes">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#Detalhes" aria-expanded="true" aria-controls="Detalhes">
+                                Detalhes da avaliação
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="Detalhes" class="collapse" aria-labelledby="headingDetalhes" data-bs-parent="#accordionDetalhes">
+                        <div class="col-md-5">
+                            <div class="text-left">
+                                <button type="button" class="btn btn-facebook" disabled>Competência</button>
+                                <button class="btn btn-danger" @onclick="IrParaPerformance">Performance</button>
+                                <button class="btn btn-info" @onclick="IrParaFinalizacao">Ir para Finalização</button>
+                                <p></p>
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <label><b>Avaliado</b></label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>@FeedbackVm.AssociadoNome</label>
+                                </div>
+                                <div class="col-md-2">
+                                    <label><b>Período</b></label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>@FeedbackVm.PeriodoNome</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <label><b>Tempo de Cargo:</b></label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>@FeedbackVm.TempoCargo</label>
+                                </div>
+                                <div class="col-md-2">
+                                    <label><b>Tempo de Peers</b></label>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>@FeedbackVm.TempoPeers</label>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-1">
+                                    <label><b>Projeto</b></label>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>@FeedbackVm.ProjetoNome</label>
+                                </div>
+                                <div class="col-md-1">
+                                    <label><b>Cliente</b></label>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>@FeedbackVm.ClienteNome</label>
+                                </div>
+                                <div class="col-md-2">
+                                    <label><b>Tempo restante</b></label>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>@FeedbackVm.TempoRestante</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion" id="accordionCabecalho">
+                <div class="card">
+                    <div class="card-header" id="headingCabecalho">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#Cabecalho" aria-expanded="true" aria-controls="Cabecalho">
+                                Descrições nível atual e próximo nível
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="Cabecalho" class="collapse" aria-labelledby="headingCabecalho" data-bs-parent="#accordionCabecalho">
+                        <table class="table table-striped border" style="width:100%;table-layout:fixed">
+                            <thead>
+                                <tr>
+                                    <th colspan="1"></th>
+                                    <th colspan="2">Cargo</th>
+                                    <th colspan="2">Função</th>
+                                    <th colspan="2">Autonomia</th>
+                                    <th colspan="2">Escopo de Atuação</th>
+                                    <th colspan="2">Nível de interlocução principal no cliente</th>
+                                    @foreach (var titulo in FeedbackVm.TitulosCabecalho)
+                                    {
+                                        <th colspan="2">@titulo</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="1">Nível atual</td>
+                                    <td colspan="2">@FeedbackVm.CargoAtual</td>
+                                    <td colspan="2">@FeedbackVm.FuncaoAtual</td>
+                                    <td colspan="2">@FeedbackVm.AutonomiaAtual</td>
+                                    <td colspan="2">@FeedbackVm.EscopoAtual</td>
+                                    <td colspan="2">@FeedbackVm.InterlocucaoAtual</td>
+                                    @foreach (var desc in FeedbackVm.DescricoesCabecalhoAtual)
+                                    {
+                                        <th colspan="2" style="font-weight:normal;">@desc</th>
+                                    }
+                                </tr>
+                                <tr>
+                                    <td colspan="1">Próximo nível</td>
+                                    <td colspan="2">@FeedbackVm.CargoProximo</td>
+                                    <td colspan="2">@FeedbackVm.FuncaoProximo</td>
+                                    <td colspan="2">@FeedbackVm.AutonomiaProximo</td>
+                                    <td colspan="2">@FeedbackVm.EscopoProximo</td>
+                                    <td colspan="2">@FeedbackVm.InterlocucaoProximo</td>
+                                    @foreach (var desc in FeedbackVm.DescricoesCabecalhoProximo)
+                                    {
+                                        <th colspan="2" style="font-weight:normal;">@desc</th>
+                                    }
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card col-md-12" style="margin-top:220px">
+        <div class="card-body">
+            <div class="accordion" id="accordionCompetencia">
+                <div class="card">
+                    <div class="card-header" id="headingRadar">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#Radar" aria-expanded="true" aria-controls="Radar">
+                                Radar
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="Radar" class="collapse" aria-labelledby="headingRadar" data-bs-parent="#accordionCompetencia">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <canvas id="radarprojeto" height="110" style="max-height:536px"></canvas>
+                                    <canvas id="radarevolucao" height="110" style="max-height:536px"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header" id="headingCompetencia">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#competencias" aria-expanded="false" aria-controls="collapseTwo">
+                                Feedback - Competências
+                            </button>
+                        </h5>
+                    </div>
+                    <div id="competencias" class="collapse show" aria-labelledby="headingCompetencia" data-bs-parent="#accordionCompetencia">
+                        <div class="card-body">
+                            <div class="form-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="text-right">
+                                            <button class="btn btn-dark" @onclick="SalvarAvaliacao">Salvar Avaliação</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive" style="overflow-y:auto !important; height:600px">
+                                <table class="table table-striped border" style="width:100%;table-layout:fixed">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="8" style="background-color:#e5e019;color:#021240;position:sticky !important; top:-5px !important">Nível 1</th>
+                                            <th colspan="10" style="background-color:#e5e019;color:#021240;position:sticky !important; top:-5px !important">Nível 2</th>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="4" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Detalhamento Atual</th>
+                                            <th hidden>Nivel Atual</th>
+                                            <th colspan="1" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Nota Avaliado</th>
+                                            <th colspan="1" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Nota Gestor</th>
+                                            <th colspan="2" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Feedback</th>
+                                            <th colspan="4" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Detalhamento Próximo Nível</th>
+                                            <th hidden>Próximo Nivel</th>
+                                            <th colspan="1" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Nota Avaliado</th>
+                                            <th colspan="1" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Nota Gestor</th>
+                                            <th colspan="2" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Feedback</th>
+                                            <th colspan="2" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Considerações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var competencia in FeedbackVm.Competencias)
+                                        {
+                                            <tr style="font-style:italic;font-size:14px;font-weight:normal;background-color:#f2f2f2;vertical-align:bottom">
+                                                <th colspan="18" style="font-style:normal;font-size:21px;font-weight:normal;align-content:center;text-align:center;border-top:5px solid;border-color:#003150">
+                                                    @competencia.SubCompetencia
+                                                </th>
+                                            </tr>
+                                            <tr style="font-weight:bold;background-color:#f5f5f5;border-top:none">
+                                                <td colspan="18" style="text-align:center;border-top:none">@competencia.PalavrasChave</td>
+                                            </tr>
+                                            <tr style="font-weight:normal;background-color:#f9f9f9;border-top:none">
+                                                <td colspan="4" style="border-top:none;background-color:#f9f9f9">
+                                                    <a href="#det_@competencia.IdCompetencia" data-bs-toggle="collapse" class="accordion-toggle">
+                                                        @FeedbackFormatHelper.TruncarTexto(competencia.DetalheNivelAtual, 70)
+                                                        <span style="font-weight:bold">  Ver+</span>
+                                                    </a>
+                                                </td>
+                                                <td hidden colspan="1" style="border-top:none;background-color:#f9f9f9">
+                                                    <button type="button" data-bs-toggle="collapse" data-bs-target="#nivel_@competencia.IdCompetencia" class="accordion-toggle">
+                                                        <span class="fas fa-align-justify" aria-hidden="true"></span>
+                                                    </button>
+                                                </td>
+                                                <td colspan="1" style="border-top:none;background-color:#f9f9f9">@competencia.Nota1Avaliado</td>
+                                                <td colspan="1" style="border-top:none;background-color:#f9f9f9">@competencia.Nota1Gestor</td>
+                                                <td colspan="2" style="border-top:none;background-color:#f9f9f9">
+                                                    <textarea class="form-control" rows="2" @bind="competencia.FeedbackNivel1"></textarea>
+                                                </td>
+                                                <td colspan="4" style="border-top:none;background-color:#f9f9f9">
+                                                    <a href="#detPrNivel_@competencia.IdCompetencia" data-bs-toggle="collapse" class="accordion-toggle">
+                                                        @FeedbackFormatHelper.TruncarTexto(competencia.DetalheProximoNivel, 70)
+                                                        <span style="font-weight:bold">  Ver+</span>
+                                                    </a>
+                                                </td>
+                                                <td hidden colspan="1" style="border-top:none;background-color:#f9f9f9">
+                                                    <button type="button" data-bs-toggle="collapse" data-bs-target="#prNivel_@competencia.IdCompetencia" class="accordion-toggle">
+                                                        <span class="fas fa-align-justify" aria-hidden="true"></span>
+                                                    </button>
+                                                </td>
+                                                <td colspan="1" style="border-top:none;background-color:#f9f9f9">@competencia.Nota2Avaliado</td>
+                                                <td colspan="1" style="border-top:none;background-color:#f9f9f9">@competencia.Nota2Gestor</td>
+                                                <td colspan="2" style="border-top:none;background-color:#f9f9f9">
+                                                    <textarea class="form-control" rows="2" @bind="competencia.FeedbackNivel2"></textarea>
+                                                </td>
+                                                <td colspan="2" style="border-top:none;background-color:#f9f9f9;text-align:center">
+                                                    <button type="button" class="accordion-toggle" style="background-color:#003150;padding:8px 15px;border:none" data-bs-toggle="collapse" data-bs-target="#cons_@competencia.IdCompetencia">
+                                                        <span aria-hidden="true" style="color:white;font-size:15px">Considerações</span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="18" class="hiddenRow" style="border-top:none;background-color:#ffffff">
+                                                    <div class="collapse" id="det_@competencia.IdCompetencia">
+                                                        <strong>Detalhamento Cargo Atual:</strong><br />@competencia.DetalheNivelAtual
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr hidden>
+                                                <td colspan="18" class="hiddenRow" style="border-top:none;background-color:#ffffff">
+                                                    <div class="collapse" id="nivel_@competencia.IdCompetencia">
+                                                        <strong>Nivel Atual:</strong></br>
+                                                        @competencia.CompetenciaAtual
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="18" class="hiddenRow" style="border-top:none;background-color:#ffffff">
+                                                    <div class="collapse" id="detPrNivel_@competencia.IdCompetencia">
+                                                        <strong>Detalhamento Próximo Nível:</strong></br>
+                                                        @competencia.DetalheProximoNivel
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr hidden>
+                                                <td colspan="18" class="hiddenRow">
+                                                    <div class="collapse" id="prNivel_@competencia.IdCompetencia">
+                                                        <strong>Próximo Nivel:</strong></br>
+                                                        @competencia.CompetenciaProximo
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="18" class="hiddenRow">
+                                                    <div class="collapse" id="cons_@competencia.IdCompetencia">
+                                                        <p>
+                                                            <strong>Observações do avaliado:</strong><br>
+                                                            @competencia.ObservacaoAvaliado
+                                                        </p>
+                                                        <p>
+                                                            <strong>Observações do gestor:</strong><br>
+                                                            @competencia.ObservacaoGestor
+                                                        </p>
+                                                        <div>
+                                                            <strong>Considerações do feedback:</strong></br>
+                                                            <textarea rows="5" class="form-control" @bind="competencia.Consideracoes"></textarea>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="form-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="text-right">
+                                            <button class="btn btn-dark" @onclick="SalvarAvaliacao">Salvar Avaliação</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="col-md-5">
+                <div class="text-left">
+                    <button type="button" class="btn btn-facebook" disabled>Competência</button>
+                    <button class="btn btn-danger" @onclick="IrParaPerformance">Performance</button>
+                    <button class="btn btn-info" @onclick="IrParaFinalizacao">Ir para Finalização</button>
+                    <p></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private FeedbackCompetenciaViewModel FeedbackVm = new();
+    private bool IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoading = true;
+        FeedbackVm = await FeedbackService.CarregarFeedbackCompetenciaAsync();
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task SalvarAvaliacao()
+    {
+        var resultado = await FeedbackService.SalvarFeedbackCompetenciaAsync(FeedbackVm);
+        if (resultado.Sucesso)
+        {
+            MessageBoxService.ShowSuccess(resultado.Mensagem);
+        }
+        else
+        {
+            MessageBoxService.ShowError(resultado.Mensagem);
+        }
+    }
+
+    private void IrParaPerformance()
+    {
+        NavigationManager.NavigateTo("/feedback/performance");
+    }
+
+    private void IrParaFinalizacao()
+    {
+        NavigationManager.NavigateTo("/feedback/finalizacao");
+    }
+}
