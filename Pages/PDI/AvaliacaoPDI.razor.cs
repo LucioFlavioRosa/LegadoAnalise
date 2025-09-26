@@ -1,0 +1,1 @@
+// Este arquivo foi substituído pelo code block @code no AvaliacaoPDI.razor, mantendo a lógica inline para facilitar a manutenção e clareza. Caso seja necessário separar, a lógica pode ser movida para este arquivo como partial class.
