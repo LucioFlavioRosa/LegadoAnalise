@@ -16,24 +16,32 @@ Este módulo implementa a funcionalidade de avaliação de performance às cegas
 
 ```mermaid
 flowchart TD
-    Start[Início - Navegação para Avaliação às Cegas Performance]
-    LoadCabecalho[Carregar Dados do Cabeçalho (Projeto, Associado, Período, Gestor)]
-    LoadPerformances[Carregar Lista de Performances]
-    RenderTable[Renderizar PerformanceTable.razor]
-    UserEdit[Usuário seleciona notas e preenche considerações]
-    BtnSalvar[Usuário clica em 'Salvar Avaliação']
-    BtnFinalizar[Usuário clica em 'Finalizar Avaliação']
-    Validar[Validação dos dados]
-    Salvar[Persistir dados via IAvaliacaoGestorasCegasPerformanceService]
-    Feedback[Mostrar mensagem (sucesso/erro) via IMessageBoxService]
-    Navegar[Redirecionar para próxima etapa ou página de resumo]
-    End[Fim]
+    Start["Início - Navegação para Avaliação às Cegas Performance"];
+    LoadCabecalho["Carregar Dados do Cabeçalho (Projeto, Associado, Período, Gestor)"];
+    LoadPerformances["Carregar Lista de Performances"];
+    RenderTable["Renderizar PerformanceTable.razor"];
+    UserEdit["Usuário seleciona notas e preenche considerações"];
+    BtnSalvar["Usuário clica em 'Salvar Avaliação'"];
+    BtnFinalizar["Usuário clica em 'Finalizar Avaliação'"];
+    Validar["Validação dos dados"];
+    Salvar["Persistir dados via IAvaliacaoGestorasCegasPerformanceService"];
+    Feedback["Mostrar mensagem (sucesso/erro) via IMessageBoxService"];
+    Navegar["Redirecionar para próxima etapa ou página de resumo"];
+    End["Fim"];
 
-    Start --> LoadCabecalho --> LoadPerformances --> RenderTable --> UserEdit
-    UserEdit --> BtnSalvar
-    UserEdit --> BtnFinalizar
-    BtnSalvar --> Validar --> Salvar --> Feedback --> RenderTable
-    BtnFinalizar --> Validar --> Salvar --> Feedback --> Navegar --> End
+    Start --> LoadCabecalho;
+    LoadCabecalho --> LoadPerformances;
+    LoadPerformances --> RenderTable;
+    RenderTable --> UserEdit;
+    UserEdit --> BtnSalvar;
+    UserEdit --> BtnFinalizar;
+    BtnSalvar --> Validar;
+    Validar --> Salvar;
+    Salvar --> Feedback;
+    Feedback --> RenderTable;
+    BtnFinalizar --> Validar;
+    Feedback --> Navegar;
+    Navegar --> End;
 ```
 
 ## Sugestões de Melhorias
