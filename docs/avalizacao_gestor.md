@@ -1,37 +1,48 @@
-# Documentação Técnica: Avaliação do Gestor - Blazor Híbrido (.NET 9)
+# Documentação: Avaliação do Gestor (Blazor)
 
 ## Visão Geral
 
-Este módulo é responsável por toda a lógica de listagem, filtro, finalização e liberação de avaliações do gestor, migrando o legado Web Forms para uma arquitetura moderna baseada em serviços injetáveis e componentes Blazor. O código foi modularizado para máxima reutilização, testabilidade e manutenção incremental.
+Este módulo implementa a funcionalidade de Avaliação do Gestor, migrada do Web Forms para Blazor (.NET 9), centralizando toda a lógica de negócio em serviços injetáveis e utilizando componentes reutilizáveis para combos, tabelas e mensagens. O componente principal é `AvaliacoesGestor.razor`.
 
-## Estrutura dos Serviços
+## Componentes e Serviços Envolvidos
 
-- **Services/AvaliacoesGestor/Common/AvaliacoesGestorHelper.cs**: Centraliza métodos utilitários para manipulação de combos, status, etapas e validações específicas da avaliação do gestor. Reutiliza helpers de `Services/Common` sempre que possível.
-- **Services/AvaliacoesGestor/AvaliacoesGestorService.cs**: Serviço injetável que encapsula toda a lógica de negócio da página de avaliação do gestor, incluindo carregamento de filtros, busca de avaliações, finalização e liberação. Utiliza o helper acima e integra com o `ApplicationDbContext`.
-- **Data/ApplicationDbContext.cs**: Garante o mapeamento de todas as entidades necessárias para o funcionamento das avaliações do gestor, mantendo compatibilidade com o legado e suporte à nova lógica.
+- **Components/AvaliacoesGestor/AvaliacoesGestor.razor**: Interface principal da página de avaliações do gestor, com filtros, tabelas e ações.
+- **Components/AvaliacoesGestor/AvaliacoesGestor.razor.cs**: Code-behind com lógica de carregamento, busca, finalização e liberação.
+- **Services/AvaliacoesGestor/AvaliacoesGestorService.cs**: Serviço de negócio centralizando toda a lógica da avaliação do gestor.
+- **Services/AvaliacoesGestor/Common/AvaliacoesGestorHelper.cs**: Helper para combos, status, etapas e validações específicas.
+- **Services/Common/ComboHelper.cs, FormatHelper.cs, MessageBoxService.cs**: Helpers e serviços reutilizáveis para combos, formatação e mensagens.
 
-## Integração e Uso
+## Integração e Fluxo de Funcionamento
 
-- Os métodos de carregamento de combos e busca de avaliações podem ser consumidos por componentes Blazor via injeção de dependência.
-- O helper pode ser reutilizado por outros serviços ou componentes que demandem lógica similar de manipulação de combos, status ou etapas.
-- O serviço pode ser facilmente testado e evoluído, pois toda a lógica de negócio está desacoplada da interface.
+O componente Blazor injeta os serviços necessários e, ao inicializar, carrega os combos de filtro e busca as avaliações do gestor e de liderados. O usuário pode filtrar, finalizar avaliações ou liberar visualização para o líder. Todas as ações são processadas via métodos assíncronos dos serviços, e mensagens de sucesso/erro são exibidas via MessageBoxService.
 
-## Fluxo de Processo
+### Diagrama de Fluxo (Mermaid)
 
 mermaid
 flowchart TD
-    A[Blazor Page: AvaliacoesGestor.razor] -->|Injeta| B[AvaliacoesGestorService]
-    B -->|Usa| C[AvaliacoesGestorHelper]
-    B -->|Consulta| D[ApplicationDbContext]
-    D -->|Mapeia| E[Entidades: Projetos, Associados, Clientes, Periodos, Status, Avaliacoes, etc.]
-    B -->|Exibe mensagens| F[MessageBoxService]
+    Start([Início]) --> LoadCombos[Carregar Combos de Filtro]
+    LoadCombos --> BuscarAvaliacoes[Buscar Avaliações do Gestor]
+    BuscarAvaliacoes --> MostrarTabela[Exibir Tabela de Projetos/Avaliações]
+    MostrarTabela -->|Filtrar| BuscarAvaliacoes
+    MostrarTabela -->|Finalizar Avaliação| FinalizarAvaliacao[Chamar Service: FinalizarAvaliacaoAsync]
+    MostrarTabela -->|Liberar Líder| LiberarLider[Chamar Service: LiberarLiderAsync]
+    FinalizarAvaliacao --> BuscarAvaliacoes
+    LiberarLider --> BuscarAvaliacoes
+    BuscarAvaliacoes --> MostrarTabela
 
 
 ## Sugestões de Melhorias Futuras
 
-- Implementar cache para combos de filtros, reduzindo consultas repetidas ao banco.
-- Adicionar testes automatizados para os métodos principais do serviço.
-- Evoluir o helper para suportar internacionalização (i18n) de textos de combos e status.
-- Integrar com IA para sugerir ações ao gestor com base no histórico de avaliações.
-- Otimizar consultas com uso de projeções (Select) e carregamento lazy/explicito conforme necessário.
-- Expandir a documentação com exemplos de uso dos métodos nos componentes Blazor.
+- Implementar paginação e ordenação avançada nas tabelas.
+- Adicionar exportação de relatórios em Excel diretamente da interface.
+- Integrar com IA para análise automatizada das avaliações e sugestões de desenvolvimento.
+- Adicionar testes automatizados para garantir a robustez do fluxo.
+- Melhorar a experiência mobile com responsividade aprimorada.
+- Permitir customização dinâmica dos filtros e colunas exibidas.
+
+## Observações
+
+- Toda a lógica de negócio foi extraída para serviços injetáveis, facilitando manutenção e testes.
+- Os helpers comuns foram reutilizados ao máximo, seguindo a arquitetura modular proposta.
+- O fluxo de permissões e visibilidade segue as regras do sistema original.
+- A documentação será atualizada conforme evolução do módulo.
