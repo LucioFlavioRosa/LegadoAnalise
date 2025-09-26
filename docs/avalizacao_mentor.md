@@ -1,47 +1,61 @@
-# Documentação: Página de Avaliação Mentor (Blazor .NET 9)
+# Documentação Técnica: Página de Avaliação Mentor
 
 ## 1. Visão Geral
 
-A página de Avaliação Mentor foi migrada do Web Forms para Blazor (.NET 9), utilizando arquitetura moderna, injeção de dependências e componentes reutilizáveis. Toda a lógica de negócio foi extraída para serviços injetáveis (`IMentoriaService`, `IMentoriaHelper`), centralizando o carregamento de combos, filtro de avaliações, obtenção de mentorados e projetos. O componente Blazor (`AvaliacaoMentor.razor` e `.razor.cs`) orquestra a UI e a interação do usuário.
+Esta documentação detalha a arquitetura, funcionamento e integração dos serviços e componentes envolvidos na migração da página de Avaliação de Mentor do sistema de avaliação interna da empresa para Blazor Híbrido .NET 9. O objetivo é garantir desacoplamento, reutilização e escalabilidade, mantendo todas as funcionalidades atuais.
 
-## 2. Estrutura de Integração
+## 2. Estrutura de Serviços e Componentes
 
-- **Data/ApplicationDbContext.cs**: Mapeamento das entidades necessárias para mentoria, projetos, avaliações, clientes, períodos, status, etc.
-- **Services/Mentoria/MentoriaService.cs**: Serviço principal para lógica de negócio relacionada à mentoria.
-- **Services/Mentoria/Common/MentoriaHelper.cs**: Métodos auxiliares para manipulação e apresentação dos dados.
-- **Pages/AvaliacaoMentor.razor**: Componente Blazor da interface de Avaliação Mentor.
-- **Pages/AvaliacaoMentor.razor.cs**: Code-behind do componente, gerenciando estado e chamadas aos serviços.
+- **Services/Mentoria/MentoriaService.cs**: Centraliza a lógica de negócio para filtros, carregamento de mentorados, projetos e avaliações.
+- **Services/Mentoria/Common/MentoriaHelper.cs**: Métodos auxiliares para manipulação e formatação de dados de mentoria.
+- **Services/Mentoria/Common/ComboHelperMentoria.cs**: Métodos especializados para combos de mentoria, reutilizando o máximo possível de Services/Common/ComboHelper.cs.
+- **Pages/AvaliacaoMentor.razor**: Componente Blazor que representa a interface da página de avaliação de mentor, dividida em subcomponentes reutilizáveis.
+- **Configuração**: Todas as configurações de mentoria estão centralizadas na seção "Mentoria" do appsettings.json.
+- **Injeção de Dependência**: Todos os serviços de mentoria e helpers são registrados no Program.cs e disponíveis para injeção.
 
-## 3. Fluxo do Processo (Mermaid)
+## 3. Integração e Fluxo de Dados
+
+Os componentes Blazor consomem os serviços de mentoria via DI. O carregamento dos combos, mentorados e avaliações é realizado de forma assíncrona, respeitando os filtros selecionados pelo usuário. Helpers garantem formatação e validação dos dados antes da exibição.
+
+### Diagrama de Fluxo (Mermaid)
 mermaid
 flowchart TD
-    A[Usuário acessa AvaliacaoMentor.razor] --> B[OnInitializedAsync]
-    B --> C[Carregar Combos]
-    B --> D[Carregar Mentorados]
-    B --> E[Carregar Projetos Avaliacoes]
-    C -->|IMentoriaService| F[ProjetosCombo, ClientesCombo, PeriodosCombo, StatusCombo]
-    D -->|IMentoriaService| G[Mentorados]
-    E -->|IMentoriaService| H[ProjetosAvaliacoes]
-    F --> I[Renderiza Filtros]
-    G --> J[Renderiza Tabela Mentorados]
-    H --> K[Renderiza Tabela Projetos/Avaliações]
-    I --> L[Usuário altera filtro]
-    L --> M[OnFiltrar]
-    M --> E
+    A[Pages/AvaliacaoMentor.razor] --> B[Services/Mentoria/MentoriaService]
+    A --> C[Services/Mentoria/Common/MentoriaHelper]
+    A --> D[Services/Mentoria/Common/ComboHelperMentoria]
+    B --> E[Data/ApplicationDbContext]
+    D --> F[Services/Common/ComboHelper]
+    A --> G[appsettings.json (Mentoria)]
+    subgraph UI
+        A
+    end
+    subgraph Services
+        B
+        C
+        D
+        F
+    end
+    subgraph Infra
+        E
+        G
+    end
 
 
-## 4. Funcionamento
+## 4. Sugestões de Melhorias Futuras
 
-- Ao acessar a página, o componente Blazor inicializa e carrega os combos de filtro, mentorados do período atual e os projetos/avaliações do mentor.
-- O usuário pode filtrar os projetos por Projeto, Cliente, Período e Status. Os dados são atualizados dinamicamente.
-- As tabelas de mentorados e avaliações são renderizadas conforme os dados retornados pelos serviços.
-- Navegação para avaliação de competência e feedback RH é feita via links parametrizados.
+- Implementar cache para combos e mentorados, reduzindo chamadas ao banco e melhorando performance.
+- Adicionar testes automatizados para os serviços e helpers.
+- Evoluir o fluxo de mentoria para permitir recomendações baseadas em IA, utilizando o Azure OpenAI.
+- Permitir customização de colunas e filtros na UI via configuração.
+- Internacionalização dos textos e mensagens para suporte a múltiplos idiomas.
+- Logging detalhado de ações do usuário para auditoria e análise de uso.
 
-## 5. Sugestões de Melhorias Futuras
+## 5. Referências de Configuração
 
-- Implementar paginação e busca avançada nos resultados das tabelas.
-- Adicionar exportação dos dados para Excel/PDF diretamente da interface.
-- Integrar notificações em tempo real para atualizações de status das avaliações.
-- Utilizar IA para recomendações de mentoria personalizada e feedbacks automáticos.
-- Melhorar acessibilidade e responsividade dos componentes para dispositivos móveis.
-- Centralizar validações e mensagens de erro em um serviço comum para padronização.
+Todas as configurações relacionadas à mentoria podem ser ajustadas na seção `Mentoria` do arquivo `appsettings.json`, incluindo limites, filtros padrão, mensagens de validação e estilos de tabela.
+
+## 6. Observações
+
+- A arquitetura foi desenhada para máxima reutilização e desacoplamento, facilitando futuras evoluções.
+- O fluxo de dados é totalmente assíncrono e reativo, garantindo performance e experiência do usuário.
+- Todas as funcionalidades originais do sistema foram mantidas e validadas.
