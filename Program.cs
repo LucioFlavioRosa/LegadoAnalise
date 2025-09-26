@@ -44,9 +44,7 @@ using Peers.Moderno.Services.AutoAvaliacao.Common;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.AI;
-// Adicionado para PDI
 using Services.PDI.Common;
-using Services.PDI;
 
 var builder = WebApplication.CreateBuilder(args);
 
