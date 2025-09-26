@@ -17,7 +17,7 @@ O componente consome o serviço de domínio para carregar, validar e salvar aval
 
 ## Fluxo do Processo
 
-mermaid
+```mermaid
 flowchart TD
     Start[Usuário acessa /avaliacao-competencia] --> LoadViewModel[Blazor chama AvaliacaoCompetenciaService.ObterAvaliacaoCompetenciaViewModelAsync]
     LoadViewModel --> RenderizaTela[Renderização da tela com dados de contexto]
@@ -28,7 +28,7 @@ flowchart TD
     Validacao -->|Erro| MensagemErro[Exibe mensagem de erro]
     MensagemSucesso --> Fim[Fim]
     MensagemErro --> Fim
-
+```
 
 ## Funcionamento
 
