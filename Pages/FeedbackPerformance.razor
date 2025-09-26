@@ -1,252 +1,114 @@
-@rendermode InteractiveAuto
 @page "/feedback-performance"
-@inject Peers.Moderno.Services.Performance.IFeedbackPerformanceService FeedbackService
-@inject Peers.Moderno.Services.Common.IMessageBoxService MessageBoxService
+@rendermode InteractiveAuto
+@inject Services.FeedbackPerformance.IFeedbackPerformanceService FeedbackPerformanceService
+@inject Services.FeedbackPerformance.Common.FeedbackPerformanceHelper FeedbackPerformanceHelper
+@inject Services.FeedbackPerformance.Common.FeedbackPerformanceValidator FeedbackPerformanceValidator
+@inject Services.FeedbackPerformance.Common.FeedbackPerformanceComboHelper ComboHelper
+@inject Services.Common.IMessageBoxService MessageBoxService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Feedback de Performance</PageTitle>
 
-@if (ViewModel == null)
-{
-    <div>Carregando...</div>
-}
-else
-{
-    <div class="page-breadcrumb border-bottom">
-        <div class="row">
-            <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
-                <h5 class="font-medium text-uppercase mb-0">Feedback</h5>
-            </div>
-            <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
-                <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
-                    <ol class="breadcrumb mb-0 justify-content-end p-0">
-                        <li class="breadcrumb-item"><a href="/">Peers</a></li>
-                        <li class="breadcrumb-item"><a href="/feedback-performance">Avaliação / Feedback</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Performance</li>
-                    </ol>
-                </nav>
-            </div>
+<div class="container mt-4">
+    <h2>Feedback de Performance</h2>
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label>Projeto:</label>
+            <span>@ProjetoNome</span>
+        </div>
+        <div class="col-md-3">
+            <label>Associado:</label>
+            <span>@AssociadoNome</span>
+        </div>
+        <div class="col-md-3">
+            <label>Período:</label>
+            <span>@PeriodoNome</span>
+        </div>
+        <div class="col-md-3">
+            <label>Gestor:</label>
+            <span>@GestorNome</span>
         </div>
     </div>
-    <div class="page-content container-fluid">
-        <div class="card">
-            <div class="card-body">
-                <form>
-                    <div class="form-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="text-left">
-                                    <button type="button" class="btn btn-danger" @onclick="GoToCompetencia">Competencia</button>
-                                    <button type="button" class="btn btn-facebook" disabled>Performance</button>
-                                    <button type="button" class="btn btn-info" @onclick="GoToFinalizacao">Ir para Finalização</button>
-                                    <p></p>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <div class="row">
-                                    <div class="col-md-2"><label><b>Avaliado</b></label></div>
-                                    <div class="col-md-4"><label>@ViewModel.AssociadoNome</label></div>
-                                    <div class="col-md-2"><label><b>Período</b></label></div>
-                                    <div class="col-md-3"><label>@ViewModel.PeriodoDescricao</label></div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-2"><label><b>Projeto</b></label></div>
-                                    <div class="col-md-4"><label>@ViewModel.ProjetoNome</label></div>
-                                    <div class="col-md-2"><label><b>Tempo restante</b></label></div>
-                                    <div class="col-md-3"><label>@ViewModel.TempoRestante</label></div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-2"><label><b>Cliente</b></label></div>
-                                    <div class="col-md-4"><label>@ViewModel.ClienteNome</label></div>
-                                    <div class="col-md-2"><label><b>Gestor</b></label></div>
-                                    <div class="col-md-3"><label>@ViewModel.GestorNome</label></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label>Cliente:</label>
+            <span>@ClienteNome</span>
         </div>
-        <div class="card">
-            <div class="card-body">
-                <div class="form-body">
-                    <div class="row">
-                        <div class="col-md-4 offset-md-8">
-                            <div class="text-right">
-                                <button class="btn btn-dark" @onclick="SalvarAvaliacao">Salvar Avaliação</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <br />
-                <div class="table-responsive">
-                    <table class="table table-striped border">
-                        <thead>
-                            <tr>
-                                <th>Performance</th>
-                                <th>Abaixo</th>
-                                <th>Esperado</th>
-                                <th>Acima</th>
-                                <th>Nota Avaliado</th>
-                                <th>Nota às Cegas</th>
-                                <th>Nota Gestor</th>
-                                <th>Feedback</th>
-                                <th>Observações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in ViewModel.PerformanceItems)
+        <div class="col-md-3">
+            <label>Tempo Restante:</label>
+            <span>@TempoRestante</span>
+        </div>
+    </div>
+
+    <EditForm Model="FeedbackModel" OnValidSubmit="SalvarFeedback">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="table-responsive">
+            <table class="table table-striped border">
+                <thead>
+                    <tr>
+                        <th>Performance</th>
+                        <th>Nota Avaliado</th>
+                        <th>Observação Avaliado</th>
+                        <th>Nota Cegas</th>
+                        <th>Nota Gestor</th>
+                        <th>Observação Gestor</th>
+                        <th>Nota Feedback</th>
+                        <th>Observação Feedback</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (FeedbackModel.Performances != null)
+                    {
+                        string abrangenciaAtual = null;
+                        foreach (var perf in FeedbackModel.Performances)
+                        {
+                            if (!string.IsNullOrEmpty(perf.Abrangencia) && perf.Abrangencia != abrangenciaAtual)
                             {
-                                <tr @attributes="@(item.SeparadorAbrangencia)">
-                                    <td colspan="9" style="text-align:center;font-size:16px">@item.Abrangencia</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        @item.Descricao<br />
-                                        <label style="font-size:13px;font-weight:normal;font-style:italic;color:darkred">@item.DisclaimerInput</label>
-                                    </td>
-                                    <td>
-                                        <a href="#abaixo_@item.IdPerformance" data-target="#abaixo_@item.IdPerformance" data-toggle="collapse" class="accordion-toggle">
-                                            @Peers.Moderno.Services.Performance.Common.FeedbackPerformanceHelper.TruncaTexto(item.Abaixo, 40)
-                                            <span style="font-weight:bold">  Ver+</span>
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <a href="#esperado_@item.IdPerformance" data-target="#esperado_@item.IdPerformance" data-toggle="collapse" class="accordion-toggle">
-                                            @Peers.Moderno.Services.Performance.Common.FeedbackPerformanceHelper.TruncaTexto(item.Esperado, 40)
-                                            <span style="font-weight:bold">  Ver+</span>
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <a href="#acima_@item.IdPerformance" data-target="#acima_@item.IdPerformance" data-toggle="collapse" class="accordion-toggle">
-                                            @Peers.Moderno.Services.Performance.Common.FeedbackPerformanceHelper.TruncaTexto(item.Acima, 40)
-                                            <span style="font-weight:bold">  Ver+</span>
-                                        </a>
-                                    </td>
-                                    <td>@item.NotaAvaliado</td>
-                                    <td>@item.NotaCegas</td>
-                                    <td>@item.NotaGestor</td>
-                                    <td style="width: 120px;">
-                                        <select class="form-control p-0 select2" style="width: 100%" @bind="item.NotaSelecionada">
-                                            @foreach (var nota in Peers.Moderno.Services.Common.ComboHelper.GetNotasPerformanceItems())
-                                            {
-                                                <option value="@nota.Value" disabled="@(nota.IsDisabled ? "disabled" : null)" selected="@(nota.IsSelected ? "selected" : null)">@nota.Text</option>
-                                            }
-                                        </select>
-                                    </td>
-                                    <td class="text-center">
-                                        <button type="button" data-toggle="collapse" data-target="#obs_@item.IdPerformance" class="accordion-toggle" style="background-color:#003150;padding:8px 15px;border:none">
-                                            <span aria-hidden="true" style="color:white;font-size:15px">Considerações</span>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colspan="9" class="hiddenRow">
-                                        <div class="accordian-body collapse" id="abaixo_@item.IdPerformance">[Abaixo] @item.Abaixo</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colspan="9" class="hiddenRow">
-                                        <div class="accordian-body collapse" id="esperado_@item.IdPerformance">[Esperado] @item.Esperado</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colspan="9" class="hiddenRow">
-                                        <div class="accordian-body collapse" id="acima_@item.IdPerformance">[Acima] @item.Acima</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colspan="9" class="hiddenRow">
-                                        <div class="accordian-body collapse" id="obs_@item.IdPerformance">
-                                            <p>
-                                                <strong>Observações do Avaliado:</strong><br>
-                                                @item.ObservacaoAvaliado
-                                            </p>
-                                            <p>
-                                                <strong>Observações do Gestor:</strong><br>
-                                                @item.ObservacaoGestor
-                                            </p>
-                                            <p>
-                                                <strong>Considerações Feedback:</strong><br />
-                                                <textarea rows="5" class="form-control" @bind="item.ConsideracaoFeedback"></textarea>
-                                            </p>
-                                        </div>
-                                    </td>
+                                abrangenciaAtual = perf.Abrangencia;
+                                <tr class="table-secondary">
+                                    <td colspan="8" style="text-align:center;font-size:16px">@abrangenciaAtual</td>
                                 </tr>
                             }
-                        </tbody>
-                    </table>
-                </div>
-                <div class="form-body">
-                    <div class="row">
-                        <div class="col-md-4 offset-md-8">
-                            <div class="text-right">
-                                <button class="btn btn-dark" @onclick="SalvarAvaliacao">Salvar Avaliação</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                            <tr>
+                                <td>@perf.Descricao</td>
+                                <td>@perf.NotaAvaliado</td>
+                                <td>@perf.ObservacaoAvaliado</td>
+                                <td>@perf.NotaCegas</td>
+                                <td>@perf.NotaGestor</td>
+                                <td>@perf.ObservacaoGestor</td>
+                                <td>
+                                    <InputSelect class="form-control" @bind-Value="perf.NotaFeedback" disabled="@(!perf.InputAvaliacaoGestor)">
+                                        @foreach (var nota in ComboHelper.GetNotasFeedbackItems())
+                                        {
+                                            <option value="@nota.Value" disabled="@nota.IsDisabled">@nota.Text</option>
+                                        }
+                                    </InputSelect>
+                                </td>
+                                <td>
+                                    <InputTextArea class="form-control" @bind-Value="perf.ObservacaoFeedback" rows="3" disabled="@(!perf.InputAvaliacaoGestor)"></InputTextArea>
+                                    @if (!perf.InputAvaliacaoGestor)
+                                    {
+                                        <div class="text-muted" style="font-size:13px;font-style:italic;">Esta nota não requer preenchimento em feedback</div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
         </div>
-        <div class="card">
-            <div class="card-body">
-                <div class="col-md-5">
-                    <div class="text-left">
-                        <button type="button" class="btn btn-danger" @onclick="GoToCompetencia">Competencia</button>
-                        <button type="button" class="btn btn-facebook" disabled>Performance</button>
-                        <button type="button" class="btn btn-info" @onclick="GoToFinalizacao">Ir para Finalização</button>
-                    </div>
-                </div>
-            </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary" disabled="@IsFinalizado">Salvar</button>
+            <button type="button" class="btn btn-success ms-2" @onclick="FinalizarFeedback" disabled="@IsFinalizado">Finalizar</button>
+            <button type="button" class="btn btn-secondary ms-2" @onclick="IrParaCompetencia">Ir para Competência</button>
         </div>
-    </div>
-}
+    </EditForm>
+</div>
 
-@code {
-    private Peers.Moderno.Services.Performance.FeedbackPerformanceViewModel? ViewModel;
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Exemplo: IDs fixos para demonstração
-        int projetoId = 1;
-        int associadoId = 1;
-        int periodoId = 1;
-        ViewModel = await FeedbackService.GetFeedbackAsync(projetoId, associadoId, periodoId);
-    }
-
-    private async Task SalvarAvaliacao()
-    {
-        if (ViewModel == null) return;
-        var saveModel = new Peers.Moderno.Services.Performance.FeedbackPerformanceSaveModel
-        {
-            ProjetoId = ViewModel.ProjetoId,
-            AssociadoId = ViewModel.AssociadoId,
-            PeriodoId = ViewModel.PeriodoId,
-            NotasObservacoes = ViewModel.PerformanceItems.Select(item => new Peers.Moderno.Services.Performance.PerformanceNotaObservacao
-            {
-                IdPerformance = item.IdPerformance,
-                NotaSelecionada = item.NotaSelecionada ?? 0,
-                ConsideracaoFeedback = item.ConsideracaoFeedback ?? string.Empty
-            }).ToList()
-        };
-        var result = await FeedbackService.SaveFeedbackAsync(saveModel);
-        if (result)
-        {
-            MessageBoxService.ShowSuccess("Avaliação Salva com Sucesso.");
-        }
-        else
-        {
-            MessageBoxService.ShowError("Erro ao salvar avaliação.");
-        }
-    }
-
-    private void GoToCompetencia()
-    {
-        // Navegação para página de competência
-        // NavigationManager.NavigateTo("/competencia");
-    }
-    private void GoToFinalizacao()
-    {
-        // Navegação para página de finalização
-        // NavigationManager.NavigateTo("/finalizacao");
-    }
+@if (!string.IsNullOrEmpty(Mensagem))
+{
+    <div class="alert alert-info mt-3">@Mensagem</div>
 }
