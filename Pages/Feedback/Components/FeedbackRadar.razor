@@ -1,0 +1,23 @@
+@inject IJSRuntime JS
+
+@if (RadarData == null)
+{
+    <div class="alert alert-info">Radar não disponível para este contexto.</div>
+}
+else
+{
+    <canvas id="radarChart" width="600" height="400"></canvas>
+}
+
+@code {
+    [Parameter]
+    public object? RadarData { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && RadarData != null)
+        {
+            await JS.InvokeVoidAsync("FeedbackRadar.renderRadar", "radarChart", RadarData);
+        }
+    }
+}
