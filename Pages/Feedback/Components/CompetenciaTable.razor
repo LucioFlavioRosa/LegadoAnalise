@@ -1,0 +1,112 @@
+@using Peers.Moderno.Models
+@inject Services.Feedback.Common.IFeedbackComboHelper FeedbackComboHelper
+
+@if (IsLoading)
+{
+    <div class="text-center"><span>Carregando competências...</span></div>
+}
+else if (Competencias == null || Competencias.Count == 0)
+{
+    <div class="alert alert-warning">Nenhuma competência encontrada para avaliação.</div>
+}
+else
+{
+    <div class="table-responsive" style="overflow-y:auto !important; height:600px">
+        <table class="table table-striped border" style="width:100%;table-layout:fixed">
+            <thead>
+                <tr>
+                    <th colspan="8" style="background-color:#e5e019;color:#021240;position:sticky !important; top:-5px !important">Nível 1</th>
+                    <th colspan="10" style="background-color:#e5e019;color:#021240;position:sticky !important; top:-5px !important">Nível 2</th>
+                </tr>
+                <tr>
+                    <th colspan="4" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Detalhamento Atual</th>
+                    <th colspan="1" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Nota Avaliado</th>
+                    <th colspan="1" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Nota Gestor</th>
+                    <th colspan="2" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Feedback</th>
+                    <th colspan="4" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Detalhamento Próximo Nível</th>
+                    <th colspan="1" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Nota Avaliado</th>
+                    <th colspan="1" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Nota Gestor</th>
+                    <th colspan="2" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Feedback</th>
+                    <th colspan="2" style="color:#021240;background-color:#eae678;position:sticky !important; top:45px !important">Considerações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var comp in Competencias)
+                {
+                    <tr style="font-style:italic;font-size:14px;font-weight:normal;background-color:#f2f2f2;vertical-align:bottom">
+                        <th colspan="18" style="font-style:normal;font-size:21px;font-weight:normal;align-content:center;text-align:center;border-top:5px solid;border-color:#003150">
+                            @comp.SubCompetencia
+                        </th>
+                    </tr>
+                    <tr style="font-weight:bold;background-color:#f5f5f5;border-top:none">
+                        <td colspan="18" style="text-align:center;border-top:none">@comp.PalavrasChave</td>
+                    </tr>
+                    <tr style="font-weight:normal;background-color:#f9f9f9;border-top:none">
+                        <td colspan="4" style="border-top:none;background-color:#f9f9f9">
+                            <span>@comp.DetalheNivelAtual</span>
+                        </td>
+                        <td colspan="1" style="border-top:none;background-color:#f9f9f9">@comp.Nota1Avaliado</td>
+                        <td colspan="1" style="border-top:none;background-color:#f9f9f9">@comp.Nota1Gestor</td>
+                        <td colspan="2" style="border-top:none;background-color:#f9f9f9">@comp.FeedbackNivel1</td>
+                        <td colspan="4" style="border-top:none;background-color:#f9f9f9">
+                            <span>@comp.DetalheProximoNivel</span>
+                        </td>
+                        <td colspan="1" style="border-top:none;background-color:#f9f9f9">@comp.Nota2Avaliado</td>
+                        <td colspan="1" style="border-top:none;background-color:#f9f9f9">@comp.Nota2Gestor</td>
+                        <td colspan="2" style="border-top:none;background-color:#f9f9f9">@comp.FeedbackNivel2</td>
+                        <td colspan="2" style="border-top:none;background-color:#f9f9f9;text-align:center">
+                            <button class="btn btn-sm btn-primary" @onclick="() => ToggleConsideracoes(comp)">Considerações</button>
+                        </td>
+                    </tr>
+                    @if (comp.ShowConsideracoes)
+                    {
+                        <tr>
+                            <td colspan="18" class="hiddenRow">
+                                <div class="accordian-body" style="padding: 10px;">
+                                    <strong>Observações do avaliado:</strong><br />
+                                    <span>@comp.ObservacaoAvaliado</span>
+                                    <br />
+                                    <strong>Observações do gestor:</strong><br />
+                                    <span>@comp.ObservacaoGestor</span>
+                                    <br />
+                                    <strong>Considerações do feedback:</strong><br />
+                                    <textarea rows="5" class="form-control" @bind="comp.Consideracoes"></textarea>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="form-body mt-2">
+        <div class="row">
+            <div class="col-md-12 text-right">
+                <button class="btn btn-dark mr-2" @onclick="OnSalvar">Salvar Avaliação</button>
+                <button class="btn btn-info" @onclick="OnFinalizar">Finalizar Avaliação</button>
+            </div>
+        </div>
+    </div>
+    @if (!string.IsNullOrEmpty(Mensagem))
+    {
+        <div class="alert alert-info mt-2">@Mensagem</div>
+    }
+}
+
+@code {
+    [Parameter]
+    public List<CompetenciaModel> Competencias { get; set; } = new();
+    [Parameter]
+    public EventCallback OnSalvar { get; set; }
+    [Parameter]
+    public EventCallback OnFinalizar { get; set; }
+    [Parameter]
+    public bool IsLoading { get; set; }
+    [Parameter]
+    public string Mensagem { get; set; } = string.Empty;
+
+    private void ToggleConsideracoes(CompetenciaModel comp)
+    {
+        comp.ShowConsideracoes = !comp.ShowConsideracoes;
+    }
+}
