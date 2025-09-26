@@ -20,7 +20,7 @@ Este documento descreve o funcionamento, integração e fluxo do processo de Ava
 
 ## Fluxo de Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     Start([Início])
     Filtros[Renderiza Filtros: Projetos, Clientes, Períodos, Status]
@@ -38,7 +38,7 @@ flowchart TD
     BtnAcao -->|Finalizar| Finalizacao --> MessageBox --> AtualizaTabela --> RenderTabela
     BtnAcao -->|Visualizar| RenderTabela
     BtnAcao -->|Iniciar/Continuar| RenderTabela
-
+```
 
 ## Sugestões de Melhorias Futuras
 
