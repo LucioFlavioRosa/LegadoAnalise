@@ -302,9 +302,9 @@ builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IFeedbackFinalizationService, FeedbackFinalizationService>();
 builder.Services.AddScoped<IFeedbackComboHelper, FeedbackComboHelper>();
 
-// AvaliacoesGestor Services - Registro dos novos serviços e helpers
-builder.Services.AddScoped<IAvaliacoesGestorService, AvaliacoesGestorService>();
-builder.Services.AddScoped<IAvaliacoesGestorHelper, AvaliacoesGestorHelper>();
+// AvaliacoesGestor Services - Registro dos novos serviços e helpers (Passo 8)
+builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorService, Services.AvaliacoesGestor.Common.AvaliacoesGestorService>();
+builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorHelper, Services.AvaliacoesGestor.Common.AvaliacoesGestorHelper>();
 
 var app = builder.Build();
 
