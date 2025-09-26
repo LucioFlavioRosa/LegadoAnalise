@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+
 namespace Peers.Moderno.Services.Common;
 
 public static class ComboHelper
@@ -39,20 +42,38 @@ public static class ComboHelper
         };
     }
 
+    public static List<ComboItem> GetNotasCompetenciaItems(bool includeSelecionar = true)
+    {
+        var items = new List<ComboItem>();
+        if (includeSelecionar)
+        {
+            items.Add(new ComboItem { Value = "0", Text = "[Selecionar]", IsDisabled = true, AdditionalData = { ["Peso"] = 0 } });
+        }
+        items.AddRange(new List<ComboItem>
+        {
+            new ComboItem { Value = "1", Text = "1", AdditionalData = { ["Peso"] = 1 } },
+            new ComboItem { Value = "2", Text = "2", AdditionalData = { ["Peso"] = 2 } },
+            new ComboItem { Value = "3", Text = "3", AdditionalData = { ["Peso"] = 3 } },
+            new ComboItem { Value = "4", Text = "4", AdditionalData = { ["Peso"] = 4 } },
+            new ComboItem { Value = "5", Text = "N/A", AdditionalData = { ["Peso"] = 5 } }
+        });
+        return items;
+    }
+
     public static List<ComboItem> GetNotasPerformanceItems(bool includeSelecionar = true)
     {
         var items = new List<ComboItem>();
         if (includeSelecionar)
         {
-            items.Add(new ComboItem { Value = "0", Text = "[Selecionar]", IsDisabled = true });
+            items.Add(new ComboItem { Value = "0", Text = "[Selecionar]", IsDisabled = true, AdditionalData = { ["Peso"] = 0 } });
         }
         items.AddRange(new List<ComboItem>
         {
-            new ComboItem { Value = "1", Text = "1" },
-            new ComboItem { Value = "2", Text = "2" },
-            new ComboItem { Value = "3", Text = "3" },
-            new ComboItem { Value = "4", Text = "4" },
-            new ComboItem { Value = "5", Text = "N/A" }
+            new ComboItem { Value = "1", Text = "1", AdditionalData = { ["Peso"] = 1 } },
+            new ComboItem { Value = "2", Text = "2", AdditionalData = { ["Peso"] = 2 } },
+            new ComboItem { Value = "3", Text = "3", AdditionalData = { ["Peso"] = 3 } },
+            new ComboItem { Value = "4", Text = "4", AdditionalData = { ["Peso"] = 4 } },
+            new ComboItem { Value = "5", Text = "N/A", AdditionalData = { ["Peso"] = 5 } }
         });
         return items;
     }
