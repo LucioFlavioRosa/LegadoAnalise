@@ -1,134 +1,76 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Peers.Moderno.Services.Common;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Peers.Moderno.Data;
 using Peers.Moderno.Models;
 
-namespace Services.AvaliacoesGestor.Common;
-
-public static class AvaliacoesGestorHelper
+namespace Services.AvaliacoesGestor.Common
 {
-    public static List<ComboItem> GetEtapasAvaliacaoItems()
+    public class AvaliacoesGestorHelper
     {
-        return new List<ComboItem>
+        private readonly ApplicationDbContext _db;
+        public AvaliacoesGestorHelper(ApplicationDbContext db)
         {
-            new ComboItem { Value = "", Text = "[Selecionar]" },
-            new ComboItem { Value = "PreenchimentoTodas", Text = "Preenchimento Todas" },
-            new ComboItem { Value = "PreenchimentoGestor", Text = "Preenchimento Gestor" },
-            new ComboItem { Value = "PreenchimentoLiderado", Text = "Preenchimento Liderado" },
-            new ComboItem { Value = "FinalizadasTodas", Text = "Finalizadas Todas" },
-            new ComboItem { Value = "FinalizadasGestor", Text = "Finalizadas Gestor" },
-            new ComboItem { Value = "FinalizadasLiderado", Text = "Finalizadas Liderado" }
-        };
-    }
-
-    public static string GetStatusDescricao(string status)
-    {
-        switch (status?.Trim()?.ToLower())
-        {
-            case "1":
-            case "ativo":
-                return "Ativo";
-            case "0":
-            case "inativo":
-                return "Inativo";
-            default:
-                return status ?? "";
+            _db = db;
         }
-    }
 
-    public static string GetEtapaDescricao(string etapaKey)
-    {
-        return etapaKey switch
+        public async Task<List<Competencia>> ObterCompetenciasParaAvaliacaoAsync(Associado associado, Projeto projeto, PERIODOSAVALIACOES periodo, string tipoAvaliacao, string escopo, AvaliacaoEmail avaliacaoEmail)
         {
-            "NaoIniciada" => "Não Iniciada",
-            "AutoAvaliacao" => "Em Auto-avaliação",
-            "AvaliacaoAsCegas" => "Em Av. às Cegas",
-            "AvaliacaoGestor" => "Em Av. Gestor",
-            "Feedback" => "Em Feedback",
-            "AvaliacaoMentor" => "Em Cons. Mentor",
-            "Finalizada" => "Finalizada",
-            _ => etapaKey ?? ""
-        };
-    }
-
-    public static List<ComboItem> GetProjetosCombo(List<Projeto> projetos)
-    {
-        var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
-        if (projetos != null)
-        {
-            items.AddRange(projetos.Select(p => new ComboItem { Value = p.Id.ToString(), Text = p.Nome }));
+            var competencias = await _db.Competencias
+                .Where(c => c.IdCargo == associado.IdCargo && c.IdNivel == associado.IdNivel)
+                .Include(c => c.SubCompetencia)
+                .ToListAsync();
+            return competencias;
         }
-        return items;
-    }
 
-    public static List<ComboItem> GetClientesCombo(List<Cliente> clientes)
-    {
-        var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
-        if (clientes != null)
+        public async Task<List<CompetenciaGestorDto>> MapearCompetenciasParaDtoAsync(List<Competencia> competencias, Associado associado, Projeto projeto, PERIODOSAVALIACOES periodo, string tipoAvaliacao, string escopo, AvaliacaoEmail avaliacaoEmail)
         {
-            items.AddRange(clientes.Select(c => new ComboItem { Value = c.IdCliente.ToString(), Text = c.Nome }));
+            var result = new List<CompetenciaGestorDto>();
+            foreach (var comp in competencias)
+            {
+                var avaliacaoComp = await _db.AvaliacoesCompetenciasNotas.FirstOrDefaultAsync(a => a.IdCompetencia == comp.IdCompetencia && a.IdAssociado == associado.Id && a.IdProjeto == projeto.Id && a.IdPeriodo == periodo.IdPeriodo && a.TipoAvaliacao == tipoAvaliacao && a.Escopo == escopo && a.IdAvaliacao == avaliacaoEmail.idAvaliacao);
+                result.Add(new CompetenciaGestorDto
+                {
+                    IdAvaliacaoCompetencia = avaliacaoComp?.IdNota ?? 0,
+                    IdCompetencia = comp.IdCompetencia,
+                    NomeCompetencia = comp.Nome,
+                    SubCompetencia = comp.SubCompetencia?.Nome ?? string.Empty,
+                    PalavrasChave = comp.PalavrasChave ?? string.Empty,
+                    DetalheNivelAtual = comp.CompetenciaJRDetalhe ?? string.Empty,
+                    DetalheProximoNivel = comp.CompetenciaPLDetalhe ?? string.Empty,
+                    NotaNivel1Gestor = avaliacaoComp?.IdNotaNivel1AvaliacaoGestor,
+                    NotaNivel2Gestor = avaliacaoComp?.IdNotaNivel2AvaliacaoGestor,
+                    ConsideracoesGestor = avaliacaoComp?.ComentariosAvaliacaoGestor ?? string.Empty,
+                    IdModo = comp.IdModo,
+                    InputNivel1 = comp.InputNivel1,
+                    InputNivel2 = comp.InputNivel2,
+                    VisivelNivel1 = comp.VisivelNivel1,
+                    VisivelNivel2 = comp.VisivelNivel2,
+                    TextoNotaNivel1 = "",
+                    TextoNotaNivel2 = "",
+                    ObservacaoAvaliado = avaliacaoComp?.ComentariosAutoAvaliacao ?? string.Empty,
+                    ObservacaoCegas = avaliacaoComp?.ComentariosAvaliacaoCegas ?? string.Empty
+                });
+            }
+            return result;
         }
-        return items;
-    }
 
-    public static List<ComboItem> GetPeriodosCombo(List<PERIODOSAVALIACOES> periodos)
-    {
-        var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
-        if (periodos != null)
+        public bool ValidarCompetencias(List<CompetenciaGestorDto> competencias)
         {
-            items.AddRange(periodos.Select(p => new ComboItem { Value = p.IdPeriodo.ToString(), Text = p.Nome }));
+            foreach (var comp in competencias)
+            {
+                if (comp.InputNivel1 && (!comp.NotaNivel1Gestor.HasValue || comp.NotaNivel1Gestor == 0))
+                    return false;
+                if (comp.InputNivel2 && (!comp.NotaNivel2Gestor.HasValue || comp.NotaNivel2Gestor == 0))
+                    return false;
+                if (comp.NotaNivel1Gestor == 5 && comp.NotaNivel2Gestor != 5)
+                    return false;
+                if (comp.NotaNivel1Gestor > 0 && comp.NotaNivel2Gestor > 0 && comp.NotaNivel2Gestor > comp.NotaNivel1Gestor)
+                    return false;
+            }
+            return true;
         }
-        return items;
-    }
-
-    public static List<ComboItem> GetStatusCombo(List<PROJETOSSTATUS> statusList)
-    {
-        var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
-        if (statusList != null)
-        {
-            items.AddRange(statusList.Select(s => new ComboItem { Value = s.IdStatus.ToString(), Text = s.Status }));
-        }
-        return items;
-    }
-
-    public static string FormatData(DateTime? data)
-    {
-        return data.HasValue ? data.Value.ToString("dd/MM/yyyy") : string.Empty;
-    }
-
-    public static string FormatDataPeriodo(PERIODOSAVALIACOES periodo)
-    {
-        return periodo?.Nome ?? string.Empty;
-    }
-
-    public static string FormatNomeAssociado(Associado associado)
-    {
-        return associado?.Nome ?? string.Empty;
-    }
-
-    public static string GetFotoAssociado(Associado associado)
-    {
-        return !string.IsNullOrEmpty(associado?.FotoNome) ? associado.FotoNome : "assets/images/users/usernophoto.jpg";
-    }
-
-    public static bool IsProjetoSelecionado(string? value)
-    {
-        return !string.IsNullOrEmpty(value) && value != "" && value != "0";
-    }
-
-    public static bool IsPeriodoSelecionado(string? value)
-    {
-        return !string.IsNullOrEmpty(value) && value != "" && value != "0";
-    }
-
-    public static bool IsClienteSelecionado(string? value)
-    {
-        return !string.IsNullOrEmpty(value) && value != "" && value != "0";
-    }
-
-    public static bool IsStatusSelecionado(string? value)
-    {
-        return !string.IsNullOrEmpty(value) && value != "" && value != "0";
     }
 }
