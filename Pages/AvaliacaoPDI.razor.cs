@@ -1,0 +1,2 @@
+// Este arquivo pode ser utilizado para lógica adicional do code-behind do componente AvaliacaoPDI caso necessário futuramente.
+// Inicialmente, toda a lógica está implementada no bloco @code do AvaliacaoPDI.razor para facilitar a leitura e manutenção.
