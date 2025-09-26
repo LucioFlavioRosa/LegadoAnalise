@@ -33,14 +33,14 @@ Esta documentação detalha a arquitetura, funcionamento e integração dos serv
 
 ```mermaid
 flowchart TD
-    A[Usuário acessa Avaliação] --> B[Componente AvaliacaoFiltro carrega combos via ComboHelper/AvaliacaoService]
-    B --> C[Usuário seleciona filtros e clica Buscar]
-    C --> D[AvaliacaoService.BuscarAvaliacoesAsync]
-    D --> E[Componente AvaliacaoTabela renderiza resultados]
-    E --> F[Usuário interage com botões (Finalizar, Responder, etc.)]
-    F --> G[AvaliacaoService.FinalizarAvaliacaoAsync]
-    G --> H[MessageBoxService exibe feedback]
-    H --> I[TelemetryService registra evento]
+    A["Usuário acessa Avaliação"] --> B["Componente AvaliacaoFiltro carrega combos via ComboHelper/AvaliacaoService"];
+    B --> C["Usuário seleciona filtros e clica Buscar"];
+    C --> D["AvaliacaoService.BuscarAvaliacoesAsync"];
+    D --> E["Componente AvaliacaoTabela renderiza resultados"];
+    E --> F["Usuário interage com botões (Finalizar, Responder, etc.)"];
+    F --> G["AvaliacaoService.FinalizarAvaliacaoAsync"];
+    G --> H["MessageBoxService exibe feedback"];
+    H --> I["TelemetryService registra evento"];
 ```
 
 ## Exemplo de Uso dos Serviços em Componentes
