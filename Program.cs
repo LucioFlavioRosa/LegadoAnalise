@@ -55,6 +55,9 @@ using Services.FeedbackPerformance.Common;
 // AvaliacoesGestor Services
 using Services.AvaliacoesGestor;
 using Services.AvaliacoesGestor.Common;
+// AvaliacaoCompetenciaService
+using Services.Avaliacoes;
+using Services.Avaliacoes.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -305,6 +308,9 @@ builder.Services.AddScoped<IFeedbackComboHelper, FeedbackComboHelper>();
 // AvaliacoesGestor Services - Registro dos novos serviços e helpers (Passo 8)
 builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorService, Services.AvaliacoesGestor.Common.AvaliacoesGestorService>();
 builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorHelper, Services.AvaliacoesGestor.Common.AvaliacoesGestorHelper>();
+
+// AvaliacaoCompetenciaService - Registro do serviço de avaliação de competências (Passo 8)
+builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoCompetenciaService, Services.Avaliacoes.AvaliacaoCompetenciaService>();
 
 var app = builder.Build();
 
