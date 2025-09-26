@@ -31,7 +31,7 @@ Esta documentação detalha a arquitetura, funcionamento e integração dos serv
 
 ## Fluxo de Alto Nível
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa Avaliação] --> B[Componente AvaliacaoFiltro carrega combos via ComboHelper/AvaliacaoService]
     B --> C[Usuário seleciona filtros e clica Buscar]
@@ -41,10 +41,11 @@ flowchart TD
     F --> G[AvaliacaoService.FinalizarAvaliacaoAsync]
     G --> H[MessageBoxService exibe feedback]
     H --> I[TelemetryService registra evento]
-
+```
 
 ## Exemplo de Uso dos Serviços em Componentes
 
+```text
 razor
 @inject Services.Avaliacoes.IAvaliacaoService AvaliacaoService
 @inject Services.Common.IMessageBoxService MessageBoxService
@@ -60,7 +61,7 @@ razor
         // ...
     }
 }
-
+```
 
 ## Benefícios da Nova Arquitetura
 
