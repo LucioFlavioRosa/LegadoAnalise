@@ -26,7 +26,7 @@ Este módulo implementa o fluxo de Feedback de Performance, migrando a antiga p�
 
 ## Fluxo Mermaid
 
-mermaid
+```mermaid
 flowchart TD
     Start([Início]) --> Page[FeedbackPerformance.razor]
     Page -->|OnInitializedAsync| Service[IFeedbackPerformanceService]
@@ -37,7 +37,7 @@ flowchart TD
     Service -->|Persiste no banco| Db
     Service -->|Retorna sucesso/erro| Page
     Page -->|Exibe mensagem| MessageBoxService
-
+```
 
 ## Sugestões de Melhorias Futuras
 
