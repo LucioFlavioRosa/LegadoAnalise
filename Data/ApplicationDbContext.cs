@@ -51,6 +51,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<PDI_QUESTOES> PDIQuestoes { get; set; }
     public DbSet<PERIODOSAVALIACOES> PeriodosAvaliacoes { get; set; }
 
+    // DbSets para Feedback de Performance
+    public DbSet<AvaliacaoPerformance> AvaliacoesPerformance { get; set; }
+    public DbSet<AvaliacaoEmail> AvaliacoesEmail { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -403,6 +407,27 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.IdPeriodo);
             entity.ToTable("PERIODOSAVALIACOES");
+        });
+
+        // Configuração para Feedback de Performance
+        modelBuilder.Entity<AvaliacaoPerformance>(entity =>
+        {
+            entity.HasKey(e => new { e.IdAssociado, e.IdProjeto, e.IdPerformance, e.IdPeriodo });
+            entity.ToTable("AVALIACOESPERFORMANCES");
+            entity.Property(e => e.IdNotaNivel1Feedback);
+            entity.Property(e => e.ComentariosFeedback).HasMaxLength(2000);
+            entity.Property(e => e.DataHoraInicioFeedback);
+            entity.Property(e => e.DataHoraFimFeedback);
+            entity.Property(e => e.PosicaoAtualFluxoAvaliacao);
+            entity.Property(e => e.Ativo);
+        });
+        modelBuilder.Entity<AvaliacaoEmail>(entity =>
+        {
+            entity.HasKey(e => e.idAvaliacao);
+            entity.ToTable("AVALIACOES_EMAIL");
+            entity.Property(e => e.DataLiberacao);
+            entity.Property(e => e.PosicaoAtualFluxoAvaliacao);
+            entity.Property(e => e.TipoAvaliacao);
         });
     }
 }
