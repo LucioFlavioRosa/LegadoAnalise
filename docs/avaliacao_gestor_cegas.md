@@ -22,22 +22,22 @@ Este documento descreve o funcionamento, integração e fluxo do processo de Ava
 
 ```mermaid
 flowchart TD
-    Start([Início])
-    Filtros[Renderiza Filtros: Projetos, Clientes, Períodos, Status]
-    BtnFiltrar[Usuário clica em "Filtrar"]
-    CarregaAvaliacoes[Chama AvaliacoesGestorService.BuscarAvaliacoes]
-    RenderTabela[Renderiza Tabela de Projetos e Associados]
-    BtnAcao[Usuário interage: Iniciar/Continuar/Ver/Finalizar Avaliação]
-    Finalizacao[Chama AvaliacoesGestorService.FinalizarAvaliacao]
-    MessageBox[Exibe mensagem (sucesso/erro)]
-    AtualizaTabela[Atualiza tabela após ação]
-    End([Fim])
+    Start([Início]);
+    Filtros[Renderiza Filtros: Projetos, Clientes, Períodos, Status];
+    BtnFiltrar[Usuário clica em "Filtrar"];
+    CarregaAvaliacoes[Chama AvaliacoesGestorService.BuscarAvaliacoes];
+    RenderTabela[Renderiza Tabela de Projetos e Associados];
+    BtnAcao[Usuário interage: Iniciar/Continuar/Ver/Finalizar Avaliação];
+    Finalizacao[Chama AvaliacoesGestorService.FinalizarAvaliacao];
+    MessageBox[Exibe mensagem (sucesso/erro)];
+    AtualizaTabela[Atualiza tabela após ação];
+    End([Fim]);
 
-    Start --> Filtros --> BtnFiltrar --> CarregaAvaliacoes --> RenderTabela
-    RenderTabela --> BtnAcao
-    BtnAcao -->|Finalizar| Finalizacao --> MessageBox --> AtualizaTabela --> RenderTabela
-    BtnAcao -->|Visualizar| RenderTabela
-    BtnAcao -->|Iniciar/Continuar| RenderTabela
+    Start --> Filtros --> BtnFiltrar --> CarregaAvaliacoes --> RenderTabela;
+    RenderTabela --> BtnAcao;
+    BtnAcao -->|Finalizar| Finalizacao --> MessageBox --> AtualizaTabela --> RenderTabela;
+    BtnAcao -->|Visualizar| RenderTabela;
+    BtnAcao -->|Iniciar/Continuar| RenderTabela;
 ```
 
 ## Sugestões de Melhorias Futuras
