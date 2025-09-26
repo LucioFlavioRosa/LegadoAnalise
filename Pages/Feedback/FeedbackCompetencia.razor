@@ -1,0 +1,154 @@
+@page "/feedback/competencia"
+@rendermode InteractiveAuto
+@inject Services.Feedback.IFeedbackService FeedbackService
+@inject Services.Feedback.Common.IFeedbackComboHelper FeedbackComboHelper
+@inject Services.Feedback.Common.IFeedbackValidationHelper FeedbackValidationHelper
+@inject Services.Common.IMessageBoxService MessageBoxService
+@inject Services.Common.ITelemetryService TelemetryService
+
+<PageTitle>Feedback - Competências</PageTitle>
+
+<div class="page-breadcrumb border-bottom" style="position:fixed;z-index:1;width:100%">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Feedback</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item"><a href="/feedback">Avaliação / Feedback</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Competência</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid" style="overflow:initial !important">
+    <div class="card col-md-10" style="position:fixed;z-index:1; margin-top:21px;border-color:rgba(0, 0, 0, .25);border-width:1px">
+        <div class="card-body">
+            <FeedbackCompetenciaHeader @ref="_header" />
+        </div>
+    </div>
+    <div class="card col-md-12" style="margin-top:220px">
+        <div class="card-body">
+            <FeedbackCompetenciaTabs @ref="_tabs" />
+            <CompetenciaTable @ref="_competenciaTable"
+                             Competencias="Competencias"
+                             OnSalvar="SalvarAvaliacao"
+                             OnFinalizar="FinalizarAvaliacao"
+                             IsLoading="IsLoading"
+                             Mensagem="Mensagem"
+                             />
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <FeedbackCompetenciaFooter @ref="_footer" />
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<CompetenciaModel> Competencias = new();
+    private bool IsLoading = true;
+    private string Mensagem = string.Empty;
+    private FeedbackCompetenciaHeader _header;
+    private FeedbackCompetenciaTabs _tabs;
+    private CompetenciaTable _competenciaTable;
+    private FeedbackCompetenciaFooter _footer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            Mensagem = string.Empty;
+            TelemetryService.TrackPageView("FeedbackCompetencia");
+            Competencias = await FeedbackService.CarregarAvaliacaoCompetenciaAsync();
+        }
+        catch (Exception ex)
+        {
+            Mensagem = "Erro ao carregar competências.";
+            MessageBoxService.ShowError(Mensagem);
+            TelemetryService.TrackException(ex);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task SalvarAvaliacao()
+    {
+        try
+        {
+            IsLoading = true;
+            Mensagem = string.Empty;
+            if (!FeedbackValidationHelper.ValidarAvaliacaoCompetencia(Competencias))
+            {
+                Mensagem = "Validação falhou. Verifique as notas.";
+                MessageBoxService.ShowWarning(Mensagem);
+                return;
+            }
+            var sucesso = await FeedbackService.SalvarAvaliacaoCompetenciaAsync(Competencias);
+            if (sucesso)
+            {
+                Mensagem = "Feedback Salvo com Sucesso.";
+                MessageBoxService.ShowSuccess(Mensagem);
+            }
+            else
+            {
+                Mensagem = "Falha ao salvar feedback.";
+                MessageBoxService.ShowError(Mensagem);
+            }
+        }
+        catch (Exception ex)
+        {
+            Mensagem = "Erro ao salvar feedback.";
+            MessageBoxService.ShowError(Mensagem);
+            TelemetryService.TrackException(ex);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task FinalizarAvaliacao()
+    {
+        try
+        {
+            IsLoading = true;
+            Mensagem = string.Empty;
+            if (!FeedbackValidationHelper.ValidarAvaliacaoCompetencia(Competencias))
+            {
+                Mensagem = "Validação falhou. Verifique as notas.";
+                MessageBoxService.ShowWarning(Mensagem);
+                return;
+            }
+            var sucesso = await FeedbackService.FinalizarAvaliacaoCompetenciaAsync(Competencias);
+            if (sucesso)
+            {
+                Mensagem = "Avaliação Finalizada com Sucesso.";
+                MessageBoxService.ShowSuccess(Mensagem);
+            }
+            else
+            {
+                Mensagem = "Falha ao finalizar avaliação.";
+                MessageBoxService.ShowError(Mensagem);
+            }
+        }
+        catch (Exception ex)
+        {
+            Mensagem = "Erro ao finalizar avaliação.";
+            MessageBoxService.ShowError(Mensagem);
+            TelemetryService.TrackException(ex);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}
