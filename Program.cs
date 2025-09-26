@@ -46,6 +46,9 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.AI;
 using Peers.Moderno.Services.Mentoria;
 using Peers.Moderno.Services.Mentoria.Common;
+// Feedback Services
+using Peers.Moderno.Services.Feedback;
+using Peers.Moderno.Services.Feedback.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -282,6 +285,11 @@ builder.Services.AddScoped<Services.Avaliacoes.Common.IAvaliacaoUtils, Services.
 // Mentoria Services - Registro dos novos serviços e helpers
 builder.Services.AddScoped<IMentoriaService, MentoriaService>();
 builder.Services.AddScoped<IMentoriaHelper, MentoriaHelper>();
+
+// Feedback Services - Registro dos novos serviços e helpers
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<IFeedbackFinalizationService, FeedbackFinalizationService>();
+builder.Services.AddScoped<IFeedbackComboHelper, FeedbackComboHelper>();
 
 var app = builder.Build();
 
