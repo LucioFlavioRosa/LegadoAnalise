@@ -66,8 +66,6 @@ public static class ComboHelper
         };
     }
 
-    // ... (demais métodos permanecem iguais)
-
     public static ComboItem GetDefaultSelectionItem()
     {
         return new ComboItem { Value = "", Text = "[Selecionar]" };
@@ -90,8 +88,6 @@ public static class ComboHelper
     {
         return status == 1 ? "Ativo" : "Inativo";
     }
-
-    // ... (demais métodos permanecem iguais)
 }
 
 public class ComboItem
