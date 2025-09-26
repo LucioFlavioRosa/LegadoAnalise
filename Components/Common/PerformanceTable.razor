@@ -1,0 +1,116 @@
+@using Services.Common
+@using Peers.Moderno.Models
+@typeparam TItem
+
+<table class="table table-striped border table-responsive">
+    <thead>
+        <tr>
+            <th>Performance</th>
+            <th>Abaixo</th>
+            <th>Esperado</th>
+            <th>Acima</th>
+            <th>Nota Avaliado</th>
+            <th>Considerações Avaliado</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Items != null)
+        {
+            string? lastAbrangencia = null;
+            foreach (var item in Items)
+            {
+                if (!string.IsNullOrEmpty(item.Abrangencia) && item.Abrangencia != lastAbrangencia)
+                {
+                    <tr>
+                        <td colspan="6" style="text-align:center;font-size:16px">@item.Abrangencia</td>
+                    </tr>
+                    lastAbrangencia = item.Abrangencia;
+                }
+                <tr>
+                    <td>
+                        <input type="hidden" value="@item.IdPerformance" />
+                        @item.Descricao
+                        <br />
+                        <label style="font-size:13px;font-weight:normal;font-style:italic;color:darkred">@item.DisclaimerInput</label>
+                    </td>
+                    <td>
+                        <a href="#abaixo_@item.IdPerformance" data-target="#abaixo_@item.IdPerformance" data-toggle="collapse" class="accordion-toggle">
+                            @PerformanceHelper.TruncaTexto(item.Abaixo, 45)
+                            <span style="font-weight:bold">  Ver+</span>
+                        </a>
+                    </td>
+                    <td>
+                        <a href="#esperado_@item.IdPerformance" data-target="#esperado_@item.IdPerformance" data-toggle="collapse" class="accordion-toggle">
+                            @PerformanceHelper.TruncaTexto(item.Esperado, 45)
+                            <span style="font-weight:bold">  Ver+</span>
+                        </a>
+                    </td>
+                    <td>
+                        <a href="#acima_@item.IdPerformance" data-target="#acima_@item.IdPerformance" data-toggle="collapse" class="accordion-toggle">
+                            @PerformanceHelper.TruncaTexto(item.Acima, 45)
+                            <span style="font-weight:bold">  Ver+</span>
+                        </a>
+                    </td>
+                    <td>
+                        <select class="form-control p-0 select2" style="width: 100%" value="@item.Nota" @onchange="e => OnNotaChangedHandler(item.IdPerformance, e)">
+                            @foreach (var nota in ComboHelper.GetNotasPerformanceItems())
+                            {
+                                <option value="@nota.Value" selected="@(item.Nota?.ToString() == nota.Value)">@nota.Text</option>
+                            }
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <button type="button" data-toggle="collapse" data-target="#obs_@item.IdPerformance" class="accordion-toggle" style="background-color:#003150;padding:8px 15px;border:none">
+                            <span aria-hidden="true" style="color:white;font-size:15px">Considerações</span>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="10" class="hiddenRow">
+                        <div class="accordian-body collapse" id="abaixo_@item.IdPerformance">[Abaixo] @item.Abaixo</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="10" class="hiddenRow">
+                        <div class="accordian-body collapse" id="esperado_@item.IdPerformance">[Esperado] @item.Esperado</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="10" class="hiddenRow">
+                        <div class="accordian-body collapse" id="acima_@item.IdPerformance">[Acima] @item.Acima</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="10" class="hiddenRow">
+                        <div class="accordian-body collapse" id="obs_@item.IdPerformance">
+                            <strong>Considerações:</strong><br />
+                            <textarea rows="5" class="form-control" @onchange="e => OnObservacaoChangedHandler(item.IdPerformance, e)">@item.Observacao</textarea>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public List<PerformanceAvaliacaoGestorasCegasDto> Items { get; set; } = new();
+    [Parameter]
+    public EventCallback<(int, int?)> OnNotaChanged { get; set; }
+    [Parameter]
+    public EventCallback<(int, string?)> OnObservacaoChanged { get; set; }
+
+    private void OnNotaChangedHandler(int idPerformance, ChangeEventArgs e)
+    {
+        int? nota = null;
+        if (int.TryParse(e.Value?.ToString(), out var val))
+            nota = val;
+        OnNotaChanged.InvokeAsync((idPerformance, nota));
+    }
+
+    private void OnObservacaoChangedHandler(int idPerformance, ChangeEventArgs e)
+    {
+        OnObservacaoChanged.InvokeAsync((idPerformance, e.Value?.ToString()));
+    }
+}
