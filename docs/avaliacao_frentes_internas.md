@@ -1,58 +1,86 @@
-# Avaliação de Frentes Internas - Blazor Híbrido (.NET 9)
+# Documentação: Avaliação de Frentes Internas (Migração Web Forms → Blazor)
 
 ## Visão Geral
 
-Esta documentação descreve a arquitetura, integração e fluxo dos componentes e serviços responsáveis pela tela de Avaliação de Frentes Internas, migrada de Web Forms para Blazor Híbrido. O objetivo é garantir reuso, desacoplamento e facilidade de manutenção, centralizando lógica de negócio em serviços e compondo a interface em componentes Blazor.
+Este documento descreve a arquitetura, integração e fluxo do novo módulo de Avaliação de Frentes Internas, migrado de Web Forms para Blazor Híbrido (.NET 9). O objetivo é garantir separação de responsabilidades, reutilização de serviços e fácil manutenção/expansão.
 
-## Estrutura dos Componentes
+## Estrutura de Componentes e Serviços
 
-- **AvaliacaoFrentesInternas.razor**: Componente principal da página. Orquestra o carregamento de dados, integração com serviços, e composição dos subcomponentes.
-- **PeriodoTabs.razor**: Renderiza as abas de períodos disponíveis para avaliação. Permite seleção de período.
-- **AvaliacaoCard.razor**: Exibe cada alocação interna (frente) e lista os avaliados daquela alocação.
-- **AvaliadoItem.razor**: Renderiza os controles de nota, comentário e validação para cada avaliado.
+- **Serviços de Negócio**: Toda a lógica de carregamento de períodos, avaliações, validações e atualizações foi extraída para `Services/FrentesInternas/FrentesInternasService.cs`, exposta via interface `IFrentesInternasService` em `Services/FrentesInternas/Common/IFrentesInternasService.cs`.
+- **Modelos de Dados**: Os modelos utilizados na tela (ex: PDIPillsModel, FrentePill, AlocacaoInternaPill, AvaliacaoAlocacaoPill) estão em `Services/FrentesInternas/Common/Models/`.
+- **Helpers**: Funções utilitárias para manipulação de listas, status e validações específicas da tela estão em `Services/FrentesInternas/Common/Helpers/FrentesInternasHelper.cs`.
+- **Componentes Blazor**:
+  - `AvaliacaoFrentesInternas.razor`: componente principal da página.
+  - `PeriodoTabs.razor`: renderiza as abas de períodos.
+  - `AvaliacaoCard.razor`: renderiza cards de alocação interna.
+  - `AvaliadoItem.razor`: exibe cada avaliado, nota, comentário e validação.
+- **Serviços Comuns Reutilizados**:
+  - `UserContextService`: contexto do usuário logado.
+  - `MessageBoxService`: exibição de mensagens.
+  - `TelemetryService`: rastreamento de eventos.
+  - `ComboHelper`: combos de dropdowns de notas/status.
+  - `FormatHelper`: formatação de valores.
+  - `VisibilityHelper`: lógica de visibilidade de UI.
 
-## Serviços e Helpers Utilizados
+## Integração e Injeção de Dependências
 
-- **IFrentesInternasService**: Serviço de negócio para carregar períodos, avaliações, atualizar notas, comentários e validações.
-- **ComboHelper**: Fornece listas para dropdowns de notas e status.
-- **UserContextService**: Obtém o usuário logado para carregar dados personalizados.
-- **MessageBoxService**: Exibe mensagens de sucesso, erro e informação para o usuário.
-- **TelemetryService**: Rastreia eventos e exceções para observabilidade.
-- **FormatHelper, VisibilityHelper, MenuService, FooterLinksService**: Utilizados conforme necessidade para formatação, visibilidade e navegação.
+Todos os serviços e helpers necessários estão registrados no DI container em `Program.cs`. Os componentes Blazor consomem os serviços via [Inject], garantindo desacoplamento e testabilidade.
 
-## Integração e Fluxo de Dados
+## Configuração
 
-- Ao acessar a página, o componente principal carrega o usuário logado e busca os períodos e avaliações disponíveis via `IFrentesInternasService`.
-- Os períodos são exibidos em abas por `PeriodoTabs.razor`. Ao selecionar um período, são carregadas as alocações e avaliados daquele período.
-- Cada alocação é exibida como um card por `AvaliacaoCard.razor`, que lista os avaliados usando `AvaliadoItem.razor`.
-- Alterações de nota, comentário ou validação disparam eventos que chamam métodos do serviço para persistência e exibem mensagens ao usuário.
-- Todos os serviços comuns são injetados via DI, promovendo reuso e desacoplamento.
+As configurações específicas de Frentes Internas estão centralizadas na seção `FrentesInternas` do `appsettings.json`, incluindo limites, permissões, caminhos de exportação/importação e parâmetros de negócio.
 
-## Fluxo do Processo (Mermaid)
+## Fluxo de Funcionamento (Mermaid)
 
 mermaid
 flowchart TD
-    Start([Usuário acessa /frentesinternas])
-    Start --> LoadUser["Obtém usuário logado<br/>(UserContextService)"]
-    LoadUser --> LoadPeriodos["Carrega períodos e avaliações<br/>(IFrentesInternasService)"]
-    LoadPeriodos --> RenderTabs["Renderiza abas de períodos<br/>(PeriodoTabs.razor)"]
-    RenderTabs --> SelectPeriodo["Usuário seleciona período"]
-    SelectPeriodo --> LoadAlocacoes["Carrega alocações e avaliados<br/>(IFrentesInternasService)"]
-    LoadAlocacoes --> RenderCards["Renderiza cards de alocação<br/>(AvaliacaoCard.razor)"]
-    RenderCards --> RenderAvaliados["Renderiza avaliados<br/>(AvaliadoItem.razor)"]
-    RenderAvaliados --> Interacao["Usuário altera nota/comentário/validação"]
-    Interacao --> AtualizaServico["Atualiza via IFrentesInternasService"]
-    AtualizaServico --> Feedback["Exibe mensagem (MessageBoxService)"]
-    Feedback --> Telemetria["Rastreia evento (TelemetryService)"]
+    A[Usuário acessa página Avaliação Frentes Internas] --> B(Carregamento do componente AvaliacaoFrentesInternas.razor)
+    B --> C{Obtém usuário logado via UserContextService}
+    C --> D[Chama FrentesInternasService]
+    D --> E[Carrega períodos e avaliações]
+    E --> F[Renderiza PeriodoTabs.razor]
+    E --> G[Renderiza AvaliacaoCard.razor para cada alocação]
+    G --> H[Renderiza AvaliadoItem.razor para cada avaliado]
+    H --> I[Dropdown de nota, textbox comentário, checkbox validado]
+    I --> J[Atualização de nota/comentário/validação]
+    J --> K[Chama métodos de FrentesInternasService]
+    K --> L[Atualiza dados no banco via EF Core]
+    J --> M[Exibe feedback via MessageBoxService]
+    subgraph Serviços Comuns
+        C
+        M
+    end
+    subgraph Helpers
+        F
+        G
+        H
+    end
 
+
+## Boas Práticas e Reutilização
+
+- Todos os métodos de negócio são públicos, assíncronos e expostos via interface.
+- Modelos e helpers estão desacoplados e prontos para uso em outros fluxos.
+- Serviços comuns são sempre reutilizados para combos, mensagens, formatação, visibilidade e rastreamento.
+- Configurações centralizadas para fácil manutenção.
 
 ## Exemplos de Uso
 
-- Para adicionar a tela ao menu, basta adicionar um link para `/frentesinternas`.
-- Os componentes podem ser reutilizados em outros contextos de avaliação interna, bastando fornecer os modelos adequados.
+csharp
+@inject IFrentesInternasService FrentesInternasService
+@inject IMessageBoxService MessageBoxService
+
+// Carregar períodos e avaliações
+var periodos = await FrentesInternasService.CarregarPeriodosAsync();
+var avaliacoes = await FrentesInternasService.CarregarAvaliacoesAsync();
+
+// Atualizar nota
+await FrentesInternasService.AtualizarNotaAsync(idAvaliacao, novaNota);
+MessageBoxService.ShowSuccess("Nota atualizada com sucesso!");
+
 
 ## Observações
 
-- Todos os helpers e combos são centralizados em `Services/Common` para reuso.
-- O fluxo de autenticação, mensagens e telemetria é padronizado em toda a aplicação.
-- Para customizações, utilize os serviços e helpers já existentes, evitando duplicação de código.
+- Para exportação de dados, utilize sempre o serviço `ExportFileService` já registrado.
+- Para combos de dropdown, utilize métodos de `ComboHelper`.
+- Para validação de permissões e visibilidade, utilize `VisibilityHelper`.

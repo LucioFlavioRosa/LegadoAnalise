@@ -237,6 +237,9 @@ builder.Services.AddScoped<IAvaliacaoIAService, AvaliacaoIAService>();
 
 // FrentesInternas Services - Novos serviços adicionados
 builder.Services.AddScoped<IFrentesInternasService, FrentesInternasService>();
+// Helpers e modelos comuns de FrentesInternas
+builder.Services.AddScoped<Services.FrentesInternas.Common.Helpers.FrentesInternasHelper>();
+// Models já estão em Services.FrentesInternas.Common.Models
 
 // FrentesInternas Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IStatusHelper, StatusHelper>();
