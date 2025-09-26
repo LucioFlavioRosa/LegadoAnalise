@@ -15,23 +15,24 @@ Esta documentação descreve a arquitetura, funcionamento e integração dos ser
 
 Os serviços são registrados no DI container em `Program.cs` e podem ser injetados em qualquer componente Blazor ou serviço adicional:
 
+```text
 csharp
 @inject IMentoriaService MentoriaService
 @inject IMentoriaHelper MentoriaHelper
-
+```
 
 Exemplo de uso em componente:
-
+```text
 csharp
 var periodos = await MentoriaService.ListarPeriodosAsync(1);
 var ultimoPeriodo = await MentoriaService.ObterUltimoPeriodoAsync();
 var respostas = await MentoriaService.ObterMentoradoRespostasAsync(idMentorado);
 var pills = MentoriaHelper.MontarPillsModel(periodos, ultimoPeriodo, idMentorado, idMentor, respostas);
-
+```
 
 ## Fluxo do Processo
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa Avaliação de Mentoria] --> B[Blazor Component: AvaliacaoMentoria.razor]
     B --> C[IMentoriaService: ListarPeriodosAsync / ObterUltimoPeriodoAsync]
@@ -44,7 +45,7 @@ flowchart TD
     H --> I[IMentoriaService: GerirMentoradoRespostasAsync]
     I --> F
     H --> B
-
+```
 
 ## Sugestões de Melhorias Futuras
 
