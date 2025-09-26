@@ -1,47 +1,48 @@
-# Documentação: Feedback de Competências (Migração Web Forms para Blazor)
+# Documentação: Feedback de Competências (Blazor)
 
 ## Visão Geral
 
-Esta documentação descreve a arquitetura, funcionamento e integração dos serviços e componentes envolvidos na migração da página de Feedback de Competências do sistema legado Web Forms para o novo modelo Blazor Híbrido .NET 9. O objetivo é garantir manutenibilidade, reutilização e clareza de fluxo.
+Este módulo implementa o fluxo de feedback de competências migrado de Web Forms para Blazor, centralizando regras de negócio em serviços reutilizáveis e compondo a interface em componentes reativos. O componente principal é `FeedbackCompetencia.razor`, que consome o serviço `FeedbackService` e helpers de validação e formatação.
 
-## Estrutura de Serviços e Componentes
+## Estrutura de Integração
 
-- **Services/Common/ComboHelper.cs**: Centraliza métodos para geração de combos reutilizáveis (tipos de avaliação, escopos, status, notas, abrangências, etc.).
-- **Services/Common/FormatHelper.cs**: Centraliza métodos de formatação de percentuais, decimais, moedas e outros formatos usados em tabelas e gráficos.
-- **Services/Common/MessageBoxService.cs**: Serviço para exibição de mensagens (sucesso, erro, info, warning) com eventos para integração com UI Blazor.
-- **Services/Common/TelemetryService.cs**: Serviço para telemetria e rastreamento de eventos, exceções e métricas, pronto para integração cloud-native.
-- **Services/Feedback/FeedbackService.cs**: Serviço de domínio para encapsular a lógica de negócio do feedback de competências, incluindo carregamento e salvamento de feedbacks.
-- **Services/Feedback/Common/FeedbackValidator.cs**: Serviço reutilizável para validação de regras de negócio do feedback de competências.
-
-## Integração e Uso
-
-- Os serviços comuns são registrados no DI container (ver Program.cs) e podem ser injetados em qualquer componente ou serviço.
-- O FeedbackService utiliza o FeedbackValidator para garantir as regras de negócio ao salvar feedbacks.
-- O MessageBoxService permite exibir mensagens para o usuário de forma desacoplada da UI.
-- O TelemetryService pode ser usado para rastrear eventos de uso e exceções para monitoramento e diagnóstico.
-- O ComboHelper e FormatHelper são utilitários estáticos para uso em componentes e serviços.
+- **Componentes:**
+  - `Components/Feedback/FeedbackCompetencia.razor`: Interface principal do feedback de competências.
+- **Serviços:**
+  - `Services/Feedback/FeedbackService.cs`: Lógica de negócio para obtenção, validação e salvamento de avaliações.
+  - `Services/Feedback/Common/FeedbackValidationHelper.cs`: Regras de validação reutilizáveis.
+  - `Services/Feedback/Common/FeedbackComboHelper.cs`: Utilitários para combos e selects.
+  - `Services/Feedback/Common/FeedbackFormatHelper.cs`: Métodos de formatação de textos, notas, percentuais.
+- **Configuração:**
+  - `appsettings.json`: Parâmetros de negócio, textos e limites para o fluxo de feedback.
+- **DbContext:**
+  - `Data/ApplicationDbContext.cs`: Persistência das entidades relacionadas a avaliações, competências, cargos, associados, etc.
 
 ## Fluxo do Processo
 
 mermaid
 flowchart TD
-    Start([Início]) --> PaginaFeedback[FeedbackCompetencia.razor]
-    PaginaFeedback -->|Carrega combos| ComboHelper
-    PaginaFeedback -->|Carrega competências| FeedbackService
-    FeedbackService -->|Valida regras| FeedbackValidator
-    PaginaFeedback -->|Exibe mensagens| MessageBoxService
-    PaginaFeedback -->|Salva feedback| FeedbackService
-    PaginaFeedback -->|Rastreia eventos| TelemetryService
-    FeedbackService -->|Consulta dados| ApplicationDbContext
-    PaginaFeedback -->|Formata dados| FormatHelper
-    PaginaFeedback -->|Exibe combos| ComboHelper
+    Start([Usuário acessa Feedback de Competências])
+    Start --> LoadPage[Carrega FeedbackCompetencia.razor]
+    LoadPage --> ServiceCall[Chama FeedbackService.CarregarFeedbackCompetenciaAsync]
+    ServiceCall --> DbContext[Consulta dados via ApplicationDbContext]
+    DbContext --> ViewModel[Preenche FeedbackCompetenciaViewModel]
+    ViewModel --> RenderUI[Renderiza UI com dados e combos]
+    RenderUI --> UserInput[Usuário preenche feedbacks e notas]
+    UserInput --> Validacao[Validação via FeedbackValidationHelper]
+    Validacao --> SalvarBtn[Usuário clica em Salvar]
+    SalvarBtn --> ServiceSave[Chama FeedbackService.SalvarFeedbackCompetenciaAsync]
+    ServiceSave --> DbContextSave[Persiste alterações via ApplicationDbContext]
+    DbContextSave --> MessageBox[Exibe mensagem de sucesso/erro]
+    MessageBox --> End([Fim do fluxo])
 
 
-## Sugestões de Melhorias Futuras
+## Sugestões de Melhorias
 
-- Integrar IA para sugerir feedbacks automáticos baseados em padrões históricos.
-- Implementar testes automatizados para os serviços de domínio e validadores.
-- Expandir o FeedbackValidator para suportar regras configuráveis por cargo ou tipo de avaliação.
-- Criar componentes Blazor reutilizáveis para tabelas de competências e gráficos radar.
-- Adicionar logs detalhados de auditoria para cada alteração de feedback.
-- Internacionalizar mensagens e labels para múltiplos idiomas.
+- Implementar autosave periódico do feedback, conforme configuração em `appsettings.json`.
+- Adicionar exportação dos feedbacks em PDF/Excel.
+- Integrar análise de sentimentos de feedbacks utilizando IA.
+- Permitir comentários anônimos para feedbacks.
+- Adicionar trilha de auditoria para alterações de feedback.
+- Melhorar acessibilidade do componente para leitores de tela.
+- Implementar testes automatizados para regras de validação e fluxo de salvamento.
