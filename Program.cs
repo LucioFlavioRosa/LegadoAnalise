@@ -290,6 +290,7 @@ builder.Services.AddScoped<IMentoriaHelper, MentoriaHelper>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IFeedbackFinalizationService, FeedbackFinalizationService>();
 builder.Services.AddScoped<IFeedbackComboHelper, FeedbackComboHelper>();
+builder.Services.AddScoped<IFeedbackValidationHelper, FeedbackValidationHelper>();
 
 var app = builder.Build();
 
