@@ -1,0 +1,24 @@
+@using Services.FrentesInternas.Common.Models
+@using Services.Common
+
+@if (Periodos is not null && Periodos.Any())
+{
+    <ul class="nav nav-pills mb-3" id="pills-tab2" role="tablist">
+        @foreach (var periodo in Periodos)
+        {
+            <li class="nav-item">
+                <a class="nav-link btn @periodo.classe @periodo.active" id="@periodo.id" data-toggle="pill" href="@periodo.href" role="tab"
+                   aria-controls="@periodo.ariacontrols" aria-selected="@periodo.ariaselected" @onclick="() => OnPeriodoSelecionado.InvokeAsync(periodo)">
+                    @periodo.Periodo
+                </a>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter]
+    public List<PDIPillsModel> Periodos { get; set; } = new();
+    [Parameter]
+    public EventCallback<PDIPillsModel> OnPeriodoSelecionado { get; set; }
+}
