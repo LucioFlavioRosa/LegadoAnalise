@@ -252,6 +252,8 @@ builder.Services.AddScoped<IPerfisService, PerfisService>();
 
 // Performance Services - Novos serviços adicionados
 builder.Services.AddScoped<IPerformanceService, PerformanceService>();
+// Registro do novo serviço de feedback de performance
+builder.Services.AddScoped<IFeedbackPerformanceService, FeedbackPerformanceService>();
 
 // Performance Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IPerformanceImportExportUtil, PerformanceImportExportUtil>();
