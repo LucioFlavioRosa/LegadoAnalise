@@ -32,7 +32,7 @@ O módulo de Feedback/Avaliação foi migrado de Web Forms para Blazor Híbrido 
 
 ## Fluxo do Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     A[Feedback.razor] --> B(Carrega Combos via FeedbackComboHelper)
     A --> C(Filtra Avaliações via FeedbackService)
@@ -40,7 +40,7 @@ flowchart TD
     A --> E[Finaliza Avaliação via FeedbackFinalizationService]
     E --> F[Validações e Avanço de Etapa]
     F --> G[Redireciona ou Exibe Mensagem]
-
+```
 
 ## Sugestões de Melhorias Futuras
 
