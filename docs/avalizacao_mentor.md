@@ -18,7 +18,7 @@ Esta documentação detalha a arquitetura, funcionamento e integração dos serv
 Os componentes Blazor consomem os serviços de mentoria via DI. O carregamento dos combos, mentorados e avaliações é realizado de forma assíncrona, respeitando os filtros selecionados pelo usuário. Helpers garantem formatação e validação dos dados antes da exibição.
 
 ### Diagrama de Fluxo (Mermaid)
-mermaid
+```mermaid
 flowchart TD
     A[Pages/AvaliacaoMentor.razor] --> B[Services/Mentoria/MentoriaService]
     A --> C[Services/Mentoria/Common/MentoriaHelper]
@@ -39,7 +39,7 @@ flowchart TD
         E
         G
     end
-
+```
 
 ## 4. Sugestões de Melhorias Futuras
 
