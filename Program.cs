@@ -49,6 +49,9 @@ using Peers.Moderno.Services.Mentoria.Common;
 // Feedback Services
 using Peers.Moderno.Services.Feedback;
 using Peers.Moderno.Services.Feedback.Common;
+// FeedbackPerformance Services
+using Services.FeedbackPerformance;
+using Services.FeedbackPerformance.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -262,6 +265,11 @@ builder.Services.AddScoped<IFeedbackPerformanceService, FeedbackPerformanceServi
 builder.Services.AddScoped<IPerformanceImportExportUtil, PerformanceImportExportUtil>();
 builder.Services.AddScoped<IPerformanceValidationUtil, PerformanceValidationUtil>();
 builder.Services.AddScoped<IPerformanceComboHelper, PerformanceComboHelper>();
+
+// FeedbackPerformance Services - Registro dos novos serviços e helpers
+builder.Services.AddScoped<IFeedbackPerformanceService, FeedbackPerformanceService>();
+builder.Services.AddScoped<IFeedbackPerformanceHelper, FeedbackPerformanceHelper>();
+builder.Services.AddScoped<IFeedbackPerformanceValidator, FeedbackPerformanceValidator>();
 
 // Prazos Services - Novos serviços adicionados
 builder.Services.AddScoped<IPrazosService, PrazosService>();
