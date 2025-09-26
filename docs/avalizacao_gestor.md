@@ -20,7 +20,7 @@ Este módulo corresponde à migração da página de Avaliação do Gestor do an
 
 ## Fluxo de Funcionamento
 
-mermaid
+```mermaid
 flowchart TD
     Start[Usuário acessa Avaliação do Gestor] --> Filtros[Preenche filtros de Projeto, Cliente, Período, Status, Etapa]
     Filtros --> |Busca| Service[AvaliacoesGestorService]
@@ -34,7 +34,7 @@ flowchart TD
     Tabela --> |Ação: Finalizar/Liberar| Service
     Service --> |Atualiza| Component
     Component --> MessageBox[Exibe mensagens ao usuário]
-
+```
 
 - O usuário acessa a página e preenche os filtros.
 - O componente Blazor chama o serviço `AvaliacoesGestorService` para buscar os dados.
