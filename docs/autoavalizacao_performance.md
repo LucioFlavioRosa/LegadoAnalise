@@ -63,7 +63,7 @@ Este documento descreve a migração da página de autoavaliação de performanc
 
 ## Fluxo de Funcionamento
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa AutoAvaliação Performance] --> B[Validar Contexto]
     B --> C{Contexto Válido?}
@@ -93,13 +93,13 @@ flowchart TD
     style S fill:#fff3e0
     style P fill:#e8f5e8
     style V fill:#e8f5e8
-
+```
 
 ## Integração entre Componentes
 
 ### Fluxo de Dados
 
-mermaid
+```mermaid
 flowchart LR
     A[AutoAvaliacaoPerformance.razor] --> B[AutoAvaliacaoPerformanceService]
     B --> C[PerformancesService]
@@ -122,12 +122,12 @@ flowchart LR
     style B fill:#f3e5f5
     style G fill:#fff8e1
     style H fill:#fff8e1
-
+```
 
 ### Injeção de Dependências
 
 Todos os serviços são registrados no `Program.cs`:
-
+```text
 csharp
 // AutoAvaliacao Services
 builder.Services.AddScoped<IAutoAvaliacaoPerformanceService, AutoAvaliacaoPerformanceService>();
@@ -135,7 +135,7 @@ builder.Services.AddScoped<IAutoAvaliacaoPerformanceService, AutoAvaliacaoPerfor
 // AutoAvaliacao Common Services
 builder.Services.AddScoped<INotaHelper, NotaHelper>();
 builder.Services.AddScoped<IAccordionHelper, AccordionHelper>();
-
+```
 
 ## Configurações
 
@@ -143,7 +143,7 @@ builder.Services.AddScoped<IAccordionHelper, AccordionHelper>();
 
 As configurações estão centralizadas na seção `AutoAvaliacao.Performance`:
 
-
+```json
 {
   "AutoAvaliacao": {
     "Performance": {
@@ -158,7 +158,7 @@ As configurações estão centralizadas na seção `AutoAvaliacao.Performance`:
     }
   }
 }
-
+```
 
 ## Funcionalidades Implementadas
 
