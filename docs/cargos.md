@@ -8,7 +8,7 @@ O módulo de Cargos foi migrado de Web Forms para Blazor Server com renderizaç�
 
 ### Estrutura de Pastas
 
-
+```text
 Services/
 ├── Cargos/
 │   ├── CargosService.cs          # Serviço principal de negócio
@@ -27,7 +27,7 @@ Models/
 ├── Cargo.cs                     # Modelo principal
 ├── CargoExportModel.cs          # Modelo para exportação
 └── DropdownItem.cs              # Modelo para dropdowns
-
+```
 
 ### Princípios de Design
 
