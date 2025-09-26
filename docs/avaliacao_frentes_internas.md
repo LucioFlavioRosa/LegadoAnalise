@@ -66,6 +66,7 @@ flowchart TD
 
 ## Exemplos de Uso
 
+```text
 csharp
 @inject IFrentesInternasService FrentesInternasService
 @inject IMessageBoxService MessageBoxService
@@ -77,7 +78,7 @@ var avaliacoes = await FrentesInternasService.CarregarAvaliacoesAsync();
 // Atualizar nota
 await FrentesInternasService.AtualizarNotaAsync(idAvaliacao, novaNota);
 MessageBoxService.ShowSuccess("Nota atualizada com sucesso!");
-
+```
 
 ## Observações
 
