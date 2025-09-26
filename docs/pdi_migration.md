@@ -15,7 +15,7 @@ Este documento detalha a arquitetura, integração e fluxo do novo módulo de Pr
 
 ## Fluxo do Processo
 
-mermaid
+```mermaid
 flowchart TD
     Start([Usuário acessa /pdi/avaliacao])
     Start --> Auth{Usuário autenticado?}
@@ -27,7 +27,7 @@ flowchart TD
     AtualizaResp --> SuccessMsg[Exibe mensagem de sucesso]
     RenderUI --> NavegaPills[Usuário navega entre períodos]
     NavegaPills --> RenderUI
-
+```
 
 ## Sugestões de Melhorias Futuras
 
