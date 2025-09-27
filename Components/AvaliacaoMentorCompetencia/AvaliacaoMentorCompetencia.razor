@@ -1,0 +1,167 @@
+@rendermode InteractiveAuto
+@using Services.AvaliacaoMentorCompetencia.Common
+@inject IAplicacaoMentorCompetenciaService AvaliacaoMentorCompetenciaService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Avaliação de Competência do Mentor</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="font-medium text-uppercase mb-3">Mentor - Avaliação de Competência</h2>
+        </div>
+    </div>
+    <div class="row mb-4">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Detalhes do Avaliado -->
+                    <div class="accordion" id="accordionDetalhes">
+                        <div class="card">
+                            <div class="card-header" id="headingDetalhes">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#Detalhes" aria-expanded="true" aria-controls="Detalhes">
+                                        Detalhes da avaliação
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="Detalhes" class="collapse show" aria-labelledby="headingDetalhes" data-bs-parent="#accordionDetalhes">
+                                <div class="row mb-2">
+                                    <div class="col-md-2"><b>Avaliado:</b></div>
+                                    <div class="col-md-4">@Associado?.Nome</div>
+                                    <div class="col-md-2"><b>Período:</b></div>
+                                    <div class="col-md-4">@Periodo?.Periodo</div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-2"><b>Gestor:</b></div>
+                                    <div class="col-md-4">@Gestor?.Nome</div>
+                                    <div class="col-md-2"><b>Cargo:</b></div>
+                                    <div class="col-md-4">@Associado?.Cargo?.Nome</div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-2"><b>Tempo de Cargo:</b></div>
+                                    <div class="col-md-4">@TempoCargo</div>
+                                    <div class="col-md-2"><b>Tempo de Peers:</b></div>
+                                    <div class="col-md-4">@TempoPeers</div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-md-2"><b>Projeto:</b></div>
+                                    <div class="col-md-4">@Projeto?.Nome</div>
+                                    <div class="col-md-2"><b>Cliente:</b></div>
+                                    <div class="col-md-4">@Cliente?.Nome</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accordion Descrições -->
+                    <div class="accordion mt-4" id="accordionCabecalho">
+                        <div class="card">
+                            <div class="card-header" id="headingCabecalho">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#Cabecalho" aria-expanded="true" aria-controls="Cabecalho">
+                                        Descrições nível atual e próximo nível
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="Cabecalho" class="collapse show" aria-labelledby="headingCabecalho" data-bs-parent="#accordionCabecalho">
+                                <table class="table table-striped border w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>Cargo Atual</th>
+                                            <th>Função Atual</th>
+                                            <th>Autonomia Atual</th>
+                                            <th>Escopo Atual</th>
+                                            <th>Interlocução Atual</th>
+                                            <th>Cargo Próximo</th>
+                                            <th>Função Próxima</th>
+                                            <th>Autonomia Próxima</th>
+                                            <th>Escopo Próximo</th>
+                                            <th>Interlocução Próxima</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>@CargoAtual?.Nome</td>
+                                            <td>@CargoAtual?.Funcao</td>
+                                            <td>@CargoAtual?.Autonomia</td>
+                                            <td>@CargoAtual?.EscopoDeAtuacao</td>
+                                            <td>@CargoAtual?.NivelInterlocucao</td>
+                                            <td>@CargoProximo?.Nome</td>
+                                            <td>@CargoProximo?.Funcao</td>
+                                            <td>@CargoProximo?.Autonomia</td>
+                                            <td>@CargoProximo?.EscopoDeAtuacao</td>
+                                            <td>@CargoProximo?.NivelInterlocucao</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accordion Considerações Mentor -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <ConsideracoesMentorAccordion Associado="@Associado" Periodo="@Periodo" OnSalvar="OnSalvarConsideracoesMentor" />
+        </div>
+    </div>
+
+    <!-- Accordion Dados RH -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <DadosRHAccordion Associado="@Associado" />
+        </div>
+    </div>
+
+    <!-- Accordion Radar -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <ResultadosAccordion Associado="@Associado" Periodo="@Periodo" Projeto="@Projeto" />
+        </div>
+    </div>
+
+    <!-- Accordion Competências -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <CompetenciasAccordion Associado="@Associado" Projeto="@Projeto" Periodo="@Periodo" />
+        </div>
+    </div>
+</div>
+
+@code {
+    // Propriedades de dados
+    private Associado? Associado;
+    private Periodo? Periodo;
+    private Projeto? Projeto;
+    private Cliente? Cliente;
+    private Cargo? CargoAtual;
+    private Cargo? CargoProximo;
+    private Associado? Gestor;
+    private string TempoCargo = "-";
+    private string TempoPeers = "-";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Carregar dados iniciais via serviço
+        var contexto = await AvaliacaoMentorCompetenciaService.ObterContextoAvaliacaoMentorCompetenciaAsync();
+        Associado = contexto.Associado;
+        Periodo = contexto.Periodo;
+        Projeto = contexto.Projeto;
+        Cliente = contexto.Cliente;
+        CargoAtual = contexto.CargoAtual;
+        CargoProximo = contexto.CargoProximo;
+        Gestor = contexto.Gestor;
+        TempoCargo = contexto.TempoCargo;
+        TempoPeers = contexto.TempoPeers;
+    }
+
+    private async Task OnSalvarConsideracoesMentor(ConsideracoesMentorModel consideracoes)
+    {
+        await AvaliacaoMentorCompetenciaService.SalvarConsideracoesMentorAsync(consideracoes);
+    }
+}
