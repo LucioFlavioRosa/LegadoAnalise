@@ -1,42 +1,57 @@
-# Documentação: Avaliação de Performance do Mentor
+# Documentação: Migração da Página de Avaliação de Performance do Mentor
 
 ## Visão Geral
 
-Este módulo centraliza a lógica de apresentação e manipulação de dados da avaliação de performance do mentor, migrando funcionalidades do Web Forms para Blazor Híbrido. Utiliza serviços reutilizáveis em `Services/Common` para garantir desacoplamento e facilidade de manutenção, especialmente para accordions, truncamento de texto e exibição de mensagens.
+Esta documentação descreve a migração da página de avaliação de performance do mentor do modelo Web Forms para Blazor Híbrido (.NET 9), detalhando a integração dos novos serviços, o fluxo de dados, componentes envolvidos e sugestões de melhorias futuras. O objetivo é garantir máxima reutilização de código, desacoplamento da lógica de negócio e experiência moderna ao usuário.
 
-### Componentes e Serviços Envolvidos
-- **AccordionHelper** (`Services/Common/AccordionHelper.cs`): Centraliza a lógica de truncamento de texto, controle de accordions e estilização de linhas ocultas.
-- **MessageBoxService** (`Services/Common/MessageBoxService.cs`): Gerencia exibição de mensagens de sucesso, erro, informação e aviso, com cobertura para cenários customizados.
-- **MentorPerformance.razor**: Componente Blazor que consome os serviços acima para renderizar a tabela de performance, accordions e mensagens ao usuário.
+## Estrutura e Integração dos Serviços
 
-## Funcionamento e Integração
+- **Serviço Central:** `Services.Performance.IPerformanceMentorService` e `Services.Performance.PerformanceMentorService`
+  - Responsável por toda a lógica de negócio relacionada à avaliação de performance do mentor.
+  - Métodos principais: obtenção de dados de performance, notas, abrangências, feedbacks e integração com outros serviços (Projetos, Associados, Notas, etc).
+  - Utiliza injeção de dependência para acessar serviços comuns e garantir desacoplamento.
 
-- O componente de avaliação injeta `AccordionHelper` para truncar descrições longas e controlar o estado dos accordions, garantindo responsividade e clareza na UI.
-- Mensagens de validação, erro ou sucesso são exibidas via `MessageBoxService`, que dispara eventos para serem capturados por componentes visuais.
-- Toda lógica de UI que pode ser reaproveitada (ex: truncamento, accordions, exibição de mensagens) está centralizada em `Services/Common`, seguindo o padrão do projeto.
+- **Helpers Reutilizáveis:**
+  - `Services/Common/AccordionHelper.cs`: Lógica para accordions, truncamento de texto e manipulação de UI reutilizável.
+  - `Services/Common/MessageBoxService.cs`: Exibição centralizada de mensagens, alertas e erros.
 
-## Diagrama de Fluxo (Mermaid)
+- **Componentização da UI:**
+  - O componente Blazor `Components/Performance/MentorPerformance.razor` consome o serviço de performance mentor e helpers comuns, renderizando a tabela de performance, accordions, botões de ação e message box.
+
+- **Registro no DI:**
+  - O serviço de performance mentor foi registrado em `Program.cs`:
+    csharp
+    builder.Services.AddScoped<Services.Performance.IPerformanceMentorService, Services.Performance.PerformanceMentorService>();
+    
+
+## Fluxo do Processo (Mermaid)
 
 mermaid
 flowchart TD
-    A[Page: MentorPerformance.razor] -->|Carrega dados| B(PerformanceMentorService)
-    B --> C[AccordionHelper]
-    B --> D[MessageBoxService]
-    C --> E[Renderiza accordions/tabela]
-    D --> F[Exibe mensagens]
-    A --> E
-    A --> F
+    Start([Início]) --> PageAvaliacaoMentorPerformance["Página MentorPerformance.razor"]
+    PageAvaliacaoMentorPerformance -->|Carrega dados| PerformanceMentorService["PerformanceMentorService"]
+    PerformanceMentorService -->|Obtém dados| DbContext[(ApplicationDbContext)]
+    PerformanceMentorService -->|Utiliza| AccordionHelper
+    PerformanceMentorService -->|Utiliza| MessageBoxService
+    PageAvaliacaoMentorPerformance -->|Renderiza| TabelaPerformance["Tabela de Performance"]
+    PageAvaliacaoMentorPerformance -->|Renderiza| Accordions["Accordions"]
+    PageAvaliacaoMentorPerformance -->|Exibe| MessageBox["MessageBox"]
+    TabelaPerformance -->|Interação| Accordions
+    Accordions -->|Expand/Collapse| TabelaPerformance
+    MessageBoxService -->|Exibe mensagens| MessageBox
+    End([Fim])
 
 
-## Sugestões de Melhorias
+## Sugestões de Melhorias Futuras
 
-- **Internacionalização:** Centralizar textos exibidos em mensagens e botões para facilitar tradução e adaptação regional.
-- **Customização de Accordions:** Permitir configuração dinâmica do tamanho de truncamento e textos de expansão via appsettings ou parâmetros de componente.
-- **Testes de Usabilidade:** Adicionar métricas de uso dos accordions e mensagens para identificar pontos de melhoria na experiência do usuário.
-- **Integração com IA:** Futuramente, integrar análise automática de feedbacks e sugestões de performance via serviços de IA.
-- **Exportação de Relatórios:** Permitir exportação dos dados de performance diretamente da interface Blazor, aproveitando os serviços de exportação já existentes.
+1. **Integração com IA:** Utilizar Azure OpenAI para análise automática de feedbacks e sugestões de desenvolvimento para mentorados.
+2. **Exportação Avançada:** Permitir exportação de relatórios de performance em múltiplos formatos (PDF, Excel, CSV) diretamente da interface Blazor.
+3. **Notificações em Tempo Real:** Integrar com SignalR para notificação instantânea de atualizações de avaliação e feedbacks.
+4. **Auditoria e Histórico:** Implementar trilha de auditoria completa das alterações nas avaliações, permitindo rastreabilidade e conformidade.
+5. **Customização de UI:** Permitir que gestores personalizem colunas, filtros e visualização da tabela de performance.
+6. **Acessibilidade:** Garantir que todos os componentes atendam requisitos de acessibilidade (WCAG), incluindo navegação por teclado e leitores de tela.
+7. **Testes Automatizados:** Futuramente, adicionar testes automatizados de integração e UI para garantir robustez nas atualizações.
 
-## Observações
+## Considerações Finais
 
-- Toda lógica criada está desacoplada e pronta para reuso em outros componentes do sistema.
-- O fluxo de dados e regras de negócio permanece íntegro, conforme exigido pelo plano de migração.
+A migração para Blazor Híbrido e a centralização dos serviços comuns garantem maior escalabilidade, facilidade de manutenção e potencial para evolução contínua do sistema de avaliação interna. Todas as funcionalidades atuais foram preservadas e o código está preparado para futuras integrações e melhorias.
