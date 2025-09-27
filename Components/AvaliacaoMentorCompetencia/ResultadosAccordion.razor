@@ -1,135 +1,256 @@
 @rendermode InteractiveAuto
-@using Services.AvaliacaoMentorCompetencia.Common
-@inject IAplicacaoMentorCompetenciaService AvaliacaoMentorCompetenciaService
-
-<div class="card">
-    <div class="card-header" id="headingResultados">
-        <h5 class="mb-0">
-            <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#Resultados" aria-expanded="true" aria-controls="Resultados">
-                Resultados do Semestre
-            </button>
-        </h5>
-    </div>
-    <div id="Resultados" class="collapse show" aria-labelledby="headingResultados">
-        <div class="card-body resultado-group scroll-grid">
-            @if (Resultados != null)
-            {
-                <div class="row">
-                    @foreach (var projeto in Resultados.Projetos)
-                    {
-                        <div class="col-md-3">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <table class="table table-striped border tbresultado">
-                                        <tbody>
-                                            <tr>
-                                                <td class="tdBranco" colspan="2">Projeto @projeto.Nome</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="thresultado" colspan="2" title="@projeto.Nome">
-                                                    <button type="button" class="btn btn-sm btncollapse" @onclick="() => ToggleProjeto(projeto.Id)">
-                                                        <i class="fas fa-plus-circle"></i>
-                                                    </button>
-                                                    @projeto.Nome
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="tdresultado" style="width: 70%">Complexidade</td>
-                                                <td class="text-center" style="width: 30%">@projeto.Complexidade</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="tdresultado">Nível</td>
-                                                <td class="text-center">@projeto.Nivel</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="tdresultado">Nota Competências</td>
-                                                <td class="text-center">@projeto.NotaCompetencias</td>
-                                            </tr>
-                                            @foreach (var eixo in projeto.Eixos)
-                                            {
-                                                <tr class="hidelinha">
-                                                    <td>@eixo.Nome</td>
-                                                    <td class="text-center">@eixo.Percentual</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <table class="table table-striped border tbresultado">
-                                        <tbody>
-                                            <tr>
-                                                <td class="tdresultado" style="width: 70%">Nota Performance </td>
-                                                <td class="text-center" style="width: 30%">@projeto.NotaPerformance</td>
-                                            </tr>
-                                            @foreach (var perf in projeto.Performances)
-                                            {
-                                                <tr class="hidelinha">
-                                                    <td>@perf.Nome</td>
-                                                    <td class="text-center">@perf.Nota</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                    <div class="col-md-3">
-                        <table class="table table-striped border tbresultado">
-                            <tbody>
-                                <tr>
-                                    <td class="tdBranco" colspan="2">Consolidado</td>
-                                </tr>
-                                <tr>
-                                    <td class="tdComite" style="width: 70%">Complexidade Comitê</td>
-                                    <td class="text-center" style="width: 30%">@Resultados.Consolidado.ComplexidadeComite</td>
-                                </tr>
-                                <tr>
-                                    <td class="tdresultado">Competência no Cargo</td>
-                                    <td class="text-center">@Resultados.Consolidado.CompetenciaCargo</td>
-                                </tr>
-                                <tr>
-                                    <td class="tdresultado">Competência Cargo Acima</td>
-                                    <td class="text-center">@Resultados.Consolidado.CompetenciaProximoCargo</td>
-                                </tr>
-                                <tr>
-                                    <td class="tdresultado">Nota Performance</td>
-                                    <td class="text-center">@Resultados.Consolidado.NotaPerformance</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-info">Nenhum resultado encontrado para o semestre.</div>
-            }
-        </div>
-    </div>
-</div>
+@using Peers.Moderno.Services.AvaliacaoMentorCompetencia.Common
+@inject IAvaliacaoMentorCompetenciaService AvaliacaoMentorCompetenciaService
+@inject NavigationManager NavigationManager
+@inject IMessageBoxService MessageBoxService
 
 @code {
-    [Parameter] public Associado? Associado { get; set; }
-    [Parameter] public Periodo? Periodo { get; set; }
-    [Parameter] public Projeto? Projeto { get; set; }
+    [Parameter]
+    public int IdAssociado { get; set; }
+    [Parameter]
+    public int IdPeriodo { get; set; }
+    [Parameter]
+    public int IdCargo { get; set; }
+    [Parameter]
+    public string TipoAvaliacao { get; set; } = "desempenho";
+    [Parameter]
+    public string Escopo { get; set; } = "projeto";
 
-    private ResultadosMentorModel? Resultados;
-    private int? ProjetoAbertoId;
+    private List<ResultadoProjetosModel> ResultadosProjetos = new();
+    private List<ResultadoSomaProjetosModel> SomaProjetos = new();
+    private bool IsLoading = true;
+    private string? ErrorMessage;
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
-        if (Associado != null && Periodo != null)
+        try
         {
-            Resultados = await AvaliacaoMentorCompetenciaService.ObterResultadosMentorAsync(Associado.Id, Periodo.Id, Projeto?.Id);
+            ResultadosProjetos = await AvaliacaoMentorCompetenciaService.ObterResultadosProjetosAsync(IdAssociado, IdPeriodo, IdCargo, TipoAvaliacao, Escopo);
+            SomaProjetos = await AvaliacaoMentorCompetenciaService.ObterSomaProjetosAsync(ResultadosProjetos);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            MessageBoxService.Show(ErrorMessage, "Erro", MessageBoxType.Error);
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
+}
 
-    private void ToggleProjeto(int idProjeto)
-    {
-        ProjetoAbertoId = ProjetoAbertoId == idProjeto ? null : idProjeto;
-    }
+@if (IsLoading)
+{
+    <div class="spinner-border" role="status"><span class="sr-only">Carregando...</span></div>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+else
+{
+    <div class="accordion" id="accordionResultados">
+        <div class="card">
+            <div class="card-header" id="headingResultados">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#Resultados" aria-expanded="true" aria-controls="Resultados">
+                        Resultados do Semestre
+                    </button>
+                </h5>
+            </div>
+            <div id="Resultados" class="collapse show" aria-labelledby="headingResultados" data-parent="#accordionResultados">
+                <div class="card-body resultado-group scroll-grid">
+                    <div class="row">
+                        @foreach (var projeto in ResultadosProjetos)
+                        {
+                            <div class="col-md-3">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <table class="table table-striped border tbresultado" id="tb_@projeto.IdProjeto">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="tdBranco" colspan="2">Projeto @projeto.ProjetoNome (@projeto.DataInicioAlocado:dd/MM - @projeto.DataFimAlocado:dd/MM)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="thresultado" colspan="2" title="@projeto.ProjetoNome">
+                                                        <button type="button" style="padding-left: 1px;" class="btn btn-sm btncollapse" data-id="@projeto.IdProjeto">
+                                                            <i class="fas fa-plus-circle"></i>
+                                                        </button>
+                                                        @AvaliacaoMentorCompetenciaHelper.TruncarTexto(projeto.ProjetoNome, 30)
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdresultado" style="width: 70%">Complexidade</td>
+                                                    <td class="text-center" style="width: 30%">
+                                                        <a href="#" data-id="@projeto.IdProjeto" class="btncomplexidade">
+                                                            @projeto.ProjetoComplexidade
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdresultado">Nível</td>
+                                                    <td class="text-center">1</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdresultado">Nota Competências</td>
+                                                    <td class="text-center">@AvaliacaoMentorCompetenciaHelper.FormatPercentagem(projeto.NotaCompetencialNivel1)</td>
+                                                </tr>
+                                                @foreach (var compN1 in projeto.ListCompetenciasNivel1)
+                                                {
+                                                    <tr class="hidelinha">
+                                                        <td>@compN1.Eixo</td>
+                                                        <td class="text-center">@AvaliacaoMentorCompetenciaHelper.FormatPercentagem(compN1.PercentualNotaFinalNivel1)</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <table class="table table-striped border tbresultado">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="tdresultado" style="width: 70%">Nível </td>
+                                                    <td class="text-center" style="width: 30%">2</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdresultado">Nota Competências</td>
+                                                    <td class="text-center">@AvaliacaoMentorCompetenciaHelper.FormatPercentagem(projeto.NotaCompetencialNivel2)</td>
+                                                </tr>
+                                                @foreach (var compN2 in projeto.ListCompetenciasNivel2)
+                                                {
+                                                    <tr class="hidelinha">
+                                                        <td>@compN2.Eixo</td>
+                                                        <td class="text-center">@AvaliacaoMentorCompetenciaHelper.FormatPercentagem(compN2.PercentualNotaFinalNivel2)</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <table class="table table-striped border tbresultado">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="text-center" colspan="2">@projeto.RatingPerfomance</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdresultado" style="width: 70%">Nota Performance </td>
+                                                    <td class="text-center" style="width: 30%">@AvaliacaoMentorCompetenciaHelper.FormatDecimal(projeto.SomaPerfomance)</td>
+                                                </tr>
+                                                @foreach (var perf in projeto.ListPerfomance)
+                                                {
+                                                    <tr class="hidelinha">
+                                                        <td>@perf.Perfomance</td>
+                                                        <td class="text-center">@perf.NotaPerfomance</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <table class="table table-striped border tbresultado">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="tdresultado" style="width: 70%">Nota Competências </td>
+                                                    <td class="text-center" style="width: 30%">@AvaliacaoMentorCompetenciaHelper.FormatPercentagem(projeto.SomaNotaCompetencialN1N2)</td>
+                                                </tr>
+                                                @foreach (var somaComp in projeto.ListSomaCompetenciasN1N2)
+                                                {
+                                                    <tr class="hidelinha">
+                                                        <td>@somaComp.Eixo</td>
+                                                        <td class="text-center">@AvaliacaoMentorCompetenciaHelper.FormatPercentagem(somaComp.PercentualSomaNotaFinalN1N2)</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <div class="col-md-3">
+                            @foreach (var soma in SomaProjetos)
+                            {
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <table class="table table-striped border tbresultado">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="tdBranco" colspan="2">Consolidado</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdComite" style="width: 70%">Complexidade Comitê </td>
+                                                    <td class="text-center" style="width: 30%">@soma.ComplexidadeComite</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdBranco" colspan="2">&nbsp;</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdresultado">Competência no Cargo</td>
+                                                    <td class="text-center">@AvaliacaoMentorCompetenciaHelper.FormatPercentagem(soma.CompetenciaCargo)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdBranco" colspan="2">&nbsp;</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdresultado">Competência Cargo Acima</td>
+                                                    <td class="text-center">@AvaliacaoMentorCompetenciaHelper.FormatPercentagem(soma.CompetenciaProximoCargo)</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <table class="table table-striped border tbresultado">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="text-center" colspan="2">@soma.RatingPerfomance</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="tdresultado" style="width: 70%">Nota Performance </td>
+                                                    <td class="text-center" style="width: 30%">@AvaliacaoMentorCompetenciaHelper.FormatDecimal(soma.SomaProjetosPerfomance)</td>
+                                                </tr>
+                                                @foreach (var perf in soma.ListProjetosSomaPerfomance)
+                                                {
+                                                    <tr class="hidelinha">
+                                                        <td>@perf.Perfomance</td>
+                                                        <td class="text-center">@AvaliacaoMentorCompetenciaHelper.FormatDecimal(perf.NotaPerfomancePonderada)</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <table class="table table-striped border tbresultado">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="tdresultado" style="width: 70%">Nota Competências </td>
+                                                    <td class="text-center" style="width: 30%">@AvaliacaoMentorCompetenciaHelper.FormatPercentagem(soma.SomaProjetosNotaCompetencialN1N2)</td>
+                                                </tr>
+                                                @foreach (var somaComp in soma.ListProjetosSomaCompetenciasN1N2)
+                                                {
+                                                    <tr class="hidelinha">
+                                                        <td>@somaComp.Eixo</td>
+                                                        <td class="text-center">@AvaliacaoMentorCompetenciaHelper.FormatPercentagem(somaComp.NotaProjetosCompetencia)</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 }
