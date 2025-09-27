@@ -26,7 +26,7 @@ Esta documentação descreve a migração da página de avaliação de performan
 
 ## Fluxo do Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     Start([Início]) --> PageAvaliacaoMentorPerformance["Página MentorPerformance.razor"]
     PageAvaliacaoMentorPerformance -->|Carrega dados| PerformanceMentorService["PerformanceMentorService"]
@@ -40,7 +40,7 @@ flowchart TD
     Accordions -->|Expand/Collapse| TabelaPerformance
     MessageBoxService -->|Exibe mensagens| MessageBox
     End([Fim])
-
+```
 
 ## Sugestões de Melhorias Futuras
 
