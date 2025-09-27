@@ -60,6 +60,9 @@ using Services.Avaliacoes;
 using Services.Avaliacoes.Common;
 // AvaliacoesGestorasCegas Performance Services
 using Services.AvaliacoesGestorasCegas;
+// AvaliacaoMentorCompetencia Services
+using Services.AvaliacaoMentorCompetencia;
+using Services.AvaliacaoMentorCompetencia.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -316,6 +319,10 @@ builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoCompetenciaService, Ser
 
 // AvaliacoesGestorasCegas Performance Services - Passo 6
 builder.Services.AddScoped<IAvaliacaoGestorasCegasPerformanceService, AvaliacaoGestorasCegasPerformanceService>();
+
+// AvaliacaoMentorCompetencia Services - Passo 5
+builder.Services.AddScoped<IAvaliacaoMentorCompetenciaService, AvaliacaoMentorCompetenciaService>();
+builder.Services.AddScoped<AvaliacaoMentorCompetenciaHelper>();
 
 var app = builder.Build();
 
