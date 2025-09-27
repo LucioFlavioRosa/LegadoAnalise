@@ -26,7 +26,7 @@ Esta documentação detalha o funcionamento, integração e fluxo da nova implem
 
 ## Fluxo de Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     A[avalizacao_mentor_competencia.razor] --> B[CompetenciasAccordion.razor]
     A --> C[ResultadosAccordion.razor]
@@ -37,7 +37,7 @@ flowchart TD
     F --> H[Services/AvaliacaoMentorCompetencia/Common/AvaliacaoMentorCompetenciaHelper]
     F --> I[Data/ApplicationDbContext]
     A --> J[appsettings.json]
-
+```
 
 ## Integração dos Códigos
 
