@@ -36,7 +36,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<PERIODOSAVALIACOES> PeriodosAvaliacoes { get; set; }
     public DbSet<AvaliacaoPerformance> AvaliacoesPerformance { get; set; }
     public DbSet<AvaliacaoEmail> AvaliacoesEmail { get; set; }
-    // Adicionado para garantir cobertura da avaliação de competência do mentor
     public DbSet<ConsideracoesMentor> ConsideracoesMentor { get; set; }
     public DbSet<AvaliacaoCompetencia> AvaliacoesCompetencias { get; set; }
     public DbSet<ResultadoProjetosModel> ResultadoProjetos { get; set; }
@@ -369,7 +368,6 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.PosicaoAtualFluxoAvaliacao);
             entity.Property(e => e.TipoAvaliacao);
         });
-        // Mapeamento para ConsideracoesMentor
         modelBuilder.Entity<ConsideracoesMentor>(entity =>
         {
             entity.HasKey(e => e.idConsideracoesMentor);
@@ -395,19 +393,16 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.PontosFortes).HasMaxLength(1000);
             entity.Property(e => e.PontosFracos).HasMaxLength(1000);
         });
-        // Mapeamento para AvaliacaoCompetencia
         modelBuilder.Entity<AvaliacaoCompetencia>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.ToTable("AVALIACOESCOMPETENCIAS");
         });
-        // Mapeamento para ResultadoProjetosModel
         modelBuilder.Entity<ResultadoProjetosModel>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.ToTable("RESULTADOPROJETOSMODEL");
         });
-        // Mapeamento para ResultadoSomaProjetosModel
         modelBuilder.Entity<ResultadoSomaProjetosModel>(entity =>
         {
             entity.HasKey(e => e.Id);
