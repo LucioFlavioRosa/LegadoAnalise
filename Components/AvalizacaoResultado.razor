@@ -1,0 +1,528 @@
+@rendermode InteractiveAuto
+@page "/avalizacao-resultado"
+@inject Services.Resultados.IResultadoService ResultadoService
+@inject Services.Common.IMessageBoxService MessageBoxService
+@inject Services.Common.IFormatHelper FormatHelper
+@inject Services.Common.IComboHelper ComboHelper
+@inject NavigationManager NavigationManager
+
+<PageTitle>Resultado da Avaliação</PageTitle>
+
+<div class="page-breadcrumb border-bottom" style="position:sticky;top:50px;z-index:6">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Comitê</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="index">Peers</a></li>
+                    <li class="breadcrumb-item"><a href="index">Competência / Performance</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Resultado</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div style="overflow:initial !important" class="container-fluid page-content">
+    <div class="card" style="position:sticky;top:80px;z-index:4;border-color: rgba(0, 0, 0, .25); border-width: 1px">
+        <div class="card-body">
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="divExpand">
+                                <img src="@FotoAssociado" class="imgExpand" alt="Foto Associado" />
+                            </div>
+                            <div class="col-sm">
+                                <div class="row">
+                                    <div class="col-md-1"><label><b>Avaliado</b></label></div>
+                                    <div class="col-md-3"><label>@AssociadoNome</label></div>
+                                    <div class="col-md-1"><label><b>Período</b></label></div>
+                                    <div class="col-md-3"><label>@PeriodoNome</label></div>
+                                    <div class="col-md-1"><label><b>Cargo</b></label></div>
+                                    <div class="col-md-3"><label>@CargoNome</label></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-1"><label><b>Próximo Cargo:</b></label></div>
+                                    <div class="col-md-3"><label>@ProximoCargoNome</label></div>
+                                    <div class="col-md-1"><label><b>Tempo de Cargo:</b></label></div>
+                                    <div class="col-md-3"><label>@TempoCargo</label></div>
+                                    <div class="col-md-1"><label><b>Tempo de Peers</b></label></div>
+                                    <div class="col-md-3"><label>@TempoPeers</label></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-1"><label><b>Mentor</b></label></div>
+                                    <div class="col-md-3"><label>@MentorNome</label></div>
+                                    <div class="col-md-1"><label><b>Cronômetro</b></label></div>
+                                    <div class="col-sm">
+                                        <div class="container">
+                                            <div id="time">
+                                                <span class="digit">@HrString</span>
+                                                <span class="txt">:</span>
+                                                <span class="digit">@MinString</span>
+                                                <span class="txt">:</span>
+                                                <span class="digit">@SecString</span>
+                                                <span class="txt">:</span>
+                                                <span class="digit">@CountString</span>
+                                                <button class="btn btn-facebook" @onclick="StartTimer" style="margin-left:40px">Iniciar</button>
+                                                <button class="btn btn-facebook" @onclick="StopTimer">Parar</button>
+                                                <button class="btn btn-facebook" @onclick="ResetTimer">Reiniciar</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link @(ActiveTab == "competencia" ? "active btn btn-facebook" : "btn btn-facebook")" @onclick="() => ChangeTab("competencia")" id="tab-competencia-tab">Resultados</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ActiveTab == "performance" ? "active btn btn-danger" : "btn btn-danger")" @onclick="() => ChangeTab("performance")" id="tab-performance-tab">Mentor</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="tab-content" id="pills-tabContent">
+            @if (ActiveTab == "competencia")
+            {
+                <div class="tab-pane fade active in show" id="tab-competencia" role="tabpanel" aria-labelledby="tab-competencia-tab">
+                    <div class="card-body" style="white-space:nowrap !important;overflow-x:scroll !important;overflow-y:hidden !important;float:none !important;display:inline">
+                        <div style="white-space:nowrap !important;overflow-x:scroll !important;overflow-y:hidden !important;float:none !important;display:inline" class="row">
+                            @foreach (var projeto in ResultadosProjetos)
+                            {
+                                <div style="display: inline-block !important" class="col-md-3">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="table table-striped border tbresultado">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="tdBranco" colspan="2">Projeto @FormatHelper.TruncarTexto(projeto.ProjetoNome, 30)</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="thresultado" colspan="2" title="@projeto.ProjetoNome">
+                                                            <button type="button" style="padding-left: 1px;" class="btn btn-sm btncollapse" data-id="@projeto.IdProjeto">
+                                                                <i class="fas fa-plus-circle"></i>
+                                                            </button>
+                                                            @FormatHelper.TruncarTexto(projeto.ProjetoNome, 30)<br />
+                                                            @FormatHelper.TruncarTexto(projeto.ClienteNome, 30)
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="tdresultado" style="width: 70%">Complexidade</td>
+                                                        <td class="text-center" style="width: 30%">
+                                                            <a href="#" data-id="@projeto.IdProjeto" class="btncomplexidade">@projeto.ProjetoComplexidade</a>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="tdresultado">Nível</td>
+                                                        <td class="text-center">1</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="tdresultado">Nota Competências</td>
+                                                        <td class="text-center">@FormatHelper.FormatPercentNullable(projeto.NotaCompetencialNivel1)</td>
+                                                    </tr>
+                                                    @foreach (var compN1 in projeto.ListCompetenciasNivel1)
+                                                    {
+                                                        <tr class="hidelinha">
+                                                            <td>@compN1.Eixo</td>
+                                                            <td class="text-center">@FormatHelper.FormatPercentNullable(compN1.PercentualNotaFinalNivel1)</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="table table-striped border tbresultado">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="tdresultado" style="width: 70%">Nível </td>
+                                                        <td class="text-center" style="width: 30%">2</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="tdresultado">Nota Competências</td>
+                                                        <td class="text-center">@FormatHelper.FormatPercentNullable(projeto.NotaCompetencialNivel2)</td>
+                                                    </tr>
+                                                    @foreach (var compN2 in projeto.ListCompetenciasNivel2)
+                                                    {
+                                                        <tr class="hidelinha">
+                                                            <td>@compN2.Eixo</td>
+                                                            <td class="text-center">@FormatHelper.FormatPercentNullable(compN2.PercentualNotaFinalNivel2)</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="table table-striped border tbresultado">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="text-center" colspan="2">@projeto.RatingPerfomance</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="tdresultado" style="width: 70%">Nota Performance </td>
+                                                        <td class="text-center" style="width: 30%">@FormatHelper.FormatDecimalNullable(projeto.SomaPerfomance)</td>
+                                                    </tr>
+                                                    @foreach (var perf in projeto.ListPerfomance)
+                                                    {
+                                                        <tr class="hidelinha">
+                                                            <td>@perf.Perfomance</td>
+                                                            <td class="text-center">@perf.NotaPerfomance</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="table table-striped border tbresultado">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="tdresultado" style="width: 70%">Nota Competências </td>
+                                                        <td class="text-center" style="width: 30%">@FormatHelper.FormatPercentNullable(projeto.SomaNotaCompetencialN1N2)</td>
+                                                    </tr>
+                                                    @foreach (var somaComp in projeto.ListSomaCompetenciasN1N2)
+                                                    {
+                                                        <tr class="hidelinha">
+                                                            <td>@somaComp.Eixo</td>
+                                                            <td class="text-center">@FormatHelper.FormatPercentNullable(somaComp.PercentualSomaNotaFinalN1N2)</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row" hidden>
+                                        <div class="col-md-12">
+                                            <table class="table table-striped border tbresultado" style="width: 100%">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="thresultado" style="width: 70%">Competência Radar</td>
+                                                        <td class="text-center" style="width: 30%">@FormatHelper.FormatPercentNullable(projeto.SomaNotaCompetenciaRadar)</td>
+                                                    </tr>
+                                                    @foreach (var radar in projeto.ListSomaCompetenciasN1N2)
+                                                    {
+                                                        <tr class="hidelinha">
+                                                            <td>@radar.Eixo</td>
+                                                            <td class="text-center">@FormatHelper.FormatPercentNullable(radar.NotaCompetenciaRadar)</td>
+                                                        </tr>
+                                                    }
+                                                    <tr style="align-content:center;align-items:center; text-align:center" hidden>
+                                                        <td colspan="2">
+                                                            <button type="button" class="btn btn-sm btnExpandRadar" data-id="@projeto.IdProjeto" hidden>
+                                                                <i class="fas fa-expand"></i>
+                                                            </button>
+                                                            <canvas width="40" id="radar_@projeto.IdProjeto" hidden></canvas>
+                                                        </td>
+                                                    </tr>
+                                                    <tr style="align-content:center;align-items:center; text-align:center">
+                                                        <td colspan="2">
+                                                            <div id="reportContainer_CompEixo_@projeto.IdProjeto" style="width: 100%; height: 350px"></div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr><td colspan="2">&nbsp;</td></tr>
+                                                    <tr>
+                                                        <td class="tdBranco text-center" colspan="2">
+                                                            <a href="avalizacao_consolidacao?IdProjeto=@projeto.IdProjeto&IdAssociado=@projeto.IdAssociado&IdPeriodo=@projeto.IdPeriodo&TipoAvaliacao=@projeto.TipoAvaliacao&Escopo=@projeto.Escopo">
+                                                                <button type="button" class="btn btn-sm btn-info">Ajustar Notas Comitê</button>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            <div style="display: inline-block !important" class="col-md-3">
+                                @foreach (var somaProjeto in ResultadosSomaProjetos)
+                                {
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="table table-striped border tbresultado">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="tdBranco" colspan="2">Consolidado</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="tdComite" style="width: 70%">Complexidade Comitê </td>
+                                                        <td class="text-center" style="width: 30%">@somaProjeto.ComplexidadeComite</td>
+                                                    </tr>
+                                                    <tr><td class="tdBranco" colspan="2">&nbsp;</td></tr>
+                                                    <tr>
+                                                        <td class="tdresultado">Competência no Cargo</td>
+                                                        <td class="text-center">@FormatHelper.FormatPercentNullable(somaProjeto.CompetenciaCargo)</td>
+                                                    </tr>
+                                                    <tr><td class="tdBranco" colspan="2">&nbsp;</td></tr>
+                                                    <tr>
+                                                        <td class="tdresultado">Competência Cargo Acima</td>
+                                                        <td class="text-center">@FormatHelper.FormatPercentNullable(somaProjeto.CompetenciaProximoCargo)</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div>
+                                                <p id="divajuste" class="closeTable"></p>
+                                            </div>
+                                            <table class="table table-striped border tbresultado">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="text-center" colspan="2">@somaProjeto.RatingPerfomance</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="tdresultado" style="width: 70%">Nota Performance </td>
+                                                        <td class="text-center" style="width: 30%">@FormatHelper.FormatDecimalNullable(somaProjeto.SomaProjetosPerfomance)</td>
+                                                    </tr>
+                                                    @foreach (var perf in somaProjeto.ListProjetosSomaPerfomance)
+                                                    {
+                                                        <tr class="hidelinha">
+                                                            <td>@perf.Perfomance</td>
+                                                            <td class="text-center">@FormatHelper.FormatDecimalNullable(perf.NotaPerfomancePonderada)</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="table table-striped border tbresultado">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="tdresultado" style="width: 70%">Nota Competências </td>
+                                                        <td class="text-center" style="width: 30%">@FormatHelper.FormatPercentNullable(somaProjeto.SomaProjetosNotaCompetencialN1N2)</td>
+                                                    </tr>
+                                                    @foreach (var somaComp in somaProjeto.ListProjetosSomaCompetenciasN1N2)
+                                                    {
+                                                        <tr class="hidelinha">
+                                                            <td>@somaComp.Eixo</td>
+                                                            <td class="text-center">@FormatHelper.FormatPercentNullable(somaComp.NotaProjetosCompetencia)</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row" hidden>
+                                        <div class="col-md-12">
+                                            <table class="table table-striped border tbresultado">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="thresultado" style="width: 70%">Competência Radar </td>
+                                                        <td class="text-center" style="width: 30%">@FormatHelper.FormatPercentNullable(somaProjeto.SomaProjetosNotaCompetenciaRadar)</td>
+                                                    </tr>
+                                                    @foreach (var radar in somaProjeto.ListProjetosSomaCompetenciasN1N2)
+                                                    {
+                                                        <tr class="hidelinha">
+                                                            <td>@radar.Eixo</td>
+                                                            <td class="text-center">@FormatHelper.FormatPercentNullable(radar.NotaProjetoCompetenciaRadar)</td>
+                                                        </tr>
+                                                    }
+                                                    <tr hidden>
+                                                        <td colspan="2">
+                                                            <button type="button" class="btn btn-sm btnExpandSomaRadar">
+                                                                <i class="fas fa-expand"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr style="align-content:center;align-items:center; text-align:center">
+                                                        <td colspan="2">
+                                                            <div id="reportContainer_Total_1" style="width: 100%; height: 350px"></div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (ActiveTab == "performance")
+            {
+                <div class="tab-pane fade" id="tab-performance" role="tabpanel" aria-labelledby="tab-performance-tab">
+                    <div class="card">
+                        <div class="card-body" style="margin-bottom: 1px">
+                            <div class="form-body">
+                                <div class="row">
+                                    <div class="col-sm">
+                                        <label style="font-size: 18px; list-style-type: none; padding-left: 0px; float: left; width: 40%;">Associado Avaliado:</label>
+                                        <span style="background-color: #F2F2F2; font-size: 18px; list-style-type: none; padding-left: 0px; float: right; width: 60%; text-align: center">@AssociadoNome</span>
+                                    </div>
+                                    <div class="col-sm">
+                                        <label style="font-size: 18px; list-style-type: none; padding-left: 0px; float: left; width: 40%;">Cargo:</label>
+                                        <span style="background-color: #F2F2F2; font-size: 18px; list-style-type: none; padding-left: 0px; float: right; width: 60%; text-align: center">@CargoNome</span>
+                                    </div>
+                                    <div class="col-sm">
+                                        <label style="font-size: 18px; list-style-type: none; padding-left: 0px; float: left; width: 40%;">Vertical:</label>
+                                        <span style="background-color: #F2F2F2; font-size: 18px; list-style-type: none; padding-left: 0px; float: right; width: 60%; text-align: center">@VerticalNome</span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm">
+                                        <label style="font-size: 18px; list-style-type: none; padding-left: 0px; float: left; width: 40%;">Tempo de Peers:</label>
+                                        <span style="background-color: #F2F2F2; font-size: 18px; list-style-type: none; padding-left: 0px; float: right; width: 60%; text-align: center">@TempoPeers</span>
+                                    </div>
+                                    <div class="col-sm">
+                                        <label style="font-size: 18px; list-style-type: none; padding-left: 0px; float: left; width: 40%;">Tempo de cargo:</label>
+                                        <span style="background-color: #F2F2F2; font-size: 18px; list-style-type: none; padding-left: 0px; float: right; width: 60%; text-align: center">@TempoCargo</span>
+                                    </div>
+                                    <div class="col-sm">
+                                        <label style="font-size: 18px; list-style-type: none; padding-left: 0px; float: left; width: 100%; position: relative; z-index: 1">Projetos envolvidos no semestre:</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm">
+                                        <label style="font-size: 18px; list-style-type: none; padding-left: 0px; float: left; width: 40%;">Elegível promoção:</label>
+                                        <span style="background-color: #F2F2F2; font-size: 18px; list-style-type: none; padding-left: 0px; float: right; width: 60%; text-align: center">@ElegivelPromocao</span>
+                                    </div>
+                                    <div class="col-sm">
+                                        <label style="font-size: 18px; list-style-type: none; padding-left: 0px; float: left; width: 40%;">Input de promoção:</label>
+                                        <span style="background-color: #F2F2F2; font-size: 18px; list-style-type: none; padding-left: 0px; float: right; width: 60%; text-indent: 46.5%">@InputPromocao</span>
+                                    </div>
+                                    <div class="col-sm"></div>
+                                    <div class="col-sm">
+                                        <span style="background-color: #F2F2F2; font-size: 13px; list-style-type: none; padding-left: 0px; float: right; width: 100%; text-align: left; margin-top: -19px; padding-top: 7px">@ProjetosEnvolvidos</span>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-sm">
+                                        <label style="font-size: 18px; list-style-type: none; padding-left: 0px; float: left; width: 100%; position: relative; z-index: 1; height: 6px">Trajetória do associado no semestre:</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm">
+                                        <textarea class="form-control" style="background-color: #F2F2F2; font-size: 15px; list-style-type: none; padding-left: 7px; float: right; width: 100%; height: 100px; vertical-align: top; text-align: left; border: none; padding-top: 7px" disabled>@Trajetoria</textarea>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm">
+                                        <label style="font-size: 18px; list-style-type: none; padding-left: 0px; float: left; width: 100%; position: relative; z-index: 1; height: 6px">Pontos fortes:</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm">
+                                        <textarea class="form-control" style="background-color: #F2F2F2; font-size: 15px; list-style-type: none; padding-left: 7px; float: right; width: 100%; height: 80px; vertical-align: top; text-align: left; border: none; padding-top: 7px" disabled>@PontosFortes</textarea>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm">
+                                        <label style="font-size: 18px; list-style-type: none; padding-left: 0px; float: left; width: 100%; position: relative; z-index: 1; height: 6px">Pontos de atenção:</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm">
+                                        <textarea class="form-control" style="background-color: #F2F2F2; font-size: 15px; list-style-type: none; padding-left: 7px; float: right; width: 100%; height: 80px; vertical-align: top; text-align: left; border: none; padding-top: 7px" disabled>@PontosFracos</textarea>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row" id="rowMentoriaRealizada" hidden>
+                                    <label class="switchRH">
+                                        <input type="checkbox" disabled checked="@MentoriaRealizada" />
+                                        <span class="slider round" style="width: 60px; height: 34px;"></span>
+                                    </label>
+                                    <span style="font-size: 18px; text-align: left; font-style: italic; color: dimgray; vertical-align: central; padding-left: 2px">Mentoria realizada</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card" style="text-align:-webkit-center">
+        <div class="card-body" style="width:100%">
+            <!-- Painel PBI pode ser integrado via componente Blazor futuro -->
+        </div>
+    </div>
+</div>
+
+<!-- Modais -->
+<div class="modal fade" id="modalRadar" tabindex="-1" role="dialog" aria-labelledby="modalRadarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalRadarLabel">Radar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <canvas id="radar_modal"></canvas>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalComplexidade" tabindex="-1" role="dialog" aria-labelledby="modalComplexidadeLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalComplexidadeLabel"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="message-text" class="col-form-label">Complexidade:</label>
+                    <select class="form-control" id="ddlComplexidade"></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" id="hdIdProjeto" />
+                <button type="button" class="btn btn-primary" id="btnSalvarcomplexidade">Salvar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="dist/custom/resultado.css" rel="stylesheet" />
+<style>
+    .scroll-grid > .row {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .scroll-grid > .row > .col-md-3 {
+        display: inline-block;
+    }
+    .hiddenRow {
+        padding: 0 !important;
+    }
+    .divExpand{
+        resize: both;
+        overflow: hidden;
+        line-height: 0;
+        width: 100px;
+        height: 100px;
+    }
+    .imgExpand{
+        width: 100%;
+        height: 100%;
+    }
+</style>
