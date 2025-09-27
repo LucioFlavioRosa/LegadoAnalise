@@ -27,14 +27,14 @@ flowchart TD
 
     subgraph Services
         B[Services/Mentoria/MentoriaService];
-        C[Services/- `Services/Mentoria/Common/MentoriaHelper`];
+        C[Services/Mentoria/Common/MentoriaHelper];
         D[Services/Mentoria/Common/ComboHelperMentoria];
         F[Services/Common/ComboHelper];
     end
 
     subgraph Infra
         E[Data/ApplicationDbContext];
-        G[appsettings.json (Mentoria)];
+        G["appsettings.json (Mentoria)"];
     end
 
     %% 2. Depois, defina todas as conexões entre os nós
