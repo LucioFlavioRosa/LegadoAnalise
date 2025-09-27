@@ -20,28 +20,30 @@ Os componentes Blazor consomem os serviços de mentoria via DI. O carregamento d
 ### Diagrama de Fluxo (Mermaid)
 ```mermaid
 flowchart TD
-    A[Pages/AvaliacaoMentor.razor] --> B[Services/Mentoria/MentoriaService];
-    A --> C[Services/Mentoria/Common/MentoriaHelper];
-    A --> D[Services/Mentoria/Common/ComboHelperMentoria];
-    B --> E[Data/ApplicationDbContext];
-    D --> F[Services/Common/ComboHelper];
-    A --> G[appsettings.json (Mentoria)];
-
+    %% 1. Primeiro, defina os subgrupos e todos os nós dentro deles
     subgraph UI
-        A;
+        A[Pages/AvaliacaoMentor.razor];
     end
 
     subgraph Services
-        B;
-        C;
-        D;
-        F;
+        B[Services/Mentoria/MentoriaService];
+        C[Services/- `Services/Mentoria/Common/MentoriaHelper`];
+        D[Services/Mentoria/Common/ComboHelperMentoria];
+        F[Services/Common/ComboHelper];
     end
 
     subgraph Infra
-        E;
-        G;
+        E[Data/ApplicationDbContext];
+        G[appsettings.json (Mentoria)];
     end
+
+    %% 2. Depois, defina todas as conexões entre os nós
+    A --> B;
+    A --> C;
+    A --> D;
+    B --> E;
+    D --> F;
+    A --> G;
 ```
 
 ## 4. Sugestões de Melhorias Futuras
