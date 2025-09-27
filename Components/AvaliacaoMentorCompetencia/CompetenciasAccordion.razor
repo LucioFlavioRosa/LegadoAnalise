@@ -1,0 +1,128 @@
+@rendermode InteractiveAuto
+@using Services.AvaliacaoMentorCompetencia.Common
+@inject IAplicacaoMentorCompetenciaService AvaliacaoMentorCompetenciaService
+
+<div class="card">
+    <div class="card-header" id="headingCompetencia">
+        <h5 class="mb-0">
+            <button class="btn btn-link collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#competencias" aria-expanded="false" aria-controls="collapseCompetencias">
+                Competências
+            </button>
+        </h5>
+    </div>
+    <div id="competencias" class="collapse show" aria-labelledby="headingCompetencia">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped border">
+                    <thead>
+                        <tr>
+                            <th colspan="5" class="bg-warning text-dark">Nível 1</th>
+                            <th colspan="6" class="bg-warning text-dark">Nível 2</th>
+                        </tr>
+                        <tr>
+                            <th>Detalhamento Cargo Atual</th>
+                            <th>Nota Avaliado</th>
+                            <th>Nota às Cegas</th>
+                            <th>Nota Gestor</th>
+                            <th>Nota Feedback</th>
+                            <th>Próximo Nível</th>
+                            <th>Nota Avaliado</th>
+                            <th>Nota às Cegas</th>
+                            <th>Nota Gestor</th>
+                            <th>Nota Feedback</th>
+                            <th>Obs.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Competencias != null)
+                        {
+                            @foreach (var competencia in Competencias)
+                            {
+                                <tr>
+                                    <td>
+                                        <button class="btn btn-sm btncollapse" @onclick="() => ToggleDetalhamento(competencia.IdCompetencia)">
+                                            <span style="font-weight:bold">@competencia.DetalheNivelAtual</span>
+                                            <span class="ml-2 text-primary">Ver+</span>
+                                        </button>
+                                    </td>
+                                    <td>@competencia.Nota1Avaliado</td>
+                                    <td>@competencia.Nota1Cegas</td>
+                                    <td>@competencia.Nota1Gestor</td>
+                                    <td>@competencia.Nota1Feedback</td>
+                                    <td>@competencia.DetalheProximoNivel</td>
+                                    <td>@competencia.Nota2Avaliado</td>
+                                    <td>@competencia.Nota2Cegas</td>
+                                    <td>@competencia.Nota2Gestor</td>
+                                    <td>@competencia.Nota2Feedback</td>
+                                    <td>
+                                        <button class="btn btn-dark btn-sm" @onclick="() => ToggleObservacoes(competencia.IdCompetencia)">
+                                            Considerações
+                                        </button>
+                                    </td>
+                                </tr>
+                                @if (DetalhamentoAbertoId == competencia.IdCompetencia)
+                                {
+                                    <tr>
+                                        <td colspan="11" class="hiddenRow">
+                                            <div class="accordian-body collapse show">
+                                                <p><strong>Detalhamento Cargo Atual</strong><br />@competencia.DetalheNivelAtual</p>
+                                                <p hidden><strong>Cargo Atual</strong><br />@competencia.CompetenciaAtual</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="11" class="hiddenRow">
+                                            <div class="accordian-body collapse show">
+                                                <p><strong>Detalhamento Próximo Nível</strong><br />@competencia.DetalheProximoNivel</p>
+                                                <p hidden><strong>Próximo Cargo</strong><br />@competencia.CompetenciaProximo</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (ObservacoesAbertoId == competencia.IdCompetencia)
+                                {
+                                    <tr>
+                                        <td colspan="11" class="hiddenRow">
+                                            <div class="accordian-body collapse show">
+                                                <p><strong>Observações do Avaliado:</strong><br />@competencia.ObservacaoAvaliado</p>
+                                                <p><strong>Observações Feedback:</strong><br />@competencia.ObservacaoGestor</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Associado? Associado { get; set; }
+    [Parameter] public Projeto? Projeto { get; set; }
+    [Parameter] public Periodo? Periodo { get; set; }
+
+    private List<CompetenciaModel>? Competencias;
+    private int? DetalhamentoAbertoId;
+    private int? ObservacoesAbertoId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Associado != null && Projeto != null && Periodo != null)
+        {
+            Competencias = await AvaliacaoMentorCompetenciaService.ObterCompetenciasMentorAsync(Associado.Id, Projeto.Id, Periodo.Id);
+        }
+    }
+
+    private void ToggleDetalhamento(int idCompetencia)
+    {
+        DetalhamentoAbertoId = DetalhamentoAbertoId == idCompetencia ? null : idCompetencia;
+    }
+
+    private void ToggleObservacoes(int idCompetencia)
+    {
+        ObservacoesAbertoId = ObservacoesAbertoId == idCompetencia ? null : idCompetencia;
+    }
+}
