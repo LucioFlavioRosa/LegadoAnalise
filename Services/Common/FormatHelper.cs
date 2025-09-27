@@ -43,4 +43,16 @@ public static class FormatHelper
     {
         return Math.Round(value, decimals).ToString($"N{decimals}");
     }
+
+    public static string TruncarTexto(string texto, int qtdCaracteres)
+    {
+        if (!string.IsNullOrEmpty(texto))
+        {
+            if (texto.Length > qtdCaracteres)
+            {
+                return string.Format("{0}...", texto.Substring(0, qtdCaracteres));
+            }
+        }
+        return texto;
+    }
 }
