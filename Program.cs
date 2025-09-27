@@ -63,6 +63,9 @@ using Services.AvaliacoesGestorasCegas;
 // AvaliacaoMentorCompetencia Services
 using Services.AvaliacaoMentorCompetencia;
 using Services.AvaliacaoMentorCompetencia.Common;
+// PerformanceMentorService
+using Services.Performance.IPerformanceMentorService;
+using Services.Performance.PerformanceMentorService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -271,6 +274,8 @@ builder.Services.AddScoped<IPerfisService, PerfisService>();
 builder.Services.AddScoped<IPerformanceService, PerformanceService>();
 // Registro do novo serviço de feedback de performance
 builder.Services.AddScoped<IFeedbackPerformanceService, FeedbackPerformanceService>();
+// Registro do novo serviço de performance mentor
+builder.Services.AddScoped<Services.Performance.IPerformanceMentorService, Services.Performance.PerformanceMentorService>();
 
 // Performance Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IPerformanceImportExportUtil, PerformanceImportExportUtil>();
