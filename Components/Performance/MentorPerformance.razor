@@ -1,0 +1,217 @@
+@rendermode InteractiveAuto
+@inject Services.Performance.IPerformanceMentorService PerformanceMentorService
+@inject Services.Common.IMessageBoxService MessageBoxService
+
+@code {
+    private MentorPerformanceViewModel? ViewModel;
+    private bool IsLoading = true;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            ViewModel = await PerformanceMentorService.GetMentorPerformanceAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            MessageBoxService.ShowError(ErrorMessage ?? "Erro ao carregar dados de performance.", "Erro");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}
+
+@if (IsLoading)
+{
+    <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+        <span>Carregando dados...</span>
+    </div>
+}
+else if (ErrorMessage != null)
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+else if (ViewModel != null)
+{
+    <uc1:MessageBoxHandler />
+    <div class="page-breadcrumb border-bottom">
+        <div class="row">
+            <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+                <h5 class="font-medium text-uppercase mb-0">Mentor</h5>
+            </div>
+            <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+                <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                    <ol class="breadcrumb mb-0 justify-content-end p-0">
+                        <li class="breadcrumb-item"><a href="index">Peers</a></li>
+                        <li class="breadcrumb-item"><a href="index">Avaliação / Mentor</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Performance</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <div class="page-content container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <form>
+                    <div class="form-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-left">
+                                    <a href="avalizacao_mentor_competencia">
+                                        <button type="button" class="btn btn-danger">Competência</button>
+                                    </a>
+                                    <button type="button" class="btn btn-facebook" disabled>Performance</button>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="row">
+                                    <div class="col-md-1"><label><b>Avaliado</b></label></div>
+                                    <div class="col-md-3"><label>@ViewModel.AssociadoNome</label></div>
+                                    <div class="col-md-1"><label><b>Período</b></label></div>
+                                    <div class="col-md-3"><label>@ViewModel.PeriodoNome</label></div>
+                                    <div class="col-md-1"><label><b>Gestor</b></label></div>
+                                    <div class="col-md-3"><label>@ViewModel.GestorNome</label></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-1"><label><b>Cargo</b></label></div>
+                                    <div class="col-md-3"><label>@ViewModel.CargoNome</label></div>
+                                    <div class="col-md-1"><label><b>Tempo de Cargo:</b></label></div>
+                                    <div class="col-md-3"><label>@ViewModel.TempoCargo</label></div>
+                                    <div class="col-md-1"><label><b>Tempo de Peers</b></label></div>
+                                    <div class="col-md-3"><label>@ViewModel.TempoPeers</label></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-1"><label><b>Projeto</b></label></div>
+                                    <div class="col-md-3"><label>@ViewModel.ProjetoNome</label></div>
+                                    <div class="col-md-1"><label><b>Cliente</b></label></div>
+                                    <div class="col-md-3"><label>@ViewModel.ClienteNome</label></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="form-body">
+                    <div class="row">
+                        <div class="col-md-4 offset-md-8">
+                            <div class="text-right">
+                                <!-- Botões Aqui -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="table-responsive">
+                    <table class="table table-striped border">
+                        <thead>
+                            <tr>
+                                <th>Performance</th>
+                                <th>Abaixo</th>
+                                <th>Esperado</th>
+                                <th>Acima</th>
+                                <th>Nota Avaliado</th>
+                                <th>Nota às Cegas</th>
+                                <th>Nota Gestor</th>
+                                <th>Feedback</th>
+                                <th>Observações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var perf in ViewModel.Performances)
+                            {
+                                if (!string.IsNullOrEmpty(perf.SeparadorAbrangencia))
+                                {
+                                    <tr class="@perf.SeparadorAbrangencia">
+                                        <td colspan="9" style="text-align:center;font-size:16px">@perf.Abrangencia</td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td>@perf.Descricao</td>
+                                    <td>
+                                        <a href="#abaixo_@perf.IdPerformance" data-target="#abaixo_@perf.IdPerformance" data-toggle="collapse" class="accordion-toggle">
+                                            @perf.AbaixoTruncado <span style="font-weight:bold"> Ver+</span>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="#esperado_@perf.IdPerformance" data-target="#esperado_@perf.IdPerformance" data-toggle="collapse" class="accordion-toggle">
+                                            @perf.EsperadoTruncado <span style="font-weight:bold"> Ver+</span>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="#acima_@perf.IdPerformance" data-target="#acima_@perf.IdPerformance" data-toggle="collapse" class="accordion-toggle">
+                                            @perf.AcimaTruncado <span style="font-weight:bold"> Ver+</span>
+                                        </a>
+                                    </td>
+                                    <td>@perf.NotaAvaliado</td>
+                                    <td>@perf.NotaCegas</td>
+                                    <td>@perf.NotaGestor</td>
+                                    <td>@perf.NotaFeedback</td>
+                                    <td class="text-center">
+                                        <button type="button" data-toggle="collapse" data-target="#obs_@perf.IdPerformance" class="accordion-toggle" style="background-color:#003150;padding:8px 15px;border:none">
+                                            <span aria-hidden="true" style="color:white;font-size:15px">Considerações</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="9" class="hiddenRow">
+                                        <div class="accordian-body collapse" id="abaixo_@perf.IdPerformance">[Abaixo] @perf.Abaixo</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="9" class="hiddenRow">
+                                        <div class="accordian-body collapse" id="esperado_@perf.IdPerformance">[Esperado] @perf.Esperado</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="9" class="hiddenRow">
+                                        <div class="accordian-body collapse" id="acima_@perf.IdPerformance">[Acima] @perf.Acima</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="9" class="hiddenRow">
+                                        <div class="accordian-body collapse" id="obs_@perf.IdPerformance">
+                                            <p>
+                                                <strong>Observações do Avaliado:</strong><br />
+                                                @perf.ObservacaoAvaliado
+                                            </p>
+                                            <p>
+                                                <strong>Observações do Gestor:</strong><br />
+                                                @perf.ObservacaoGestor
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="col-md-5">
+                    <div class="text-left">
+                        <a href="avalizacao_mentor_competencia">
+                            <button type="button" class="btn btn-danger">Competência</button>
+                        </a>
+                        <button type="button" class="btn btn-facebook" disabled>Performance</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+        .hiddenRow {
+            padding: 0 !important;
+        }
+    </style>
+}
