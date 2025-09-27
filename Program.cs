@@ -46,26 +46,22 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.AI;
 using Peers.Moderno.Services.Mentoria;
 using Peers.Moderno.Services.Mentoria.Common;
-// Feedback Services
 using Peers.Moderno.Services.Feedback;
 using Peers.Moderno.Services.Feedback.Common;
-// FeedbackPerformance Services
 using Services.FeedbackPerformance;
 using Services.FeedbackPerformance.Common;
-// AvaliacoesGestor Services
 using Services.AvaliacoesGestor;
 using Services.AvaliacoesGestor.Common;
-// AvaliacaoCompetenciaService
 using Services.Avaliacoes;
 using Services.Avaliacoes.Common;
-// AvaliacoesGestorasCegas Performance Services
 using Services.AvaliacoesGestorasCegas;
-// AvaliacaoMentorCompetencia Services
 using Services.AvaliacaoMentorCompetencia;
 using Services.AvaliacaoMentorCompetencia.Common;
-// PerformanceMentorService
 using Services.Performance.IPerformanceMentorService;
 using Services.Performance.PerformanceMentorService;
+// Novos serviços para resultado de avaliação
+using Services.Resultados;
+using Services.Resultados.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -328,6 +324,10 @@ builder.Services.AddScoped<IAvaliacaoGestorasCegasPerformanceService, AvaliacaoG
 // AvaliacaoMentorCompetencia Services - Passo 5
 builder.Services.AddScoped<IAvaliacaoMentorCompetenciaService, AvaliacaoMentorCompetenciaService>();
 builder.Services.AddScoped<AvaliacaoMentorCompetenciaHelper>();
+
+// REGISTRO DOS NOVOS SERVIÇOS DE RESULTADO DE AVALIAÇÃO
+builder.Services.AddScoped<IResultadoService, ResultadoService>();
+builder.Services.AddScoped<IResultadoHelper, ResultadoHelper>();
 
 var app = builder.Build();
 

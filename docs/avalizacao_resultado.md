@@ -1,41 +1,62 @@
-# Documentação Técnica: Resultado de Avaliação
+# Documentação: Migração da Página de Resultado de Avaliação
 
 ## Visão Geral
 
-Esta documentação descreve a arquitetura, funcionamento e integração dos serviços criados para a página de Resultado de Avaliação migrada do Web Forms para Blazor Híbrido. Os serviços e helpers foram centralizados na pasta `Services/Resultados` e `Services/Resultados/Common`, seguindo as premissas de reutilização e desacoplamento.
+Esta documentação descreve a migração da página de resultado de avaliação do sistema legado (Web Forms) para o novo padrão Blazor Híbrido (.NET 9), detalhando a arquitetura, integração dos serviços, fluxo de dados e sugestões de melhorias. O objetivo é garantir que toda a lógica de negócio foi extraída para serviços reutilizáveis, helpers centralizados e componentes Blazor, promovendo manutenibilidade e escalabilidade.
 
-## Estrutura de Serviços
+## Estrutura de Integração
 
-- **IResultadoService**: Interface que define os métodos de obtenção dos resultados de avaliação, soma de projetos e utilitários de formatação.
-- **ResultadoService**: Implementação da interface, responsável por buscar dados do banco via Entity Framework Core e aplicar lógica de negócio.
-- **ResultadoHelper**: Helper centralizado para formatação de percentuais, decimais e truncamento de texto, utilizado pelo serviço principal.
+- **Serviços Reutilizáveis:**
+  - `Services/Resultados/IResultadoService.cs`: Interface para obtenção e processamento dos resultados de avaliação.
+  - `Services/Resultados/ResultadoService.cs`: Implementação da lógica de negócio para resultados de avaliação.
+  - `Services/Resultados/Common/ResultadoHelper.cs`: Métodos auxiliares para cálculos, truncamento e manipulação de dados de resultado.
+  - `Services/Common/FormatHelper.cs`: Métodos de formatação reutilizáveis.
+  - `Services/Common/ComboHelper.cs`: Métodos para combos e listas reutilizáveis.
 
-## Integração
+- **Componentes Blazor:**
+  - `Components/AvalizacaoResultado.razor`: Componente principal da página de resultado de avaliação.
+  - Subcomponentes para tabelas, tabs, modais e controles de mensagens.
 
-- Os serviços são registrados no container de DI em `Program.cs`.
-- O componente Blazor responsável pela página de resultado injeta `IResultadoService` e utiliza seus métodos para obter dados e formatar informações para exibição.
-- O helper é injetado no serviço principal, promovendo reutilização.
-- O acesso ao banco é feito via `ApplicationDbContext`, mantendo compatibilidade com o legado.
+- **Configuração:**
+  - `appsettings.json`: Centraliza configurações do sistema, strings de conexão, opções de avaliação, etc.
+
+- **Registro de Serviços:**
+  - `Program.cs`: Todos os serviços e helpers necessários são registrados para injeção de dependência.
 
 ## Fluxo do Processo
 
 mermaid
 flowchart TD
-    A[Usuário acessa página Resultado de Avaliação] --> B[Componente Blazor AvalizacaoResultado]
-    B --> C[Injeta IResultadoService]
-    C --> D[ObterResultadoAssociadoAsync]
-    D --> E[Busca resultados no ApplicationDbContext]
-    B --> F[ObterSomaProjetosAsync]
-    F --> G[Busca soma dos projetos]
-    B --> H[Utiliza métodos FormatPercentagem, FormatDecimal, TruncarTexto]
-    H --> I[Exibe dados formatados na UI]
+    A[Usuário acessa AvalizacaoResultado.razor] --> B[Componente requisita dados via IResultadoService]
+    B --> C[ResultadoService consulta ApplicationDbContext]
+    C --> D[Dados de ResultadoProjetosModel e ResultadoSomaProjetosModel]
+    D --> E[ResultadoHelper/FormatHelper processam dados]
+    E --> F[Componentes Blazor exibem tabelas, tabs, modais]
+    F --> G[Usuário interage com UI]
+    G --> B
 
+
+## Funcionamento Detalhado
+
+1. O usuário acessa a página de resultado de avaliação, agora implementada como componente Blazor (`AvalizacaoResultado.razor`).
+2. O componente requisita os dados de resultado utilizando o serviço injetado `IResultadoService`.
+3. O serviço consulta o banco de dados via `ApplicationDbContext`, recuperando as entidades mapeadas (`ResultadoProjetosModel`, `ResultadoSomaProjetosModel`, etc.).
+4. Os dados são processados por helpers reutilizáveis (`ResultadoHelper`, `FormatHelper`) para cálculos, formatação e truncamento de textos.
+5. Os componentes Blazor exibem as informações em tabelas, tabs e modais, permitindo navegação e interação fluida.
+6. Toda a configuração da página e dos serviços é centralizada em `appsettings.json`.
+7. Todos os serviços necessários estão registrados em `Program.cs` para injeção de dependência.
 
 ## Sugestões de Melhorias
 
-- Implementar cache de resultados para reduzir queries repetidas.
-- Adicionar testes automatizados para garantir integridade dos métodos de negócio e helpers.
-- Evoluir o helper para suportar internacionalização e formatos regionais.
-- Expandir o serviço para permitir filtros dinâmicos e paginação dos resultados.
-- Integrar logs de telemetria para rastrear uso e performance dos métodos.
-- Modularizar componentes Blazor para facilitar manutenção e reuso em outras páginas.
+- **Testes Automatizados:** Implementar testes unitários e de integração para os serviços e componentes Blazor.
+- **Cache de Resultados:** Adicionar cache para resultados de avaliação que não mudam com frequência, melhorando performance.
+- **Paginação e Filtros Avançados:** Permitir paginação e filtros dinâmicos nas tabelas de resultados, facilitando análise de grandes volumes de dados.
+- **Internacionalização:** Preparar o sistema para múltiplos idiomas, utilizando recursos de localização do .NET.
+- **Monitoramento e Telemetria:** Expandir o uso de Application Insights para rastrear eventos e exceções específicas da página de resultado.
+- **Documentação Técnica Expandida:** Adicionar exemplos de uso dos serviços e componentes, facilitando onboarding de novos desenvolvedores.
+
+## Referências
+
+- [Documentação oficial Blazor .NET 9](https://learn.microsoft.com/aspnet/core/blazor/)
+- [Entity Framework Core](https://learn.microsoft.com/ef/core/)
+- [Application Insights](https://learn.microsoft.com/azure/azure-monitor/app/app-insights-overview)
