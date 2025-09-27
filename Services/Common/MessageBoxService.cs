@@ -32,6 +32,12 @@ public class MessageBoxService : IMessageBoxService
     {
         OnMessageReceived?.Invoke(new MessageBoxEventArgs(message, MessageBoxType.Warning, title, delay));
     }
+
+    // Cobertura adicional para cenários de exibição customizada
+    public void Show(string message, MessageBoxType type = MessageBoxType.Info, string? title = null, int? delay = null)
+    {
+        OnMessageReceived?.Invoke(new MessageBoxEventArgs(message, type, title, delay));
+    }
 }
 
 public class MessageBoxEventArgs
