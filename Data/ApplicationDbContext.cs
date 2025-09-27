@@ -36,6 +36,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<PERIODOSAVALIACOES> PeriodosAvaliacoes { get; set; }
     public DbSet<AvaliacaoPerformance> AvaliacoesPerformance { get; set; }
     public DbSet<AvaliacaoEmail> AvaliacoesEmail { get; set; }
+    // Adicionado para garantir cobertura da avaliação de competência do mentor
+    public DbSet<ConsideracoesMentor> ConsideracoesMentor { get; set; }
+    public DbSet<AvaliacaoCompetencia> AvaliacoesCompetencias { get; set; }
+    public DbSet<ResultadoProjetosModel> ResultadoProjetos { get; set; }
+    public DbSet<ResultadoSomaProjetosModel> ResultadoSomaProjetos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -363,6 +368,50 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.DataLiberacao);
             entity.Property(e => e.PosicaoAtualFluxoAvaliacao);
             entity.Property(e => e.TipoAvaliacao);
+        });
+        // Mapeamento para ConsideracoesMentor
+        modelBuilder.Entity<ConsideracoesMentor>(entity =>
+        {
+            entity.HasKey(e => e.idConsideracoesMentor);
+            entity.ToTable("CONSIDERACOESMENTOR");
+            entity.Property(e => e.idMentor);
+            entity.Property(e => e.idAssociado);
+            entity.Property(e => e.idPeriodo);
+            entity.Property(e => e.TipoAvaliacao).HasMaxLength(50);
+            entity.Property(e => e.Escopo).HasMaxLength(50);
+            entity.Property(e => e.LiberadoRH);
+            entity.Property(e => e.AcaoComite).HasMaxLength(100);
+            entity.Property(e => e.PontosFortesRH).HasMaxLength(1000);
+            entity.Property(e => e.PontosFracosRH).HasMaxLength(1000);
+            entity.Property(e => e.SalarioAtual);
+            entity.Property(e => e.SalarioNovo);
+            entity.Property(e => e.RegimeContratacaoAtual).HasMaxLength(50);
+            entity.Property(e => e.RegimeContratacaoNovo).HasMaxLength(50);
+            entity.Property(e => e.MentoriaRealizada);
+            entity.Property(e => e.DataMentoriaRealizada);
+            entity.Property(e => e.ElegivelPromocao);
+            entity.Property(e => e.InputPromocao);
+            entity.Property(e => e.TrajetoriaAssociado).HasMaxLength(2000);
+            entity.Property(e => e.PontosFortes).HasMaxLength(1000);
+            entity.Property(e => e.PontosFracos).HasMaxLength(1000);
+        });
+        // Mapeamento para AvaliacaoCompetencia
+        modelBuilder.Entity<AvaliacaoCompetencia>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("AVALIACOESCOMPETENCIAS");
+        });
+        // Mapeamento para ResultadoProjetosModel
+        modelBuilder.Entity<ResultadoProjetosModel>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("RESULTADOPROJETOSMODEL");
+        });
+        // Mapeamento para ResultadoSomaProjetosModel
+        modelBuilder.Entity<ResultadoSomaProjetosModel>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("RESULTADOSOMAPROJETOSMODEL");
         });
     }
 }
