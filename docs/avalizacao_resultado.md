@@ -25,7 +25,7 @@ Esta documentação descreve a migração da página de resultado de avaliação
 
 ## Fluxo do Processo
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa AvalizacaoResultado.razor] --> B[Componente requisita dados via IResultadoService]
     B --> C[ResultadoService consulta ApplicationDbContext]
@@ -34,7 +34,7 @@ flowchart TD
     E --> F[Componentes Blazor exibem tabelas, tabs, modais]
     F --> G[Usuário interage com UI]
     G --> B
-
+```
 
 ## Funcionamento Detalhado
 
