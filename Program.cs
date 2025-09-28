@@ -66,6 +66,8 @@ using Services.Resultados.Common;
 using Services.ResultadoLideranca;
 using Services.ResultadoLideranca.Common;
 using Services.Common;
+using Services.Comentarios;
+using Services.Comentarios.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -348,6 +350,10 @@ builder.Services.AddScoped<IResultadoLiderancaService, ResultadoLiderancaService
 builder.Services.AddScoped<IResultadoLiderancaHelper, ResultadoLiderancaHelper>();
 // Serviço de ChartJsInterop reutilizável
 builder.Services.AddScoped<ChartJsInteropService>();
+
+// Registro dos serviços de Comentários (Migração Comentarios)
+builder.Services.AddScoped<IComentariosService, ComentariosService>();
+builder.Services.AddScoped<ComentariosHelper>();
 
 var app = builder.Build();
 
