@@ -80,6 +80,8 @@ using Services.Common.EmailService;
 // Importação dos novos serviços de exportação de avaliações
 using Services.AvaliacoesExportacao;
 using Services.AvaliacoesExportacao.Common;
+// Importação do serviço de pendências
+using Services.Pendencias.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -381,6 +383,9 @@ builder.Services.AddScoped<Services.Common.EmailService.IEmailService, Services.
 builder.Services.AddScoped<IExportarAvaliacoesService, ExportarAvaliacoesService>();
 builder.Services.AddScoped<IExportarAvaliacoesHelper, ExportarAvaliacoesHelper>();
 builder.Services.AddScoped<IExportarAvaliacoesExcelService, ExportarAvaliacoesExcelService>();
+
+// Registro do serviço de pendências (migração de pendencias.aspx)
+builder.Services.AddScoped<IPendenciasService, PendenciasService>();
 
 var app = builder.Build();
 
