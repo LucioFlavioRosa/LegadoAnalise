@@ -23,7 +23,7 @@ Esta documentação descreve a arquitetura, funcionamento e integração do novo
 
 ## Fluxo do Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa Pendencias.razor] --> B{OnInitializedAsync}
     B --> C[PendenciasService.ObterPendenciasAsync(userId)]
@@ -31,7 +31,7 @@ flowchart TD
     D --> E[Lista de ProjetoPendenciaModel]
     E --> F[Renderização da Tabela de Pendências]
     F --> G[MessageBoxService para feedback]
-
+```
 
 ## Sugestões de Melhorias Futuras
 
