@@ -1,105 +1,133 @@
-using Services.FrentesInternas.Common;
-using Services.FrentesInternas.Common.Models;
-using Services.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Peers.Moderno.Data;
+using Peers.Moderno.Models;
 
 namespace Services.FrentesInternas;
 
 public class FrentesInternasService : IFrentesInternasService
 {
     private readonly ApplicationDbContext _db;
-    private readonly IUserContextService _userContextService;
-    private readonly IComboHelper _comboHelper;
-    private readonly ITelemetryService _telemetryService;
-
-    public FrentesInternasService(
-        ApplicationDbContext db,
-        IUserContextService userContextService,
-        IComboHelper comboHelper,
-        ITelemetryService telemetryService)
+    public FrentesInternasService(ApplicationDbContext db)
     {
         _db = db;
-        _userContextService = userContextService;
-        _comboHelper = comboHelper;
-        _telemetryService = telemetryService;
     }
 
-    public async Task<List<PDIPillsModel>> CarregarPeriodosAsync(int usuarioId)
+    public async Task<List<PeriodoAvaliacaoDto>> ListaTodosPeriodosAsync(int empresaId)
     {
-        // Exemplo: buscar períodos e montar pills
-        // Substitua por lógica real conforme entidades
-        var periodos = await _db.Prazos.OrderByDescending(p => p.IdPrazo).ToListAsync();
-        var ultimoPeriodo = periodos.FirstOrDefault();
-        var pills = new List<PDIPillsModel>();
-        foreach (var periodo in periodos)
+        return await _db.PeriodosAvaliacoes
+            .Where(p => p.IdEmpresa == empresaId)
+            .OrderByDescending(p => p.IdPeriodo)
+            .Select(p => new PeriodoAvaliacaoDto { IdPeriodo = p.IdPeriodo, Periodo = p.Nome })
+            .ToListAsync();
+    }
+
+    public async Task<PeriodoAvaliacaoDto?> ObterPeriodoUltimoAsync()
+    {
+        var periodo = await _db.PeriodosAvaliacoes.OrderByDescending(p => p.IdPeriodo).FirstOrDefaultAsync();
+        if (periodo == null) return null;
+        return new PeriodoAvaliacaoDto { IdPeriodo = periodo.IdPeriodo, Periodo = periodo.Nome };
+    }
+
+    public async Task<Associado?> ObterAssociadoAsync(int idAssociado)
+    {
+        return await _db.Associados.FirstOrDefaultAsync(a => a.Id == idAssociado);
+    }
+
+    public async Task<List<FrenteInternaDto>> ObterLiderFrenteInternaAsync(int idAssociado)
+    {
+        // Supondo que existe uma relação entre lider e frente interna
+        return await _db.FrentesInternas
+            .Where(f => f.LideresFrente.Any(l => l.IdAssociado == idAssociado))
+            .Select(f => new FrenteInternaDto { IdFrenteInterna = f.IdFrenteInterna, FrenteInterna1 = f.Nome })
+            .ToListAsync();
+    }
+
+    public async Task<List<FrenteInternaDto>> ObterFrenteInternaAsync()
+    {
+        return await _db.FrentesInternas
+            .Select(f => new FrenteInternaDto { IdFrenteInterna = f.IdFrenteInterna, FrenteInterna1 = f.Nome })
+            .ToListAsync();
+    }
+
+    public async Task<List<Associado>> ObterParticipantesFrentesInternasAsync(int idFrenteInterna)
+    {
+        return await _db.Associados
+            .Where(a => a.FrentesInternasParticipantes.Any(f => f.IdFrenteInterna == idFrenteInterna))
+            .ToListAsync();
+    }
+
+    public async Task<List<AvaliacaoAlocacaoInternaDto>> ObterAvaliacoesAlocacoesInternasAsync(int? idAvaliador = null, int? idPeriodo = null, int? idAlocacaoInterna = null, int? idAssociado = null, int? idAvaliacaoAlocacaoInterna = null)
+    {
+        var query = _db.AvaliacoesAlocacoesInternas.AsQueryable();
+        if (idAvaliador.HasValue)
+            query = query.Where(x => x.IdAvaliador == idAvaliador.Value);
+        if (idPeriodo.HasValue)
+            query = query.Where(x => x.IdPeriodo == idPeriodo.Value);
+        if (idAlocacaoInterna.HasValue)
+            query = query.Where(x => x.IdAlocacaoInterna == idAlocacaoInterna.Value);
+        if (idAssociado.HasValue)
+            query = query.Where(x => x.IdAssociado == idAssociado.Value);
+        if (idAvaliacaoAlocacaoInterna.HasValue)
+            query = query.Where(x => x.IdAvaliacaoAlocacaoInterna == idAvaliacaoAlocacaoInterna.Value);
+        return await query.Select(x => new AvaliacaoAlocacaoInternaDto
         {
-            pills.Add(new PDIPillsModel
-            {
-                id = $"tab-{periodo.IdPrazo}-tab",
-                href = $"#tab-{periodo.IdPrazo}",
-                ariacontrols = $"tab-{periodo.IdPrazo}",
-                ariaselected = periodo.IdPrazo == ultimoPeriodo?.IdPrazo ? "true" : "false",
-                active = periodo.IdPrazo == ultimoPeriodo?.IdPrazo ? "active" : string.Empty,
-                classe = periodo.IdPrazo == ultimoPeriodo?.IdPrazo ? "btn btn-danger" : "btn btn-facebook",
-                Periodo = periodo.NomeDisparo
-            });
+            IdAvaliacaoAlocacaoInterna = x.IdAvaliacaoAlocacaoInterna,
+            IdAlocacaoInterna = x.IdAlocacaoInterna,
+            IdAvaliador = x.IdAvaliador,
+            IdAssociado = x.IdAssociado,
+            IdPeriodo = x.IdPeriodo,
+            IdNota = x.IdNota,
+            Comentarios = x.Comentarios,
+            DHC = x.DHC,
+            ValidadoMD = x.ValidadoMD,
+            DHCValidadoMD = x.DHCValidadoMD
+        }).ToListAsync();
+    }
+
+    public async Task<List<NotaAlocacaoInternaDto>> ObterNotasAlocacoesInternasAsync(int? idNotaAlocacaoInterna = null)
+    {
+        var query = _db.NotasAlocacoesInternas.AsQueryable();
+        if (idNotaAlocacaoInterna.HasValue)
+            query = query.Where(x => x.IdNotaAlocacaoInterna == idNotaAlocacaoInterna.Value);
+        return await query.Select(x => new NotaAlocacaoInternaDto
+        {
+            IdNotaAlocacaoInterna = x.IdNotaAlocacaoInterna,
+            Descricao = x.Descricao
+        }).ToListAsync();
+    }
+
+    public async Task GerirAvaliacaoAlocacaoInternaAsync(AvaliacaoAlocacaoInternaDto avaliacao)
+    {
+        var entity = await _db.AvaliacoesAlocacoesInternas.FirstOrDefaultAsync(x => x.IdAvaliacaoAlocacaoInterna == avaliacao.IdAvaliacaoAlocacaoInterna);
+        if (entity != null)
+        {
+            entity.IdNota = avaliacao.IdNota;
+            entity.Comentarios = avaliacao.Comentarios;
+            entity.ValidadoMD = avaliacao.ValidadoMD;
+            entity.DHC = DateTime.Now;
+            entity.DHCValidadoMD = avaliacao.DHCValidadoMD;
+            _db.AvaliacoesAlocacoesInternas.Update(entity);
         }
-        return pills;
-    }
-
-    public async Task<List<FrentePill>> CarregarAvaliacoesAsync(int usuarioId)
-    {
-        // Exemplo: buscar avaliações do usuário logado
-        // Substitua por lógica real conforme entidades
-        var periodos = await _db.Prazos.OrderByDescending(p => p.IdPrazo).ToListAsync();
-        var ultimoPeriodo = periodos.FirstOrDefault();
-        var pills = new List<FrentePill>();
-        foreach (var periodo in periodos)
+        else
         {
-            var pill = new FrentePill
+            entity = new AvaliacoesAlocacoesInternas
             {
-                idPeriodo = periodo.IdPrazo,
-                Periodo = periodo.NomeDisparo,
-                id = $"tab-{periodo.IdPrazo}",
-                active = periodo.IdPrazo == ultimoPeriodo?.IdPrazo ? "active in show" : string.Empty,
-                arialabelled = $"tab-{periodo.IdPrazo}-tab",
-                alocacoes = new List<AlocacaoInternaPill>()
+                IdAlocacaoInterna = avaliacao.IdAlocacaoInterna,
+                IdAvaliador = avaliacao.IdAvaliador,
+                IdAssociado = avaliacao.IdAssociado,
+                IdPeriodo = avaliacao.IdPeriodo,
+                IdNota = avaliacao.IdNota,
+                Comentarios = avaliacao.Comentarios,
+                DHC = DateTime.Now,
+                ValidadoMD = avaliacao.ValidadoMD,
+                DHCValidadoMD = avaliacao.DHCValidadoMD
             };
-            // Exemplo: buscar alocações e avaliações (substitua por lógica real)
-            // pill.alocacoes = ...
-            pills.Add(pill);
+            await _db.AvaliacoesAlocacoesInternas.AddAsync(entity);
         }
-        return pills;
-    }
-
-    public async Task ValidarAlocacoesInternasAsync(int idPeriodo, int usuarioId)
-    {
-        // Lógica de validação de alocações internas
-        // Exemplo: implementar conforme regra de negócio
-        _telemetryService.TrackEvent("ValidarAlocacoesInternas", new Dictionary<string, string> { { "Periodo", idPeriodo.ToString() }, { "UsuarioId", usuarioId.ToString() } });
-        await Task.CompletedTask;
-    }
-
-    public async Task AtualizarNotaAsync(int idAvaliacao, int idNota)
-    {
-        // Exemplo: atualizar nota na base
-        // Substitua por lógica real
-        _telemetryService.TrackEvent("AtualizarNota", new Dictionary<string, string> { { "AvaliacaoId", idAvaliacao.ToString() }, { "NotaId", idNota.ToString() } });
-        await Task.CompletedTask;
-    }
-
-    public async Task AtualizarComentarioAsync(int idAvaliacao, string comentario)
-    {
-        // Exemplo: atualizar comentário na base
-        _telemetryService.TrackEvent("AtualizarComentario", new Dictionary<string, string> { { "AvaliacaoId", idAvaliacao.ToString() } });
-        await Task.CompletedTask;
-    }
-
-    public async Task AtualizarValidadoAsync(int idAvaliacao, bool validado)
-    {
-        // Exemplo: atualizar flag de validado na base
-        _telemetryService.TrackEvent("AtualizarValidado", new Dictionary<string, string> { { "AvaliacaoId", idAvaliacao.ToString() }, { "Validado", validado.ToString() } });
-        await Task.CompletedTask;
+        await _db.SaveChangesAsync();
     }
 }
