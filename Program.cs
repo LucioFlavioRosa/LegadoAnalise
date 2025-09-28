@@ -77,6 +77,9 @@ using Services.Avaliacoes.Common;
 // Importação dos novos serviços para envio de evolução
 using Services.Avaliacoes.EvolucaoAssociadoService;
 using Services.Common.EmailService;
+// Importação dos novos serviços de exportação de avaliações
+using Services.AvaliacoesExportacao;
+using Services.AvaliacoesExportacao.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -373,6 +376,11 @@ builder.Services.AddScoped<IRetrocederAvaliacaoValidator, RetrocederAvaliacaoVal
 // Registro dos novos serviços para envio de evolução
 builder.Services.AddScoped<Services.Avaliacoes.EvolucaoAssociadoService.IEvolucaoAssociadoService, Services.Avaliacoes.EvolucaoAssociadoService.EvolucaoAssociadoService>();
 builder.Services.AddScoped<Services.Common.EmailService.IEmailService, Services.Common.EmailService.EmailService>();
+
+// Registro dos novos serviços para exportação de avaliações
+builder.Services.AddScoped<IExportarAvaliacoesService, ExportarAvaliacoesService>();
+builder.Services.AddScoped<IExportarAvaliacoesHelper, ExportarAvaliacoesHelper>();
+builder.Services.AddScoped<IExportarAvaliacoesExcelService, ExportarAvaliacoesExcelService>();
 
 var app = builder.Build();
 
