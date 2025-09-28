@@ -18,7 +18,7 @@ A UI Blazor utiliza injeção de dependência para consumir esses serviços, pro
 
 ## Fluxo de Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     ConsultaEditar[ConsultaEditar.razor]
     subgraph Filtros
@@ -37,7 +37,7 @@ flowchart TD
     TabelaResultados -->|Ação| MessageBoxService
     ConsultaEditar --> FormatHelper
     ConsultaEditar --> MessageBoxService
-
+```
 
 ## Estrutura de Pastas e Arquivos
 
