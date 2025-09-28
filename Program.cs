@@ -68,6 +68,8 @@ using Services.ResultadoLideranca.Common;
 using Services.Common;
 using Services.Comentarios;
 using Services.Comentarios.Common;
+// Importação para Consulta Avançada
+using Services.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -143,6 +145,8 @@ builder.Services.AddScoped<IMessageBoxService, MessageBoxService>();
 // Serviços e helpers comuns já existentes
 builder.Services.AddScoped<FormatHelper>();
 builder.Services.AddScoped<ComboHelper>();
+// Registro do serviço de consulta avançada
+builder.Services.AddScoped<IConsultaAvancadaService, ConsultaAvancadaService>();
 // Serviços de resultado de avaliação (novos para tela de resultado)
 builder.Services.AddScoped<IResultadoService, ResultadoService>();
 builder.Services.AddScoped<IResultadoHelper, ResultadoHelper>();
