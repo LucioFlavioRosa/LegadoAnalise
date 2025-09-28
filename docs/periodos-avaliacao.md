@@ -23,7 +23,7 @@ Todos os serviços são registrados no DI em `Program.cs` e podem ser injetados 
 
 ## Fluxo do Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     PeriodosAvaliacaoPage[PeriodosAvaliacao.razor]
     PeriodosAvaliacaoPage -- injeção --> PeriodoService
@@ -36,7 +36,7 @@ flowchart TD
     PeriodoFormatHelper -- formata --> PeriodosAvaliacaoPage
     ApplicationDbContext -- entidades --> PERIODOSAVALIACOES
     ApplicationDbContext -- entidades --> AssociadosProjetos
-
+```
 
 ## Sugestões de Melhorias Futuras
 
