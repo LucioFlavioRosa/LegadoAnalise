@@ -18,7 +18,7 @@ A funcionalidade de **Consulta Avançada** foi migrada do modelo antigo Web Form
 
 ## Fluxo do Processo
 
-mermaid
+```mermaid
 flowchart TD
     A[ConsultaAvancada.razor] -- Carrega filtros --> B[ComboHelper]
     A -- Executa busca --> C[IConsultaAvancadaService]
@@ -26,7 +26,7 @@ flowchart TD
     C -- Usa ApplicationDbContext --> D
     D -- Retorna dados --> C
     C -- Retorna resultados --> A
-
+```
 
 - **ConsultaAvancada.razor**: Página Blazor responsável pela interface do usuário.
 - **ComboHelper**: Fornece listas de opções para os filtros (projetos, clientes, profissionais, períodos).
