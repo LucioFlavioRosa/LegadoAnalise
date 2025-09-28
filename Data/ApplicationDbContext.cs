@@ -40,6 +40,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<AvaliacaoCompetencia> AvaliacoesCompetencias { get; set; }
     public DbSet<ResultadoProjetosModel> ResultadoProjetos { get; set; }
     public DbSet<ResultadoSomaProjetosModel> ResultadoSomaProjetos { get; set; }
+    public DbSet<COMENTARIOS> Comentarios { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -407,6 +408,16 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.ToTable("RESULTADOSOMAPROJETOSMODEL");
+        });
+        modelBuilder.Entity<COMENTARIOS>(entity =>
+        {
+            entity.HasKey(e => e.idComentario);
+            entity.ToTable("COMENTARIOS");
+            entity.Property(e => e.idComentario).HasColumnName("idComentario");
+            entity.Property(e => e.idAssociado).HasColumnName("idAssociado");
+            entity.Property(e => e.idPeriodo).HasColumnName("idPeriodo");
+            entity.Property(e => e.Comentario).HasColumnName("Comentario").HasMaxLength(2000);
+            entity.Property(e => e.DHC).HasColumnName("DHC");
         });
     }
 }
