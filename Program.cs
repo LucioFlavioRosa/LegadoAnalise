@@ -74,6 +74,10 @@ using Services.Common;
 using Services.Avaliacoes;
 using Services.Avaliacoes.Common;
 
+// Importação dos novos serviços para envio de evolução
+using Services.Avaliacoes.EvolucaoAssociadoService;
+using Services.Common.EmailService;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -365,6 +369,10 @@ builder.Services.AddScoped<ComentariosHelper>();
 // Registro dos serviços de retroceder avaliações
 builder.Services.AddScoped<IRetrocederAvaliacaoService, RetrocederAvaliacaoService>();
 builder.Services.AddScoped<IRetrocederAvaliacaoValidator, RetrocederAvaliacaoValidator>();
+
+// Registro dos novos serviços para envio de evolução
+builder.Services.AddScoped<Services.Avaliacoes.EvolucaoAssociadoService.IEvolucaoAssociadoService, Services.Avaliacoes.EvolucaoAssociadoService.EvolucaoAssociadoService>();
+builder.Services.AddScoped<Services.Common.EmailService.IEmailService, Services.Common.EmailService.EmailService>();
 
 var app = builder.Build();
 
