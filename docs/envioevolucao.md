@@ -1,62 +1,118 @@
-# Documentação Técnica: Envio de Evolução - Serviços Comuns
+# Documentação: Envio de Evolução (Migração Web Forms → Blazor Híbrido)
 
 ## Visão Geral
 
-Esta documentação cobre a centralização e modernização dos serviços comuns utilizados no processo de Envio de Evolução, migrando lógicas utilitárias para a pasta `Services/Common`. O objetivo é garantir máxima reutilização, manutenção facilitada e padronização em toda a aplicação.
+Esta documentação detalha a arquitetura, integração e funcionamento do novo fluxo de Envio de Evolução, migrado do Web Forms (`envioevolucao.aspx`) para um componente Blazor moderno, utilizando serviços e helpers centralizados para máxima reutilização e desacoplamento.
 
-## Serviços e Helpers Implementados
+O objetivo é garantir manutenibilidade, testabilidade e facilidade de evolução, seguindo as melhores práticas de engenharia de software e a padronização de serviços reutilizáveis em `Services/Common`.
 
-### 1. ComboHelper
-- Centraliza métodos para carregar combos de períodos, associados, verticais, status, tipos de avaliação, escopos, notas de competência/performance, abrangências, etc.
-- Permite consultas assíncronas ao banco de dados via EF (ApplicationDbContext).
-- Retorna listas de ComboItem reutilizáveis em qualquer componente.
+---
 
-### 2. MessageBoxService
-- Serviço singleton para exibição de mensagens de sucesso, erro, informação e alerta.
-- Utiliza eventos para notificar componentes Blazor.
-- Padroniza a experiência de mensagens em toda a aplicação.
+## Arquitetura e Integração dos Serviços
 
-### 3. EmailService
-- Serviço injetável para envio de emails parametrizados.
-- Lê configurações do `appsettings.json` (seção Email).
-- Permite envio assíncrono, com suporte a HTML, CC e BCC.
-- Facilita manutenção e centraliza lógica de envio de email.
+### 1. Componentização
+- **Componente Principal:** `Components/Avaliacoes/EnvioEvolucao.razor`
+- **Code-behind:** `EnvioEvolucao.razor.cs`
+- **Renderização:** `@rendermode InteractiveAuto` (Blazor Híbrido)
 
-### 4. FormatHelper
-- Helper estático para formatação de percentuais, decimais, moedas e truncamento de texto.
-- Garante consistência visual e reaproveitamento em toda a aplicação.
+### 2. Serviços Utilizados
+- **EvolucaoAssociadoService:** Lógica de negócio para geração e listagem de evoluções.
+- **ComboHelper:** Carregamento de combos reutilizáveis (períodos, associados, verticais).
+- **MessageBoxService:** Exibição padronizada de mensagens (sucesso, erro, info, warning).
+- **EmailService:** Envio de emails parametrizados, utilizando configurações do `appsettings.json`.
+- **FormatHelper:** Formatação de textos, datas e exibição na UI.
 
-## Integração e Uso
+### 3. Configuração
+- **Configurações de email, SMTP, remetente, modelo de email:** Centralizadas em `appsettings.json`.
+- **Strings de conexão e parâmetros globais:** Também em `appsettings.json`.
 
-- Todos os serviços estão disponíveis via DI (Dependency Injection) e podem ser utilizados em componentes, páginas e outros serviços.
-- Exemplo de injeção em um componente Blazor:
-  csharp
-  @inject Services.Common.ComboHelper ComboHelper
-  @inject Peers.Moderno.Services.Common.IMessageBoxService MessageBoxService
-  @inject Services.Common.IEmailService EmailService
-  @inject Peers.Moderno.Services.Common.FormatHelper FormatHelper
-  
-- O ComboHelper pode ser usado para popular combos de dropdowns de períodos, associados, verticais, etc.
-- O MessageBoxService pode ser usado para exibir mensagens de feedback ao usuário.
-- O EmailService pode ser utilizado para enviar emails de notificação, evolução, etc.
-- O FormatHelper pode ser usado para formatar valores exibidos na UI.
+### 4. Data Access
+- **DbContext:** `ApplicationDbContext` expõe entidades como `Associado`, `Periodo`, `Vertical`, etc., garantindo compatibilidade e queries modernas.
+
+### 5. Injeção de Dependência
+Todos os serviços são registrados no container DI em `Program.cs` e injetados nos componentes conforme necessidade.
+
+---
+
+## Exemplo de Integração e Uso
+
+csharp
+@inject IEvolucaoAssociadoService EvolucaoAssociadoService
+@inject IComboHelper ComboHelper
+@inject IMessageBoxService MessageBoxService
+@inject IEmailService EmailService
+@inject IFormatHelper FormatHelper
+
+// Uso típico no code-behind:
+var periodos = await ComboHelper.GetPeriodosComboAsync(dbContext, empresaId);
+var associados = await ComboHelper.GetProfissionaisComboAsync(dbContext, true);
+var verticais = await ComboHelper.GetVerticaisComboAsync(dbContext);
+
+var evolucoes = await EvolucaoAssociadoService.ListAssociadosEvolucao(idAssociado, idPeriodo, idVertical);
+
+if (evolucoes.Any())
+{
+    // Geração e envio de evolução
+    await EvolucaoAssociadoService.GerarEvolucaoAssociadoOtimizado(...);
+    await EmailService.EnviarEvolucaoEmail(associado, periodo);
+    MessageBoxService.ShowSuccess($"Evolução enviada com sucesso para {associado.Nome}.");
+}
+else
+{
+    MessageBoxService.ShowInfo("Não há evoluções para enviar.");
+}
+
+
+---
 
 ## Fluxo do Processo (Mermaid)
 
 mermaid
 flowchart TD
-    A[EnvioEvolucao.razor] -->|Carrega combos| B[ComboHelper]
-    A -->|Exibe mensagens| C[MessageBoxService]
-    A -->|Envia emails| D[EmailService]
-    A -->|Formata dados| E[FormatHelper]
-    B -->|Consulta dados| F[ApplicationDbContext]
-    D -->|Lê config| G[appsettings.json]
+    Start([Usuário acessa Envio de Evolução])
+    ComboPeriodos[Carrega Combo de Períodos]
+    ComboAssociados[Carrega Combo de Associados]
+    ComboVerticais[Carrega Combo de Verticais]
+    BuscaAvaliacoes[Usuário clica em 'Listar Avaliações']
+    TabelaAvaliacoes[Exibe Tabela de Avaliações Finalizadas]
+    BotaoEnviarTodos[Usuário clica em 'Enviar TODAS Evoluções']
+    GeraEvolucao[EvolucaoAssociadoService.GerarEvolucaoAssociadoOtimizado]
+    EnviaEmail[EmailService.EnviarEvolucaoEmail]
+    MensagemSucesso[MessageBoxService.ShowSuccess]
+    MensagemInfo[MessageBoxService.ShowInfo]
+    Fim([Fim])
 
+    Start --> ComboPeriodos
+    Start --> ComboAssociados
+    Start --> ComboVerticais
+    ComboPeriodos --> BuscaAvaliacoes
+    ComboAssociados --> BuscaAvaliacoes
+    ComboVerticais --> BuscaAvaliacoes
+    BuscaAvaliacoes --> TabelaAvaliacoes
+    TabelaAvaliacoes --> BotaoEnviarTodos
+    BotaoEnviarTodos --> GeraEvolucao
+    GeraEvolucao --> EnviaEmail
+    EnviaEmail --> MensagemSucesso
+    MensagemSucesso --> Fim
+    TabelaAvaliacoes -->|Nenhuma evolução| MensagemInfo
+    MensagemInfo --> Fim
+
+
+---
 
 ## Sugestões de Melhorias Futuras
 
-- Implementar cache para combos que não mudam com frequência, reduzindo queries ao banco.
-- Adicionar suporte a templates de email dinâmicos e multilíngue no EmailService.
-- Permitir customização de temas e estilos no MessageBoxService.
-- Expandir o FormatHelper para suportar internacionalização e formatação de datas customizadas.
-- Criar testes automatizados para todos os helpers e serviços comuns.
+1. **Testes Automatizados:** Implementar testes unitários e de integração para todos os serviços e componentes, garantindo robustez em futuras evoluções.
+2. **Paginação e Filtros Avançados:** Adicionar paginação e filtros dinâmicos na tabela de avaliações para melhor escalabilidade e experiência do usuário.
+3. **Feedback Visual em Tempo Real:** Integrar loading spinners e feedback visual durante operações longas (ex: envio em massa de emails).
+4. **Centralização de Logs:** Integrar logs detalhados de operações críticas (envio de email, geração de evolução) com Application Insights para rastreabilidade.
+5. **Internacionalização:** Preparar os textos e mensagens para múltiplos idiomas, facilitando a expansão para outras regiões.
+6. **Permissões Granulares:** Refinar o controle de permissões para que apenas usuários autorizados possam executar determinadas ações (ex: envio em massa).
+7. **Notificações Push:** Integrar notificações push (SignalR) para informar em tempo real sobre o status de envios e operações.
+8. **Documentação Viva:** Automatizar a geração de documentação técnica dos serviços e componentes, mantendo-a sempre atualizada.
+
+---
+
+## Conclusão
+
+A migração do Envio de Evolução para Blazor, com serviços centralizados e documentação detalhada, proporciona uma base sólida para manutenção, evolução e escalabilidade do sistema de avaliação interna da empresa. O fluxo está pronto para ser expandido e melhorado conforme as necessidades futuras do negócio.
