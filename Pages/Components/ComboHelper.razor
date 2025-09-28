@@ -1,0 +1,34 @@
+@using Services.Common
+@typeparam TItem
+@inject ComboHelper ComboHelperService
+
+<select @bind="SelectedValue" class="form-control" @onchange="OnChanged">
+    @if (ShowDefaultOption)
+    {
+        <option value="">[Selecionar]</option>
+    }
+    @foreach (var item in Items)
+    {
+        <option value="@item.Value" disabled="@(item.IsDisabled ? "disabled" : null)" selected="@(item.IsSelected ? "selected" : null)">@item.Text</option>
+    }
+</select>
+
+@code {
+    [Parameter]
+    public List<ComboItem> Items { get; set; } = new();
+
+    [Parameter]
+    public string? SelectedValue { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> SelectedValueChanged { get; set; }
+
+    [Parameter]
+    public bool ShowDefaultOption { get; set; } = true;
+
+    private async Task OnChanged(ChangeEventArgs e)
+    {
+        SelectedValue = e.Value?.ToString();
+        await SelectedValueChanged.InvokeAsync(SelectedValue);
+    }
+}
