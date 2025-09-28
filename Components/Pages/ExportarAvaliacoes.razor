@@ -1,0 +1,168 @@
+@rendermode InteractiveAuto
+@page "/exportar-avaliacoes"
+
+@inject Services.AvaliacoesExportacao.ExportarAvaliacoesService ExportarAvaliacoesService
+@inject Services.AvaliacoesExportacao.Common.ExportarAvaliacoesHelper ExportarAvaliacoesHelper
+@inject Services.AvaliacoesExportacao.Common.ExportarAvaliacoesExcelService ExportarAvaliacoesExcelService
+@inject Services.Common.ComboHelper ComboHelper
+@inject Services.Common.FormatHelper FormatHelper
+@inject Services.Common.MessageBoxService MessageBoxService
+@inject Services.Common.TelemetryService TelemetryService
+
+@using Components.Shared
+
+<PageTitle>Exportar Avaliações</PageTitle>
+
+<div class="page-breadcrumb border-bottom mb-4">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Exportar Avaliações</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Exportar Avaliações</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Filtro avaliações</h4>
+                    <div class="form-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Período</label>
+                                    <ComboSelect @bind-Value="FiltroPeriodo" Items="PeriodosCombo" />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Projeto</label>
+                                    <ComboSelect @bind-Value="FiltroProjeto" Items="ProjetosCombo" />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Associado</label>
+                                    <ComboSelect @bind-Value="FiltroAssociado" Items="AssociadosCombo" />
+                                </div>
+                            </div>
+                            <div class="col-md-2">&nbsp;</div>
+                            <div class="col-md-2 text-right">
+                                <button class="btn btn-danger" style="margin-top: 30px" @onclick="BuscarAvaliacoes">Listar Avaliações</button>
+                            </div>
+                            <div class="col-md-2 text-right">
+                                <button class="btn btn-info" style="margin-top: 30px" @onclick="Exportar" disabled="@(Avaliacoes == null || !Avaliacoes.Any())">Exportar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Avaliações Finalizadas</h4>
+            <h6 class="card-subtitle">Esta é apenas uma pré-visualização, os dados completos são apresentados no arquivo de exportação.</h6>
+            <ExportarAvaliacoesTable Avaliacoes="Avaliacoes" />
+        </div>
+    </div>
+</div>
+
+@code {
+    private string FiltroPeriodo { get; set; } = string.Empty;
+    private string FiltroProjeto { get; set; } = string.Empty;
+    private string FiltroAssociado { get; set; } = string.Empty;
+
+    private List<Services.Common.ComboItem> PeriodosCombo = new();
+    private List<Services.Common.ComboItem> ProjetosCombo = new();
+    private List<Services.Common.ComboItem> AssociadosCombo = new();
+
+    private List<Services.AvaliacoesExportacao.Models.AvaliacaoExportacaoPreviewModel> Avaliacoes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarCombos();
+    }
+
+    private async Task CarregarCombos()
+    {
+        PeriodosCombo = await ComboHelper.GetPeriodosComboAsync();
+        ProjetosCombo = await ComboHelper.GetProjetosComboAsync();
+        AssociadosCombo = await ComboHelper.GetProfissionaisComboAsync();
+    }
+
+    private async Task BuscarAvaliacoes()
+    {
+        try
+        {
+            Avaliacoes = await ExportarAvaliacoesService.ObterAvaliacoesPreviewAsync(FiltroPeriodo, FiltroProjeto, FiltroAssociado);
+            MessageBoxService.ShowSuccess($"{Avaliacoes.Count} avaliações encontradas.");
+            TelemetryService.TrackEvent("ExportarAvaliacoes_Busca", new Dictionary<string, string> {
+                { "Periodo", FiltroPeriodo },
+                { "Projeto", FiltroProjeto },
+                { "Associado", FiltroAssociado },
+                { "QtdAvaliacoes", Avaliacoes.Count.ToString() }
+            });
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError("Erro ao buscar avaliações.");
+            TelemetryService.TrackException(ex, new Dictionary<string, string> {
+                { "Action", "BuscarAvaliacoes" }
+            });
+        }
+    }
+
+    private async Task Exportar()
+    {
+        try
+        {
+            var fileResult = await ExportarAvaliacoesExcelService.ExportarParaExcelAsync(FiltroPeriodo, FiltroProjeto, FiltroAssociado);
+            if (fileResult != null)
+            {
+                var fileName = fileResult.FileName;
+                var fileBytes = fileResult.FileBytes;
+                var fileType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                await BlazorDownloadFile(fileName, fileType, fileBytes);
+                MessageBoxService.ShowSuccess("Arquivo exportado com sucesso.");
+                TelemetryService.TrackEvent("ExportarAvaliacoes_Exportacao", new Dictionary<string, string> {
+                    { "Periodo", FiltroPeriodo },
+                    { "Projeto", FiltroProjeto },
+                    { "Associado", FiltroAssociado },
+                    { "QtdAvaliacoes", Avaliacoes.Count.ToString() }
+                });
+            }
+            else
+            {
+                MessageBoxService.ShowWarning("Nenhum dado para exportar.");
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBoxService.ShowError("Erro ao exportar arquivo.");
+            TelemetryService.TrackException(ex, new Dictionary<string, string> {
+                { "Action", "Exportar" }
+            });
+        }
+    }
+
+    private async Task BlazorDownloadFile(string fileName, string contentType, byte[] fileBytes)
+    {
+        // Implementação para download de arquivo em Blazor Server/Hybrid
+        // Pode ser feita via JSInterop, exemplo:
+        await JS.InvokeVoidAsync("BlazorDownloadFile", fileName, contentType, Convert.ToBase64String(fileBytes));
+    }
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+}
