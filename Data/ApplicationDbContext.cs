@@ -41,6 +41,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<ResultadoProjetosModel> ResultadoProjetos { get; set; }
     public DbSet<ResultadoSomaProjetosModel> ResultadoSomaProjetos { get; set; }
     public DbSet<COMENTARIOS> Comentarios { get; set; }
+    // Conferência dos DbSets necessários para exportação de avaliações
+    // Todos os modelos usados na exportação já estão presentes: AvaliacoesCompetencias, AvaliacoesPerformance, Associados, Projetos, PeriodosAvaliacoes, etc.
+    // Não há necessidade de adicionar novos DbSets neste momento para a funcionalidade de exportação.
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
