@@ -1,0 +1,127 @@
+@using Services.Common
+@inject IMessageBoxService MessageBoxService
+@inject Services.Resultados.IResultadoService ResultadoService
+@inject Services.Associados.IAssociadosService AssociadosService
+@inject Services.Cargos.ICargosService CargosService
+@inject Services.Resultados.Common.IResultadoHelper ResultadoHelper
+@inject NavigationManager NavigationManager
+
+@code {
+    [Parameter] public int IdAssociado { get; set; }
+    [Parameter] public int IdPeriodo { get; set; }
+    [Parameter] public string TipoAvaliacao { get; set; } = string.Empty;
+    [Parameter] public string Escopo { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnConsideracoesAtualizadas { get; set; }
+
+    private ConsideracoesMentorModel? ConsideracoesMentor;
+    private AssociadoModel? Associado;
+    private CargoModel? CargoAtual;
+    private string ProjetosEnvolvidos = string.Empty;
+    private string TempoPeers = "-";
+    private string TempoCargo = "-";
+    private string ElegivelPromocaoTexto = "-";
+    private bool IsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsLoading = true;
+        await CarregarDadosAsync();
+        IsLoading = false;
+    }
+
+    private async Task CarregarDadosAsync()
+    {
+        Associado = await AssociadosService.ObterAssociadoAsync(IdAssociado);
+        if (Associado == null)
+        {
+            MessageBoxService.ShowError("Associado não encontrado.");
+            return;
+        }
+        CargoAtual = await CargosService.ObterCargoAsync(Associado.IdCargo);
+        ConsideracoesMentor = await ResultadoService.ObterConsideracoesMentorAsync(IdAssociado, IdPeriodo, TipoAvaliacao, Escopo);
+        ProjetosEnvolvidos = await ResultadoHelper.ObterProjetosEnvolvidosTextoAsync(IdAssociado, IdPeriodo, TipoAvaliacao);
+        TempoPeers = ResultadoHelper.CalcularTempoPeers(Associado);
+        TempoCargo = ResultadoHelper.CalcularTempoCargo(Associado);
+        ElegivelPromocaoTexto = ResultadoHelper.ObterTextoElegivelPromocao(ConsideracoesMentor);
+    }
+}
+@if (IsLoading)
+{
+    <div class="text-center"><span class="spinner-border"></span> Carregando...</div>
+}
+else if (Associado != null && CargoAtual != null && ConsideracoesMentor != null)
+{
+    <div class="card">
+        <div class="card-body">
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-sm">
+                        <label class="fw-bold">Associado Avaliado:</label>
+                        <span class="ms-2">@Associado.Nome</span>
+                    </div>
+                    <div class="col-sm">
+                        <label class="fw-bold">Cargo:</label>
+                        <span class="ms-2">@CargoAtual.Cargo</span>
+                    </div>
+                    <div class="col-sm">
+                        <label class="fw-bold">Vertical:</label>
+                        <span class="ms-2">@Associado.Vertical</span>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-sm">
+                        <label class="fw-bold">Tempo de Peers:</label>
+                        <span class="ms-2">@TempoPeers</span>
+                    </div>
+                    <div class="col-sm">
+                        <label class="fw-bold">Tempo de cargo:</label>
+                        <span class="ms-2">@TempoCargo</span>
+                    </div>
+                    <div class="col-sm">
+                        <label class="fw-bold">Projetos envolvidos no semestre:</label>
+                        <span class="ms-2">@((MarkupString)ProjetosEnvolvidos)</span>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-sm">
+                        <label class="fw-bold">Elegível promoção:</label>
+                        <span class="ms-2">@ElegivelPromocaoTexto</span>
+                    </div>
+                    <div class="col-sm">
+                        <label class="fw-bold">Input de promoção:</label>
+                        <span class="ms-2">@(ConsideracoesMentor.InputPromocao ? "Sim" : "Não")</span>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-sm-12">
+                        <label class="fw-bold">Trajetória do associado no semestre:</label>
+                        <textarea class="form-control" rows="4" readonly>@ConsideracoesMentor.TrajetoriaAssociado</textarea>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-sm-12">
+                        <label class="fw-bold">Pontos fortes:</label>
+                        <textarea class="form-control" rows="3" readonly>@ConsideracoesMentor.PontosFortes</textarea>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-sm-12">
+                        <label class="fw-bold">Pontos de atenção:</label>
+                        <textarea class="form-control" rows="3" readonly>@ConsideracoesMentor.PontosFracos</textarea>
+                    </div>
+                </div>
+                <div class="row mt-3 align-items-center" style="min-height: 40px;">
+                    <div class="col-sm-2">
+                        <label class="fw-bold">Mentoria realizada:</label>
+                    </div>
+                    <div class="col-sm-1">
+                        <input type="checkbox" class="form-check-input" checked="@ConsideracoesMentor.MentoriaRealizada" disabled />
+                    </div>
+                    <div class="col-sm-9">
+                        <span class="fst-italic text-secondary">Mentoria realizada</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
