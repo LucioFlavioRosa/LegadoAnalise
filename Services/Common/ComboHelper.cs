@@ -150,6 +150,17 @@ public static class ComboHelper
         return items;
     }
 
+    public static async Task<List<ComboItem>> GetProfissionaisComboAsync(ApplicationDbContext db, bool apenasAtivos = true)
+    {
+        var query = db.Associados.AsQueryable();
+        if (apenasAtivos)
+            query = query.Where(a => a.ATV == true);
+        var profissionais = await query.OrderBy(a => a.Nome).ToListAsync();
+        var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
+        items.AddRange(profissionais.Select(a => new ComboItem { Value = a.Id.ToString(), Text = a.Nome }));
+        return items;
+    }
+
     public static async Task<List<ComboItem>> GetStatusComboAsync(ApplicationDbContext db)
     {
         var statusList = new List<ComboItem>
