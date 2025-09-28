@@ -45,24 +45,24 @@ A exportação permite que usuários filtrem avaliações por período, projeto 
 
 ```mermaid
 flowchart TD
-    Start([Usuário acessa Exportar Avaliações])
-    Filtros[Seleciona filtros (Período, Projeto, Associado)]
-    Busca[Busca avaliações via ExportarAvaliacoesService]
-    Previa[Exibe prévia na tabela ExportarAvaliacoesTable]
-    Exportar[Usuário clica em Exportar]
-    GerarExcel[Geração do Excel via ExportarAvaliacoesExcelService]
-    Download[Arquivo Excel enviado para download]
-    Mensagem[Exibe mensagem com MessageBoxService]
-    Telemetria[Registra evento com TelemetryService]
+    Start(["Usuário acessa Exportar Avaliações"]);
+    Filtros["Seleciona filtros (Período, Projeto, Associado)"];
+    Busca["Busca avaliações via ExportarAvaliacoesService"];
+    Previa["Exibe prévia na tabela ExportarAvaliacoesTable"];
+    Exportar["Usuário clica em Exportar"];
+    GerarExcel["Geração do Excel via ExportarAvaliacoesExcelService"];
+    Download["Arquivo Excel enviado para download"];
+    Mensagem["Exibe mensagem com MessageBoxService"];
+    Telemetria["Registra evento com TelemetryService"];
 
-    Start --> Filtros
-    Filtros --> Busca
-    Busca --> Previa
-    Previa --> Exportar
-    Exportar --> GerarExcel
-    GerarExcel --> Download
-    GerarExcel --> Mensagem
-    GerarExcel --> Telemetria
+    Start --> Filtros;
+    Filtros --> Busca;
+    Busca --> Previa;
+    Previa --> Exportar;
+    Exportar --> GerarExcel;
+    GerarExcel --> Download;
+    GerarExcel --> Mensagem;
+    GerarExcel --> Telemetria;
 ```
 
 ### Estrutura de Páginas e Serviços
