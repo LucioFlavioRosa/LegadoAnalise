@@ -1,0 +1,145 @@
+@rendermode InteractiveAuto
+@page "/envio-evolucao"
+@using Services.Avaliacoes
+@using Services.Common
+@inject IEvolucaoAssociadoService EvolucaoAssociadoService
+@inject ComboHelper ComboHelper
+@inject IMessageBoxService MessageBoxService
+
+<PageTitle>Envio de Evolução</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Evolução</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Envio de Evolução</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Período</label>
+                                    <select class="form-control p-0 select2" style="width: 100%" @bind="SelectedPeriodoId">
+                                        @foreach (var periodo in Periodos)
+                                        {
+                                            <option value="@periodo.Value">@periodo.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Associado</label>
+                                    <select class="form-control p-0 select2" style="width: 100%" @bind="SelectedAssociadoId">
+                                        @foreach (var associado in Associados)
+                                        {
+                                            <option value="@associado.Value">@associado.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Vertical</label>
+                                <select class="form-control p-0 select3" style="width: 100%" @bind="SelectedVerticalId">
+                                    @foreach (var vertical in Verticais)
+                                    {
+                                        <option value="@vertical.Value">@vertical.Text</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-danger" style="margin-top: 30px" @onclick="OnSearch">Listar Avaliações</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @if (ShowSecEnvio)
+                {
+                    <hr />
+                    <div style="padding: 1.57rem;">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <button class="btn btn-info" @onclick="OnGerarTodos">Enviar TODAS Evoluções</button>
+                            </div>
+                            <div class="col-md-12 text-left" style="margin-top: 16px">
+                                <input type="checkbox" id="chkReenviar" @bind="Reenviar" />
+                                <label for="chkReenviar">*Reenviar para as Evoluções já Enviadas ?</label>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card" style="width: 100%">
+                <div class="card-body">
+                    <h4 class="card-title">Avaliações Finalizadas</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped border gridResultado">
+                            <thead>
+                                <tr>
+                                    <th>Período</th>
+                                    <th>Avaliado</th>
+                                    <th>Vertical</th>
+                                    <th>Cargo</th>
+                                    <th>Mentor</th>
+                                    <th>Qtd. Projetos</th>
+                                    <th>Enviado</th>
+                                    <th>Tipo Avaliação</th>
+                                    <th>Escopo</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Projetos != null && Projetos.Count > 0)
+                                {
+                                    @foreach (var item in Projetos)
+                                    {
+                                        <tr>
+                                            <td>@item.Periodo</td>
+                                            <td>@item.Nome</td>
+                                            <td>@item.Vertical</td>
+                                            <td>@item.Cargo</td>
+                                            <td>@item.Mentor</td>
+                                            <td class="text-center">@item.QtdProjetos</td>
+                                            <td class="text-center">@item.Enviado</td>
+                                            <td class="text-center">@item.TipoAvaliacao</td>
+                                            <td class="text-center">@item.Escopo</td>
+                                            <td class="text-center no-sort">
+                                                <button class="btn btn-facebook btn-outline btn-circle btn-sm m-r-5" title="Gerar e Enviar Email" @onclick="() => OnGerarUnico(item)"><i class="ti-email"></i></button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr><td colspan="10" class="text-center">Nenhum registro encontrado.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="alert alert-info">@Message</div>
+}
