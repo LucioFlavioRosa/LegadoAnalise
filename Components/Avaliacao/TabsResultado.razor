@@ -1,0 +1,42 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="row">
+    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link @((ActiveTab == "resultados") ? "active btn btn-facebook" : "btn btn-facebook")" id="tab-competencia-tab" data-toggle="pill" href="#tab-competencia" role="tab" aria-controls="tab-competencia" aria-selected="@(ActiveTab == "resultados")" @onclick="() => SelectTab("resultados")">Resultados</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @((ActiveTab == "mentor") ? "active btn btn-danger" : "btn btn-danger")" id="tab-performance-tab" data-toggle="pill" href="#tab-performance" role="tab" aria-controls="tab-performance" aria-selected="@(ActiveTab == "mentor")" @onclick="() => SelectTab("mentor")">Mentor</a>
+        </li>
+    </ul>
+</div>
+<div class="tab-content" id="pills-tabContent">
+    <div class="tab-pane fade @(ActiveTab == "resultados" ? "active show" : "")" id="tab-competencia" role="tabpanel" aria-labelledby="tab-competencia-tab">
+        @if (ResultadosContent != null)
+        {
+            @ResultadosContent
+        }
+    </div>
+    <div class="tab-pane fade @(ActiveTab == "mentor" ? "active show" : "")" id="tab-performance" role="tabpanel" aria-labelledby="tab-performance-tab">
+        @if (MentorContent != null)
+        {
+            @MentorContent
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ResultadosContent { get; set; }
+    [Parameter] public RenderFragment? MentorContent { get; set; }
+    [Parameter] public string ActiveTab { get; set; } = "resultados";
+    [Parameter] public EventCallback<string> OnTabChanged { get; set; }
+
+    private void SelectTab(string tab)
+    {
+        if (ActiveTab != tab)
+        {
+            ActiveTab = tab;
+            OnTabChanged.InvokeAsync(tab);
+        }
+    }
+}
