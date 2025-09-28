@@ -35,7 +35,7 @@ Todos os serviços são registrados no container DI em `Program.cs` e injetados 
 ---
 
 ## Exemplo de Integração e Uso
-
+```text
 csharp
 @inject IEvolucaoAssociadoService EvolucaoAssociadoService
 @inject IComboHelper ComboHelper
@@ -61,13 +61,13 @@ else
 {
     MessageBoxService.ShowInfo("Não há evoluções para enviar.");
 }
-
+```
 
 ---
 
 ## Fluxo do Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     Start([Usuário acessa Envio de Evolução])
     ComboPeriodos[Carrega Combo de Períodos]
@@ -96,7 +96,7 @@ flowchart TD
     MensagemSucesso --> Fim
     TabelaAvaliacoes -->|Nenhuma evolução| MensagemInfo
     MensagemInfo --> Fim
-
+```
 
 ---
 
