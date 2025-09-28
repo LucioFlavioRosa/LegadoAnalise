@@ -1,62 +1,58 @@
-# Documentação: Migração da Página de Resultado de Avaliação
+# Documentação - Página de Resultado de Avaliação (Blazor)
 
 ## Visão Geral
 
-Esta documentação descreve a migração da página de resultado de avaliação do sistema legado (Web Forms) para o novo padrão Blazor Híbrido (.NET 9), detalhando a arquitetura, integração dos serviços, fluxo de dados e sugestões de melhorias. O objetivo é garantir que toda a lógica de negócio foi extraída para serviços reutilizáveis, helpers centralizados e componentes Blazor, promovendo manutenibilidade e escalabilidade.
+Esta documentação descreve a arquitetura, funcionamento e integração dos componentes criados para a página de resultado de avaliação migrada de Web Forms para Blazor. Os componentes ConsideracoesMentor.razor, ModalRadar.razor e ModalComplexidade.razor são parte fundamental da nova estrutura, promovendo modularidade, reutilização e integração fluida com os serviços de domínio.
 
-## Estrutura de Integração
+## Componentes Criados
 
-- **Serviços Reutilizáveis:**
-  - `Services/Resultados/IResultadoService.cs`: Interface para obtenção e processamento dos resultados de avaliação.
-  - `Services/Resultados/ResultadoService.cs`: Implementação da lógica de negócio para resultados de avaliação.
-  - `Services/Resultados/Common/ResultadoHelper.cs`: Métodos auxiliares para cálculos, truncamento e manipulação de dados de resultado.
-  - `Services/Common/FormatHelper.cs`: Métodos de formatação reutilizáveis.
-  - `Services/Common/ComboHelper.cs`: Métodos para combos e listas reutilizáveis.
+### 1. ConsideracoesMentor.razor
+- Exibe as considerações do mentor para o associado avaliado.
+- Integra dados de associado, cargo, projetos envolvidos e status de promoção.
+- Utiliza serviços reutilizáveis para obter dados e helpers para cálculos de tempo e elegibilidade.
+- Interface somente leitura, focada em exibir informações consolidadas.
 
-- **Componentes Blazor:**
-  - `Components/AvalizacaoResultado.razor`: Componente principal da página de resultado de avaliação.
-  - Subcomponentes para tabelas, tabs, modais e controles de mensagens.
+### 2. ModalRadar.razor
+- Modal para exibição de gráfico radar (ex: competências, desempenho).
+- Integra com JSInterop para renderização de gráficos via Chart.js.
+- Recebe dados e parâmetros de exibição do componente pai.
 
-- **Configuração:**
-  - `appsettings.json`: Centraliza configurações do sistema, strings de conexão, opções de avaliação, etc.
+### 3. ModalComplexidade.razor
+- Modal para edição da complexidade de um projeto.
+- Carrega opções de complexidade de forma dinâmica via serviço de combos reutilizável.
+- Permite salvar alterações e notifica o componente pai via callback.
 
-- **Registro de Serviços:**
-  - `Program.cs`: Todos os serviços e helpers necessários são registrados para injeção de dependência.
+## Integração dos Componentes
 
-## Fluxo do Processo
+- Todos os componentes utilizam injeção de dependência para acessar serviços centralizados em Services/Common e Services/Resultados.
+- O fluxo de dados é reativo: ao abrir um modal ou exibir considerações, os dados são carregados sob demanda, garantindo performance e atualização.
+- Mensagens de sucesso, erro ou aviso são exibidas via MessageBoxService, desacoplado da UI.
 
-```mermaid
+## Fluxo de Páginas/Componentes (Mermaid)
+
+mermaid
 flowchart TD
-    A[Usuário acessa AvalizacaoResultado.razor] --> B[Componente requisita dados via IResultadoService]
-    B --> C[ResultadoService consulta ApplicationDbContext]
-    C --> D[Dados de ResultadoProjetosModel e ResultadoSomaProjetosModel]
-    D --> E[ResultadoHelper/FormatHelper processam dados]
-    E --> F[Componentes Blazor exibem tabelas, tabs, modais]
-    F --> G[Usuário interage com UI]
-    G --> B
-```
+    ResultadoAvaliacao[ResultadoAvaliacao.razor]
+    CardAssociado[CardAssociado.razor]
+    TabelaProjetos[TabelaProjetos.razor]
+    TabsResultado[TabsResultado.razor]
+    ConsideracoesMentor[ConsideracoesMentor.razor]
+    ModalRadar[ModalRadar.razor]
+    ModalComplexidade[ModalComplexidade.razor]
 
-## Funcionamento Detalhado
+    ResultadoAvaliacao --> CardAssociado
+    ResultadoAvaliacao --> TabelaProjetos
+    ResultadoAvaliacao --> TabsResultado
+    TabsResultado --> ConsideracoesMentor
+    TabelaProjetos --> ModalRadar
+    TabelaProjetos --> ModalComplexidade
 
-1. O usuário acessa a página de resultado de avaliação, agora implementada como componente Blazor (`AvalizacaoResultado.razor`).
-2. O componente requisita os dados de resultado utilizando o serviço injetado `IResultadoService`.
-3. O serviço consulta o banco de dados via `ApplicationDbContext`, recuperando as entidades mapeadas (`ResultadoProjetosModel`, `ResultadoSomaProjetosModel`, etc.).
-4. Os dados são processados por helpers reutilizáveis (`ResultadoHelper`, `FormatHelper`) para cálculos, formatação e truncamento de textos.
-5. Os componentes Blazor exibem as informações em tabelas, tabs e modais, permitindo navegação e interação fluida.
-6. Toda a configuração da página e dos serviços é centralizada em `appsettings.json`.
-7. Todos os serviços necessários estão registrados em `Program.cs` para injeção de dependência.
 
-## Sugestões de Melhorias
+## Sugestões de Melhorias Futuras
 
-- **Testes Automatizados:** Implementar testes unitários e de integração para os serviços e componentes Blazor.
-- **Cache de Resultados:** Adicionar cache para resultados de avaliação que não mudam com frequência, melhorando performance.
-- **Paginação e Filtros Avançados:** Permitir paginação e filtros dinâmicos nas tabelas de resultados, facilitando análise de grandes volumes de dados.
-- **Internacionalização:** Preparar o sistema para múltiplos idiomas, utilizando recursos de localização do .NET.
-- **Monitoramento e Telemetria:** Expandir o uso de Application Insights para rastrear eventos e exceções específicas da página de resultado.
-- **Documentação Técnica Expandida:** Adicionar exemplos de uso dos serviços e componentes, facilitando onboarding de novos desenvolvedores.
-
-## Referências
-
-- [Documentação oficial Blazor .NET 9](https://learn.microsoft.com/aspnet/core/blazor/)
-- [Entity Framework Core](https://learn.microsoft.com/ef/core/)
-- [Application Insights](https://learn.microsoft.com/azure/azure-monitor/app/app-insights-overview)
+- Implementar edição inline das considerações do mentor, com validação e salvamento assíncrono.
+- Adicionar testes de integração para os componentes Blazor.
+- Melhorar a acessibilidade dos modais e componentes, garantindo navegação via teclado.
+- Centralizar ainda mais os helpers de formatação e combos para facilitar a manutenção.
+- Expandir o ModalRadar para suportar múltiplos tipos de gráficos (linha, barra, etc) conforme necessidade do negócio.
+- Adicionar logs de telemetria mais detalhados para rastrear interações dos usuários nestes componentes.
