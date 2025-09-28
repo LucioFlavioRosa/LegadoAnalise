@@ -1,0 +1,70 @@
+@using Services.Common
+
+@if (Loading)
+{
+    <div class="text-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Carregando...</span>
+        </div>
+    </div>
+}
+else if (Avaliacoes == null || !Avaliacoes.Any())
+{
+    <div class="alert alert-info mt-3">Nenhuma avaliação encontrada para os filtros selecionados.</div>
+}
+else
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped border gridResultado">
+                    <thead>
+                        <tr>
+                            <th>Projeto</th>
+                            <th>Cliente</th>
+                            <th>Associado</th>
+                            <th>Cargo</th>
+                            <th>Gestor</th>
+                            <th>Período</th>
+                            <th>Início</th>
+                            <th>Término</th>
+                            <th>Fase</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var av in Avaliacoes)
+                        {
+                            <tr>
+                                <td>@av.Projeto?.Projeto</td>
+                                <td>@av.Cliente?.Cliente</td>
+                                <td>@av.Associado?.Nome</td>
+                                <td>@av.Associado?.CARGOS?.Cargo</td>
+                                <td>@av.Gestor?.Nome</td>
+                                <td>@av.Periodo?.Periodo</td>
+                                <td>@av.DataInicio</td>
+                                <td>@av.DataTermino</td>
+                                <td>@av.Fase</td>
+                                <td>
+                                    <button class="btn btn-dark btn-sm" @onclick="() => OnRetrocederClicked(av)">Retroceder</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public List<AvaliacaoEmailModel> Avaliacoes { get; set; } = new();
+    [Parameter] public EventCallback<AvaliacaoEmailModel> OnRetroceder { get; set; }
+    [Parameter] public bool Loading { get; set; }
+
+    private async Task OnRetrocederClicked(AvaliacaoEmailModel av)
+    {
+        if (OnRetroceder.HasDelegate)
+            await OnRetroceder.InvokeAsync(av);
+    }
+}
