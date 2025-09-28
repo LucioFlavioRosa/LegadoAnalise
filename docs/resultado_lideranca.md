@@ -33,7 +33,7 @@ Esta documentação descreve a arquitetura, funcionamento e integração dos ser
 
 ## Fluxo do Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     A[ResultadoLideranca.razor] --> B[ComboHelper.razor]
     A --> C[Chart.razor]
@@ -43,7 +43,7 @@ flowchart TD
     F --> G[Services/ResultadoLideranca/Common/ResultadoLiderancaHelper.cs]
     C --> H[Services/Common/ChartJsInteropService.cs]
     F --> I[Data/ApplicationDbContext.cs]
-
+```
 
 ## Sugestões de Melhorias Futuras
 
