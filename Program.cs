@@ -73,7 +73,6 @@ using Services.Common;
 // Importação dos novos serviços de retroceder avaliações
 using Services.Avaliacoes;
 using Services.Avaliacoes.Common;
-
 // Importação dos novos serviços para envio de evolução
 using Services.Avaliacoes.EvolucaoAssociadoService;
 using Services.Common.EmailService;
@@ -82,6 +81,9 @@ using Services.AvaliacoesExportacao;
 using Services.AvaliacoesExportacao.Common;
 // Importação do serviço de pendências
 using Services.Pendencias.Common;
+// Importação dos novos serviços de períodos
+using Services.Periodos;
+using Services.Periodos.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -386,6 +388,12 @@ builder.Services.AddScoped<IExportarAvaliacoesExcelService, ExportarAvaliacoesEx
 
 // Registro do serviço de pendências (migração de pendencias.aspx)
 builder.Services.AddScoped<IPendenciasService, PendenciasService>();
+
+// Registro dos novos serviços de períodos (CADASTRO E LISTAGEM DE PERÍODOS DE AVALIAÇÃO)
+builder.Services.AddScoped<IPeriodoService, PeriodoService>();
+builder.Services.AddScoped<IPeriodoValidator, PeriodoValidator>();
+builder.Services.AddScoped<IPeriodoFormatHelper, PeriodoFormatHelper>();
+builder.Services.AddScoped<IAvaliacoesSinalizadasService, AvaliacoesSinalizadasService>();
 
 var app = builder.Build();
 
