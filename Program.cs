@@ -70,6 +70,9 @@ using Services.Comentarios;
 using Services.Comentarios.Common;
 // Importação para Consulta Avançada
 using Services.Common;
+// Importação dos novos serviços de retroceder avaliações
+using Services.Avaliacoes;
+using Services.Avaliacoes.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -358,6 +361,10 @@ builder.Services.AddScoped<ChartJsInteropService>();
 // Registro dos serviços de Comentários (Migração Comentarios)
 builder.Services.AddScoped<IComentariosService, ComentariosService>();
 builder.Services.AddScoped<ComentariosHelper>();
+
+// Registro dos serviços de retroceder avaliações
+builder.Services.AddScoped<IRetrocederAvaliacaoService, RetrocederAvaliacaoService>();
+builder.Services.AddScoped<IRetrocederAvaliacaoValidator, RetrocederAvaliacaoValidator>();
 
 var app = builder.Build();
 
