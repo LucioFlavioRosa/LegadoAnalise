@@ -25,12 +25,12 @@ Esta documentação descreve a arquitetura, funcionamento e integração do novo
 
 ```mermaid
 flowchart TD
-    A[Usuário acessa Pendencias.razor] --> B{OnInitializedAsync};
-    B --> C[PendenciasService.ObterPendenciasAsync(userId)];
-    C --> D[Serviços de Dados: Associados, Avaliacoes, Periodos, Fotos];
-    D --> E[Lista de ProjetoPendenciaModel];
-    E --> F[Renderização da Tabela de Pendências];
-    F --> G[MessageBoxService para feedback];
+    A["Usuário acessa Pendencias.razor"] --> B{OnInitializedAsync};
+    B --> C["PendenciasService.ObterPendenciasAsync(userId)"];
+    C --> D["Serviços de Dados: Associados, Avaliacoes, Periodos, Fotos"];
+    D --> E["Lista de ProjetoPendenciaModel"];
+    E --> F["Renderização da Tabela de Pendências"];
+    F --> G["MessageBoxService para feedback"];
 ```
 
 ## Sugestões de Melhorias Futuras
