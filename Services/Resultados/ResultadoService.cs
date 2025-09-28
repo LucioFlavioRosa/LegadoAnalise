@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Peers.Moderno.Models;
 using Peers.Moderno.Data;
-using Services.Resultados.Common;
+using Peers.Moderno.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Services.Resultados;
@@ -12,43 +7,48 @@ namespace Services.Resultados;
 public class ResultadoService : IResultadoService
 {
     private readonly ApplicationDbContext _db;
-    private readonly ResultadoHelper _helper;
 
-    public ResultadoService(ApplicationDbContext db, ResultadoHelper helper)
+    public ResultadoService(ApplicationDbContext db)
     {
         _db = db;
-        _helper = helper;
     }
 
-    public async Task<List<ResultadoProjetosModel>> ObterResultadoAssociadoAsync(int idAssociado, int idPeriodo, int idCargo, string tipoAvaliacao, string escopo)
+    public async Task<List<ResultadoProjetosModel>> ObterResultadosProjetosAsync(int idAssociado, int idPeriodo, string tipoAvaliacao, string escopo)
     {
-        var projetos = await _db.ResultadoProjetos
-            .Where(x => x.IdAssociado == idAssociado && x.IdPeriodo == idPeriodo && x.TipoAvaliacao == tipoAvaliacao && x.Escopo == escopo)
+        // Busca resultados de projetos para o associado, período, tipo de avaliação e escopo
+        return await _db.ResultadoProjetos
+            .Where(r => r.IdAssociado == idAssociado && r.IdPeriodo == idPeriodo && r.TipoAvaliacao == tipoAvaliacao && r.Escopo == escopo)
+            .Include(r => r.ListCompetenciasNivel1)
+            .Include(r => r.ListCompetenciasNivel2)
+            .Include(r => r.ListPerfomance)
+            .Include(r => r.ListSomaCompetenciasN1N2)
+            .Include(r => r.ListSomaCompetenciasN1N2)
             .ToListAsync();
-        return projetos;
     }
 
-    public async Task<List<ResultadoSomaProjetosModel>> ObterSomaProjetosAsync(List<ResultadoProjetosModel> resultadosProjetos)
+    public async Task<ResultadoSomaProjetosModel?> ObterSomaResultadosProjetosAsync(List<ResultadoProjetosModel> resultadosProjetos)
     {
+        if (resultadosProjetos == null || resultadosProjetos.Count == 0)
+            return null;
         var ids = resultadosProjetos.Select(r => r.Id).ToList();
-        var somaProjetos = await _db.ResultadoSomaProjetos
-            .Where(x => ids.Contains(x.Id))
-            .ToListAsync();
-        return somaProjetos;
+        // Busca o somatório consolidado dos projetos
+        return await _db.ResultadoSomaProjetos
+            .Where(s => ids.Contains(s.IdAssociadoProjeto))
+            .Include(s => s.ListProjetosSomaPerfomance)
+            .Include(s => s.ListProjetosSomaCompetenciasN1N2)
+            .FirstOrDefaultAsync();
     }
 
-    public string FormatPercentagem(object nota)
+    public async Task<Associado?> ObterAssociadoMentorCargoAsync(int idAssociado)
     {
-        return _helper.FormatPercentagem(nota);
+        return await _db.Associados
+            .Include(a => a.Cargo)
+            .Include(a => a.Mentor)
+            .FirstOrDefaultAsync(a => a.Id == idAssociado);
     }
 
-    public string FormatDecimal(object nota)
+    public async Task<PERIODOSAVALIACOES?> ObterPeriodoAsync(int idPeriodo)
     {
-        return _helper.FormatDecimal(nota);
-    }
-
-    public string TruncarTexto(string texto, int qtdCaracteres)
-    {
-        return _helper.TruncarTexto(texto, qtdCaracteres);
+        return await _db.PeriodosAvaliacoes.FirstOrDefaultAsync(p => p.IdPeriodo == idPeriodo);
     }
 }
