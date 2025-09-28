@@ -134,6 +134,12 @@ if (builder.Configuration.GetValue<bool>("AutoAvaliacao:Features:EnableAIIntegra
 // Common Services
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 builder.Services.AddScoped<IMessageBoxService, MessageBoxService>();
+// Serviços e helpers comuns já existentes
+builder.Services.AddScoped<FormatHelper>();
+builder.Services.AddScoped<ComboHelper>();
+// Serviços de resultado de avaliação (novos para tela de resultado)
+builder.Services.AddScoped<IResultadoService, ResultadoService>();
+builder.Services.AddScoped<IResultadoHelper, ResultadoHelper>();
 
 // New Common Services - Index Page Migration
 builder.Services.AddScoped<IUserContextService, UserContextService>();
