@@ -35,7 +35,7 @@ Os componentes Blazor consomem esses serviços via [Dependency Injection](https:
 
 ## Fluxo do Processo
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa Retroceder Avaliações] --> B[RetrocederAvaliacao.razor]
     B --> C[RetrocederAvaliacaoFiltro.razor]
@@ -48,7 +48,7 @@ flowchart TD
     G --> I[ApplicationDbContext]
     B --> J[MessageBoxService]
     D --> K[FormatHelper]
-
+```
 
 - O usuário utiliza filtros (projeto, cliente, associado, período, fase) para buscar avaliações.
 - O grid exibe as avaliações filtradas.
