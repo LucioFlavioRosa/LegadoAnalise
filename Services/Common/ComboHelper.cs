@@ -161,6 +161,14 @@ public static class ComboHelper
         return items;
     }
 
+    public static async Task<List<ComboItem>> GetVerticaisComboAsync(ApplicationDbContext db)
+    {
+        var verticais = await db.Verticais.OrderBy(v => v.Nome).ToListAsync();
+        var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
+        items.AddRange(verticais.Select(v => new ComboItem { Value = v.Id.ToString(), Text = v.Nome }));
+        return items;
+    }
+
     public static async Task<List<ComboItem>> GetStatusComboAsync(ApplicationDbContext db)
     {
         var statusList = new List<ComboItem>
