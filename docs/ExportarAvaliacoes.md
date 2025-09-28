@@ -43,7 +43,7 @@ A exportação permite que usuários filtrem avaliações por período, projeto 
 
 ## Fluxo do Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     Start([Usuário acessa Exportar Avaliações])
     Filtros[Seleciona filtros (Período, Projeto, Associado)]
@@ -63,7 +63,7 @@ flowchart TD
     GerarExcel --> Download
     GerarExcel --> Mensagem
     GerarExcel --> Telemetria
-
+```
 
 ### Estrutura de Páginas e Serviços
 - **ExportarAvaliacoes.razor** (UI) → **ComboHelper** (combos)
