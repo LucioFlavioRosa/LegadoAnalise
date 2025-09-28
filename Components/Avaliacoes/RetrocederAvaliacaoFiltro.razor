@@ -1,0 +1,94 @@
+@using Services.Common
+@using System.ComponentModel.DataAnnotations
+
+<EditForm Model="Filtro" OnValidSubmit="OnBuscarClicked">
+    <div class="card mb-3">
+        <div class="card-body">
+            <h4 class="card-title">Filtro avaliações</h4>
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Projeto</label>
+                            <InputSelect class="form-control p-0 select2" @bind-Value="Filtro.IdProjeto">
+                                @foreach (var item in Projetos)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Cliente</label>
+                            <InputSelect class="form-control p-0 select2" @bind-Value="Filtro.IdCliente">
+                                @foreach (var item in Clientes)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Associado</label>
+                            <InputSelect class="form-control p-0 select2" @bind-Value="Filtro.IdAssociado">
+                                @foreach (var item in Profissionais)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Período</label>
+                            <InputSelect class="form-control p-0 select2" @bind-Value="Filtro.IdPeriodo">
+                                @foreach (var item in Periodos)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Fase</label>
+                            <InputSelect class="form-control p-0" @bind-Value="Filtro.Fase">
+                                @foreach (var item in Fases)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-danger w-100" disabled="@Loading">
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" style="@(Loading ? "display:inline-block" : "display:none")"></span>
+                            Listar Avaliações
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public RetrocederAvaliacaoFiltroModel Filtro { get; set; } = new();
+    [Parameter] public EventCallback OnBuscar { get; set; }
+    [Parameter] public List<ComboItem> Fases { get; set; } = new();
+    [Parameter] public List<ComboItem> Projetos { get; set; } = new();
+    [Parameter] public List<ComboItem> Clientes { get; set; } = new();
+    [Parameter] public List<ComboItem> Profissionais { get; set; } = new();
+    [Parameter] public List<ComboItem> Periodos { get; set; } = new();
+    [Parameter] public bool Loading { get; set; }
+
+    private async Task OnBuscarClicked()
+    {
+        if (OnBuscar.HasDelegate)
+            await OnBuscar.InvokeAsync();
+    }
+}
