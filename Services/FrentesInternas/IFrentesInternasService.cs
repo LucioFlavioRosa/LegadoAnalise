@@ -1,23 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Peers.Moderno.Models;
 
-namespace Peers.Moderno.Services.FrentesInternas;
+namespace Services.FrentesInternas;
 
 public interface IFrentesInternasService
 {
-    Task<List<FrenteInternaModel>> ObterFrentesInternasAsync();
-    Task<FrenteInternaModel?> ObterFrenteInternaAsync(int id);
-    Task<bool> GerirFrenteInternaAsync(FrenteInternaModel frenteInterna);
-    Task<bool> ExcluirFrenteInternaAsync(int id);
-    
-    Task<List<LiderFrenteInternaModel>> ObterLideresFrenteInternaAsync(int idFrenteInterna);
-    Task<bool> GerirLiderFrenteInternaAsync(LiderFrenteInternaModel lider);
-    Task<bool> ExcluirLiderFrenteInternaAsync(int id);
-    
-    Task<List<ParticipanteFrenteInternaModel>> ObterParticipantesFrenteInternaAsync(int idFrenteInterna);
-    Task<bool> GerirParticipanteFrenteInternaAsync(ParticipanteFrenteInternaModel participante);
-    Task<bool> ExcluirParticipanteFrenteInternaAsync(int id);
-    
-    Task<List<AlocacaoExportModel>> ObterAvaliacoesAlocacaoAsync();
-    Task<List<int>> ObterFrentesLideradasPorAssociadoAsync(int idAssociado);
-    Task<bool> ValidarPermissaoEdicaoAsync(int idAssociado, int? idFrenteInterna = null);
+    Task<List<PeriodoAvaliacaoDto>> ListaTodosPeriodosAsync(int empresaId);
+    Task<PeriodoAvaliacaoDto?> ObterPeriodoUltimoAsync();
+    Task<Associado?> ObterAssociadoAsync(int idAssociado);
+    Task<List<FrenteInternaDto>> ObterLiderFrenteInternaAsync(int idAssociado);
+    Task<List<FrenteInternaDto>> ObterFrenteInternaAsync();
+    Task<List<Associado>> ObterParticipantesFrentesInternasAsync(int idFrenteInterna);
+    Task<List<AvaliacaoAlocacaoInternaDto>> ObterAvaliacoesAlocacoesInternasAsync(int? idAvaliador = null, int? idPeriodo = null, int? idAlocacaoInterna = null, int? idAssociado = null, int? idAvaliacaoAlocacaoInterna = null);
+    Task<List<NotaAlocacaoInternaDto>> ObterNotasAlocacoesInternasAsync(int? idNotaAlocacaoInterna = null);
+    Task GerirAvaliacaoAlocacaoInternaAsync(AvaliacaoAlocacaoInternaDto avaliacao);
 }
