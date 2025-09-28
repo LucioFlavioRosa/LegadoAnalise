@@ -62,6 +62,10 @@ using Services.Performance.PerformanceMentorService;
 // Novos serviços para resultado de avaliação
 using Services.Resultados;
 using Services.Resultados.Common;
+// Novos serviços para resultado de liderança
+using Services.ResultadoLideranca;
+using Services.ResultadoLideranca.Common;
+using Services.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -140,6 +144,11 @@ builder.Services.AddScoped<ComboHelper>();
 // Serviços de resultado de avaliação (novos para tela de resultado)
 builder.Services.AddScoped<IResultadoService, ResultadoService>();
 builder.Services.AddScoped<IResultadoHelper, ResultadoHelper>();
+// Serviços de resultado de liderança (novos para tela de resultado de liderança)
+builder.Services.AddScoped<IResultadoLiderancaService, ResultadoLiderancaService>();
+builder.Services.AddScoped<IResultadoLiderancaHelper, ResultadoLiderancaHelper>();
+// Serviço de ChartJsInterop reutilizável
+builder.Services.AddScoped<ChartJsInteropService>();
 
 // New Common Services - Index Page Migration
 builder.Services.AddScoped<IUserContextService, UserContextService>();
@@ -334,6 +343,11 @@ builder.Services.AddScoped<AvaliacaoMentorCompetenciaHelper>();
 // REGISTRO DOS NOVOS SERVIÇOS DE RESULTADO DE AVALIAÇÃO
 builder.Services.AddScoped<IResultadoService, ResultadoService>();
 builder.Services.AddScoped<IResultadoHelper, ResultadoHelper>();
+// REGISTRO DOS NOVOS SERVIÇOS DE RESULTADO DE LIDERANÇA
+builder.Services.AddScoped<IResultadoLiderancaService, ResultadoLiderancaService>();
+builder.Services.AddScoped<IResultadoLiderancaHelper, ResultadoLiderancaHelper>();
+// Serviço de ChartJsInterop reutilizável
+builder.Services.AddScoped<ChartJsInteropService>();
 
 var app = builder.Build();
 
