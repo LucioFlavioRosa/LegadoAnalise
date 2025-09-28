@@ -1,0 +1,185 @@
+@using Peers.Moderno.Models
+@using Services.Common
+@inject FormatHelper FormatHelper
+
+@if (Projetos is not null && Projetos.Any())
+{
+    <div class="row scroll-grid">
+        @foreach (var projeto in Projetos)
+        {
+            <div style="display: inline-block !important" class="col-md-3">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table table-striped border tbresultado" id="tb_@projeto.IdProjeto">
+                            <tbody>
+                                <tr>
+                                    <td class="tdBranco" colspan="2">
+                                        Projeto @((Projetos.IndexOf(projeto) + 1).ToString()) - @projeto.DataInicioAlocado?.ToString("dd/MM") - @projeto.DataFimAlocado?.ToString("dd/MM")
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="thresultado" colspan="2" title="@projeto.ProjetoNome">
+                                        <button type="button" style="padding-left: 1px;" class="btn btn-sm btncollapse" data-id="@projeto.IdProjeto">
+                                            <i class="fas fa-plus-circle"></i>
+                                        </button>
+                                        @FormatHelper.TruncarTexto(projeto.ProjetoNome, 30)
+                                        <br />
+                                        @FormatHelper.TruncarTexto(projeto.ClienteNome, 30)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="tdresultado" style="width: 70%">Complexidade</td>
+                                    <td class="text-center" style="width: 30%">
+                                        <a href="#" data-id="@projeto.IdProjeto" class="btncomplexidade">
+                                            @projeto.ProjetoComplexidade
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="tdresultado">Nível</td>
+                                    <td class="text-center">1</td>
+                                </tr>
+                                <tr>
+                                    <td class="tdresultado">Nota Competências</td>
+                                    <td class="text-center">@FormatHelper.FormatPercentNullable(projeto.NotaCompetencialNivel1)</td>
+                                </tr>
+                                @if (projeto.ListCompetenciasNivel1 != null)
+                                {
+                                    @foreach (var comp in projeto.ListCompetenciasNivel1)
+                                    {
+                                        <tr class="hidelinha">
+                                            <td>@comp.Eixo</td>
+                                            <td class="text-center">@FormatHelper.FormatPercentNullable(comp.PercentualNotaFinalNivel1)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table table-striped border tbresultado">
+                            <tbody>
+                                <tr>
+                                    <td class="tdresultado" style="width: 70%">Nível </td>
+                                    <td class="text-center" style="width: 30%">2</td>
+                                </tr>
+                                <tr>
+                                    <td class="tdresultado">Nota Competências</td>
+                                    <td class="text-center">@FormatHelper.FormatPercentNullable(projeto.NotaCompetencialNivel2)</td>
+                                </tr>
+                                @if (projeto.ListCompetenciasNivel2 != null)
+                                {
+                                    @foreach (var comp in projeto.ListCompetenciasNivel2)
+                                    {
+                                        <tr class="hidelinha">
+                                            <td>@comp.Eixo</td>
+                                            <td class="text-center">@FormatHelper.FormatPercentNullable(comp.PercentualNotaFinalNivel2)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table table-striped border tbresultado">
+                            <tbody>
+                                <tr>
+                                    <td class="text-center" colspan="2">@projeto.RatingPerfomance</td>
+                                </tr>
+                                <tr>
+                                    <td class="tdresultado" style="width: 70%">Nota Performance </td>
+                                    <td class="text-center" style="width: 30%">@FormatHelper.FormatDecimalNullable(projeto.SomaPerfomance)</td>
+                                </tr>
+                                @if (projeto.ListPerfomance != null)
+                                {
+                                    @foreach (var perf in projeto.ListPerfomance)
+                                    {
+                                        <tr class="hidelinha">
+                                            <td>@perf.Perfomance</td>
+                                            <td class="text-center">@FormatHelper.FormatDecimalNullable(perf.NotaPerfomance)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table table-striped border tbresultado">
+                            <tbody>
+                                <tr>
+                                    <td class="tdresultado" style="width: 70%">Nota Competências </td>
+                                    <td class="text-center" style="width: 30%">@FormatHelper.FormatPercentNullable(projeto.SomaNotaCompetencialN1N2)</td>
+                                </tr>
+                                @if (projeto.ListSomaCompetenciasN1N2 != null)
+                                {
+                                    @foreach (var somaComp in projeto.ListSomaCompetenciasN1N2)
+                                    {
+                                        <tr class="hidelinha">
+                                            <td>@somaComp.Eixo</td>
+                                            <td class="text-center">@FormatHelper.FormatPercentNullable(somaComp.PercentualSomaNotaFinalN1N2)</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row" hidden>
+                    <div class="col-md-12">
+                        <table class="table table-striped border tbresultado" style="width: 100%">
+                            <tbody>
+                                <tr>
+                                    <td class="thresultado" style="width: 70%">Competência Radar</td>
+                                    <td class="text-center" style="width: 30%">@FormatHelper.FormatPercentNullable(projeto.SomaNotaCompetenciaRadar)</td>
+                                </tr>
+                                @if (projeto.ListSomaCompetenciasN1N2 != null)
+                                {
+                                    @foreach (var radar in projeto.ListSomaCompetenciasN1N2)
+                                    {
+                                        <tr class="hidelinha">
+                                            <td>@radar.Eixo</td>
+                                            <td class="text-center">@FormatHelper.FormatPercentNullable(radar.NotaCompetenciaRadar)</td>
+                                        </tr>
+                                    }
+                                }
+                                <tr style="align-content:center;align-items:center; text-align:center" hidden>
+                                    <td colspan="2">
+                                        <button type="button" class="btn btn-sm btnExpandRadar" data-id="@projeto.IdProjeto" hidden>
+                                            <i class="fas fa-expand"></i>
+                                        </button>
+                                        <canvas width="40" id="radar_@Projetos.IndexOf(projeto)_@projeto.IdProjeto" hidden></canvas>
+                                    </td>
+                                </tr>
+                                <tr style="align-content:center;align-items:center; text-align:center">
+                                    <td colspan="2">
+                                        <div id="reportContainer_CompEixo_@projeto.IdProjeto" style="width: 100%; height: 350px"></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="2">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td class="tdBranco text-center" colspan="2">
+                                        <a href="avalizacao_consolidacao.aspx?&IdProjeto=@projeto.IdProjeto&IdAssociado=@projeto.IdAssociado&IdPeriodo=@projeto.IdPeriodo&TipoAvaliacao=@projeto.TipoAvaliacao&Escopo=@projeto.Escopo">
+                                            <button type="button" class="btn btn-sm btn-info">Ajustar Notas Comitê</button>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public List<ResultadoProjetosModel> Projetos { get; set; } = new();
+}
