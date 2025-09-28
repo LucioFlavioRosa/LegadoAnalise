@@ -1,0 +1,44 @@
+@using Services.AvaliacoesExportacao.Models
+@using Services.Common
+
+@if (Avaliacoes == null || !Avaliacoes.Any())
+{
+    <div class="alert alert-info mt-3">Nenhuma avaliação encontrada para os filtros selecionados.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped border dtInit">
+            <thead>
+                <tr>
+                    <th>Período</th>
+                    <th>Projeto</th>
+                    <th>Avaliado</th>
+                    <th>Cargo</th>
+                    <th>Gestor</th>
+                    <th>Tipo</th>
+                    <th>Competência/Performance Avaliada</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Avaliacoes)
+                {
+                    <tr>
+                        <td>@item.Periodo</td>
+                        <td>@item.Projeto</td>
+                        <td>@item.NomeAvaliado</td>
+                        <td>@item.Cargo</td>
+                        <td>@item.NomeGestor</td>
+                        <td>@item.Tipo</td>
+                        <td>@item.Nivel</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public List<AvaliacaoExportacaoPreviewModel> Avaliacoes { get; set; } = new();
+}
