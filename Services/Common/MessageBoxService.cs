@@ -7,6 +7,7 @@ public interface IMessageBoxService
     void ShowInfo(string message, string? title = null, int? delay = null);
     void ShowWarning(string message, string? title = null, int? delay = null);
     event Action<MessageBoxEventArgs>? OnMessageReceived;
+    void Show(string message, MessageBoxType type = MessageBoxType.Info, string? title = null, int? delay = null);
 }
 
 public class MessageBoxService : IMessageBoxService
@@ -33,7 +34,6 @@ public class MessageBoxService : IMessageBoxService
         OnMessageReceived?.Invoke(new MessageBoxEventArgs(message, MessageBoxType.Warning, title, delay));
     }
 
-    // Cobertura adicional para cenários de exibição customizada
     public void Show(string message, MessageBoxType type = MessageBoxType.Info, string? title = null, int? delay = null)
     {
         OnMessageReceived?.Invoke(new MessageBoxEventArgs(message, type, title, delay));
