@@ -1,58 +1,72 @@
-# Documentação - Página de Resultado de Avaliação (Blazor)
+# Documentação Técnica: Página de Resultado de Avaliação (Blazor Híbrido)
 
-## Visão Geral
+## 1. Visão Geral
 
-Esta documentação descreve a arquitetura, funcionamento e integração dos componentes criados para a página de resultado de avaliação migrada de Web Forms para Blazor. Os componentes ConsideracoesMentor.razor, ModalRadar.razor e ModalComplexidade.razor são parte fundamental da nova estrutura, promovendo modularidade, reutilização e integração fluida com os serviços de domínio.
+Esta documentação descreve a estrutura, funcionamento e integração da tela de resultado de avaliação migrada do Web Forms para Blazor Híbrido (.NET 9). O objetivo é garantir alta manutenibilidade, performance e reutilização de código, centralizando helpers e serviços na pasta `Services/Common` e isolando a lógica de negócio em `Services/Resultados`.
 
-## Componentes Criados
+## 2. Estrutura de Componentes e Serviços
 
-### 1. ConsideracoesMentor.razor
-- Exibe as considerações do mentor para o associado avaliado.
-- Integra dados de associado, cargo, projetos envolvidos e status de promoção.
-- Utiliza serviços reutilizáveis para obter dados e helpers para cálculos de tempo e elegibilidade.
-- Interface somente leitura, focada em exibir informações consolidadas.
+- **Componentes Blazor** (em `Components/Avaliacao/`):
+  - `ResultadoAvaliacao.razor`: Orquestra a exibição da página de resultado, consumindo serviços e compondo os demais componentes.
+  - `CardAssociado.razor`: Exibe informações do associado avaliado (foto, nome, cargo, mentor, etc.).
+  - `TabelaProjetos.razor`: Renderiza a tabela de projetos e resultados.
+  - `TabsResultado.razor`: Controla as abas "Resultados" e "Mentor".
+  - `ConsideracoesMentor.razor`: Exibe e permite editar as considerações do mentor.
+  - `ModalRadar.razor` e `ModalComplexidade.razor`: Exibem modais para visualização de radar e edição de complexidade.
 
-### 2. ModalRadar.razor
-- Modal para exibição de gráfico radar (ex: competências, desempenho).
-- Integra com JSInterop para renderização de gráficos via Chart.js.
-- Recebe dados e parâmetros de exibição do componente pai.
+- **Serviços Reutilizáveis** (em `Services/Common/`):
+  - `FormatHelper`: Métodos de formatação (percentuais, decimais, truncamento de texto, etc.).
+  - `ComboHelper`: Métodos para combos (tipos de avaliação, escopos, status, notas, abrangências, etc.).
+  - `MessageBoxService`: Serviço para exibição de mensagens desacoplado da UI.
+  - `TelemetryService`: Serviço para rastreamento de eventos, exceções e métricas.
 
-### 3. ModalComplexidade.razor
-- Modal para edição da complexidade de um projeto.
-- Carrega opções de complexidade de forma dinâmica via serviço de combos reutilizável.
-- Permite salvar alterações e notifica o componente pai via callback.
+- **Serviços de Resultado de Avaliação** (em `Services/Resultados/`):
+  - `IResultadoService` / `ResultadoService`: Lógica de obtenção, processamento e agregação dos resultados de avaliação.
+  - `ResultadoHelper`: Helper para cálculos e transformações específicas dos resultados de avaliação.
 
-## Integração dos Componentes
+## 3. Integração e Fluxo de Dados
 
-- Todos os componentes utilizam injeção de dependência para acessar serviços centralizados em Services/Common e Services/Resultados.
-- O fluxo de dados é reativo: ao abrir um modal ou exibir considerações, os dados são carregados sob demanda, garantindo performance e atualização.
-- Mensagens de sucesso, erro ou aviso são exibidas via MessageBoxService, desacoplado da UI.
+- Os componentes Blazor injetam os serviços necessários via DI (Dependency Injection).
+- O componente principal (`ResultadoAvaliacao.razor`) solicita os dados ao `IResultadoService`, que utiliza o contexto EF Core para buscar e processar os resultados.
+- Os helpers de formatação e combos são utilizados em toda a UI para garantir padronização.
+- Mensagens de erro, sucesso ou info são exibidas via `MessageBoxService`.
+- Eventos e exceções relevantes são rastreados via `TelemetryService`.
 
-## Fluxo de Páginas/Componentes (Mermaid)
+## 4. Diagrama de Fluxo (Mermaid)
 
 mermaid
 flowchart TD
-    ResultadoAvaliacao[ResultadoAvaliacao.razor]
-    CardAssociado[CardAssociado.razor]
-    TabelaProjetos[TabelaProjetos.razor]
-    TabsResultado[TabsResultado.razor]
-    ConsideracoesMentor[ConsideracoesMentor.razor]
-    ModalRadar[ModalRadar.razor]
-    ModalComplexidade[ModalComplexidade.razor]
+    Start([Usuário acessa Resultado de Avaliação])
+    Start --> ResultadoAvaliacao[ResultadoAvaliacao.razor]
+    ResultadoAvaliacao --> |Injeta| IResultadoService
+    ResultadoAvaliacao --> |Injeta| FormatHelper
+    ResultadoAvaliacao --> |Injeta| ComboHelper
+    ResultadoAvaliacao --> CardAssociado[CardAssociado.razor]
+    ResultadoAvaliacao --> TabsResultado[TabsResultado.razor]
+    TabsResultado --> TabelaProjetos[TabelaProjetos.razor]
+    TabsResultado --> ConsideracoesMentor[ConsideracoesMentor.razor]
+    TabelaProjetos --> ModalRadar[ModalRadar.razor]
+    TabelaProjetos --> ModalComplexidade[ModalComplexidade.razor]
+    ConsideracoesMentor --> ComboHelper
+    ResultadoAvaliacao --> MessageBoxService
+    ResultadoAvaliacao --> TelemetryService
 
-    ResultadoAvaliacao --> CardAssociado
-    ResultadoAvaliacao --> TabelaProjetos
-    ResultadoAvaliacao --> TabsResultado
-    TabsResultado --> ConsideracoesMentor
-    TabelaProjetos --> ModalRadar
-    TabelaProjetos --> ModalComplexidade
 
+## 5. Sugestões de Melhorias Futuras
 
-## Sugestões de Melhorias Futuras
+- **Internacionalização:** Adicionar suporte a múltiplos idiomas nos helpers e componentes.
+- **Testes Automatizados:** Implementar testes unitários e de integração para os serviços e componentes principais.
+- **Performance:** Avaliar uso de caching para resultados de avaliação pesados.
+- **Acessibilidade:** Garantir que todos os componentes estejam em conformidade com padrões de acessibilidade (WCAG).
+- **Customização de UI:** Permitir customização de temas e estilos para diferentes empresas ou perfis de usuário.
+- **Integração com AI:** Explorar sugestões automáticas de considerações do mentor usando IA, aproveitando a infraestrutura já preparada.
+- **Documentação de API:** Gerar documentação OpenAPI para os endpoints de backend que alimentam os serviços.
 
-- Implementar edição inline das considerações do mentor, com validação e salvamento assíncrono.
-- Adicionar testes de integração para os componentes Blazor.
-- Melhorar a acessibilidade dos modais e componentes, garantindo navegação via teclado.
-- Centralizar ainda mais os helpers de formatação e combos para facilitar a manutenção.
-- Expandir o ModalRadar para suportar múltiplos tipos de gráficos (linha, barra, etc) conforme necessidade do negócio.
-- Adicionar logs de telemetria mais detalhados para rastrear interações dos usuários nestes componentes.
+## 6. Observações de Integração
+
+- Todos os serviços e helpers estão registrados no DI container em `Program.cs`.
+- Os componentes Blazor devem sempre consumir serviços via injeção de dependência para garantir testabilidade e desacoplamento.
+- Para adicionar novos combos, formatações ou helpers, centralize sempre em `Services/Common`.
+- Para lógica de negócio específica de resultado de avaliação, utilize e expanda `Services/Resultados`.
+
+---
