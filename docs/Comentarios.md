@@ -26,7 +26,7 @@ A solução foi desenhada para garantir alta reutilização, desacoplamento e ce
 
 ## Fluxo do Processo
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuario acessa Comentarios.razor] --> B{OnInitializedAsync}
     B --> C[Obter usuário logado]
@@ -38,7 +38,7 @@ flowchart TD
     H --> I[ApplicationDbContext.Cria/Atualiza COMENTARIOS]
     I --> J[Exibir mensagem via IMessageBoxService]
     J --> K[Redirecionar ou atualizar tela]
-
+```
 
 ## Sugestões de Melhorias Futuras
 
