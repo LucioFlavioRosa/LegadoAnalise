@@ -34,7 +34,7 @@ Esta documentação descreve a estrutura, funcionamento e integração da tela d
 
 ## 4. Diagrama de Fluxo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     Start([Usuário acessa Resultado de Avaliação])
     Start --> ResultadoAvaliacao[ResultadoAvaliacao.razor]
@@ -50,7 +50,7 @@ flowchart TD
     ConsideracoesMentor --> ComboHelper
     ResultadoAvaliacao --> MessageBoxService
     ResultadoAvaliacao --> TelemetryService
-
+```
 
 ## 5. Sugestões de Melhorias Futuras
 
