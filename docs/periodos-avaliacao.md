@@ -2,53 +2,53 @@
 
 ## Visão Geral
 
-Esta funcionalidade permite o cadastro, edição e listagem de períodos de avaliação, além de exibir avaliações sinalizadas para o próximo período. A implementação foi migrada de Web Forms para Blazor, utilizando serviços e helpers reutilizáveis, centralizados na arquitetura moderna do projeto.
+Esta documentação descreve a arquitetura, funcionamento e integração dos serviços responsáveis pelo cadastro, edição, listagem e atualização de períodos de avaliação no sistema, migrados do Web Forms para Blazor Híbrido (.NET 9). O objetivo é centralizar a lógica de negócio, validação e formatação em serviços reutilizáveis, promovendo manutenção facilitada e reutilização em outros fluxos.
 
-## Estrutura e Integração
+## Estrutura de Serviços e Helpers
 
-- **Serviços criados:**
-  - `PeriodoService`: Lida com operações CRUD de períodos.
-  - `PeriodoValidator`: Valida regras de negócio do formulário de períodos.
-  - `PeriodoFormatHelper`: Formata datas e status de períodos.
-  - `IAvaliacoesSinalizadasService`/`AvaliacoesSinalizadasService`: Obtém e atualiza avaliações sinalizadas para o próximo período.
-- **Componentes:**
-  - `PeriodosAvaliacao.razor`/`.razor.cs`: Componente Blazor para UI e lógica de cadastro/listagem.
-- **Reutilização:**
-  - Utiliza `ComboHelper` e `FormatHelper` para combos e formatação.
-  - Mensagens exibidas via `MessageBoxService`.
-- **Banco de Dados:**
-  - Utiliza `ApplicationDbContext` para acesso a entidades `PERIODOSAVALIACOES`, `AssociadosProjetos`, etc.
+- **Services/Periodos/PeriodoService.cs**: Serviço principal para manipulação de períodos (listar, inserir, alterar, atualizar avaliações sinalizadas).
+- **Services/Periodos/Common/PeriodoValidator.cs**: Helper para validação de formulários e regras de negócio dos períodos.
+- **Services/Periodos/Common/PeriodoFormatHelper.cs**: Helper para formatação de status e datas dos períodos.
+- **Services/Periodos/Common/IAvaliacoesSinalizadasService.cs & AvaliacoesSinalizadasService.cs**: Interface e implementação para obtenção e atualização de avaliações sinalizadas para o próximo período.
 
-## Fluxo do Processo
+Todos os serviços são registrados no DI em `Program.cs` e podem ser injetados em componentes Blazor ou outros serviços.
+
+## Integração com a Aplicação
+
+- O componente Blazor `PeriodosAvaliacao.razor` utiliza os serviços acima para exibir, cadastrar e editar períodos.
+- A validação dos campos do formulário é feita via `PeriodoValidator`.
+- A atualização das avaliações sinalizadas para o novo período é feita de forma centralizada, facilitando a rastreabilidade e manutenção.
+- O helper de formatação permite padronizar a exibição de status e datas em toda a aplicação.
+- O acesso ao banco de dados é realizado via `ApplicationDbContext`, já preparado para as entidades de períodos e avaliações.
+
+## Fluxo do Processo (Mermaid)
 
 mermaid
 flowchart TD
-    PeriodosAvaliacao[PeriodosAvaliacao.razor]
-    PeriodoService[PeriodoService]
-    PeriodoValidator[PeriodoValidator]
-    PeriodoFormatHelper[PeriodoFormatHelper]
-    AvaliacoesSinalizadasService[AvaliacoesSinalizadasService]
-    ComboHelper[ComboHelper]
-    MessageBoxService[MessageBoxService]
-    ApplicationDbContext[ApplicationDbContext]
-
-    PeriodosAvaliacao -- Carrega combos --> ComboHelper
-    PeriodosAvaliacao -- Carrega períodos --> PeriodoService
-    PeriodosAvaliacao -- Carrega avaliações sinalizadas --> AvaliacoesSinalizadasService
-    PeriodosAvaliacao -- Submete formulário --> PeriodoValidator
-    PeriodosAvaliacao -- Submete formulário --> PeriodoService
-    PeriodosAvaliacao -- Exibe mensagens --> MessageBoxService
-    PeriodosAvaliacao -- Formata datas/status --> PeriodoFormatHelper
-    PeriodoService -- Usa --> ApplicationDbContext
-    AvaliacoesSinalizadasService -- Usa --> ApplicationDbContext
+    PeriodosAvaliacaoPage[PeriodosAvaliacao.razor]
+    PeriodosAvaliacaoPage -- injeção --> PeriodoService
+    PeriodosAvaliacaoPage -- injeção --> PeriodoValidator
+    PeriodosAvaliacaoPage -- injeção --> PeriodoFormatHelper
+    PeriodosAvaliacaoPage -- injeção --> AvaliacoesSinalizadasService
+    PeriodoService -- usa --> ApplicationDbContext
+    AvaliacoesSinalizadasService -- usa --> ApplicationDbContext
+    PeriodoValidator -- valida --> PeriodoService
+    PeriodoFormatHelper -- formata --> PeriodosAvaliacaoPage
+    ApplicationDbContext -- entidades --> PERIODOSAVALIACOES
+    ApplicationDbContext -- entidades --> AssociadosProjetos
 
 
 ## Sugestões de Melhorias Futuras
 
-- Implementar paginação e filtros na listagem de períodos e avaliações sinalizadas.
-- Adicionar logs de auditoria para operações de cadastro/edição.
-- Permitir exportação dos períodos e avaliações para Excel.
-- Tornar os combos de empresa dinâmicos conforme perfil do usuário.
-- Adicionar testes automatizados para serviços e helpers.
-- Implementar notificações em tempo real ao cadastrar novo período.
-- Internacionalizar mensagens e labels para multi-idioma.
+- **Internacionalização**: Centralizar textos de validação e mensagens em arquivos de recursos para facilitar tradução.
+- **Testes Automatizados**: Implementar testes unitários para os serviços e helpers de períodos.
+- **Paginação e Filtros**: Adicionar paginação e filtros avançados na listagem de períodos para melhor performance e usabilidade.
+- **Logs e Auditoria**: Integrar logs detalhados e trilha de auditoria para operações críticas de cadastro e alteração de períodos.
+- **Permissões Granulares**: Refinar regras de permissão para cadastro/edição de períodos conforme perfil do usuário.
+- **Notificações**: Integrar notificações automáticas para usuários impactados quando um novo período é cadastrado.
+- **API Pública**: Expor endpoints REST para integração com outros sistemas de RH ou BI.
+- **Validações Assíncronas**: Utilizar validações assíncronas para checagem de conflitos de datas/períodos em grandes volumes.
+
+---
+
+Para dúvidas ou contribuições, consulte o time de arquitetura ou abra uma issue no repositório.
