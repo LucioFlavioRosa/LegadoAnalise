@@ -1,67 +1,56 @@
-# Documentação: Resultado de Mentoria (Blazor Híbrido)
+# Documentação: Migração da Página de Resultado de Mentoria (Web Forms para Blazor)
 
-## 1. Visão Geral
+## Visão Geral
 
-Esta documentação detalha o funcionamento, integração e fluxo dos componentes e serviços envolvidos na página de Resultado de Mentoria, migrada do Web Forms para Blazor Híbrido (.NET 9). O objetivo é centralizar a lógica de negócio em serviços reutilizáveis, garantir uma UI moderna e interativa, e facilitar a manutenção e evolução do sistema.
+Esta documentação descreve a arquitetura, funcionamento e integração dos serviços, helpers e componentes envolvidos na migração da página de Resultado de Mentoria do sistema legado (Web Forms) para o novo padrão Blazor Híbrido (.NET 9). O objetivo é garantir alta reutilização, desacoplamento e facilidade de manutenção, centralizando a lógica de negócio em serviços e helpers reutilizáveis, e promovendo a integração via injeção de dependência.
 
-## 2. Estrutura de Integração
+## Estrutura de Pastas e Componentes
 
-- **Serviços de Negócio:**
-  - `MentoriaService`: Responsável por toda a lógica de obtenção de períodos, respostas, cálculos de notas e médias de mentoria.
-  - `MentoriaHelper`: Funções auxiliares para formatação, agrupamento e cálculo de médias.
-  - `ChartHelper`: Helper para integração com bibliotecas de gráficos (ex: ChartJS.Blazor), utilizado para renderização dos velocímetros/gauges.
-  - `MessageBoxService`: Serviço centralizado para exibição de mensagens de feedback ao usuário.
+- **Services/Mentoria/MentoriaService.cs**: Serviço central de negócio para mentoria (obtenção de períodos, respostas, cálculos de notas/médias).
+- **Services/Mentoria/Common/MentoriaHelper.cs**: Funções auxiliares reutilizáveis para formatação, agrupamento e cálculos.
+- **Services/Common/ChartHelper/ChartHelper.cs**: Helper para integração e abstração de gráficos (ex: velocímetro/gauge), reutilizável em todo o sistema.
+- **Components/Pages/ResultadoMentoria.razor**: Componente Blazor que implementa a interface da página de resultado de mentoria.
+- **Data/ApplicationDbContext.cs**: Garantia de mapeamento correto das entidades de mentoria.
+- **appsettings.json**: Configurações centralizadas para mentoria e validações.
+- **Program.cs**: Registro dos serviços e helpers no DI do projeto.
 
-- **Componentes Blazor:**
-  - `ResultadoMentoria.razor`: Página principal que consome os serviços acima, exibe tabs de períodos, listas de avaliações, gráficos e permite atualização de notas/comentários.
+## Funcionamento e Integração
 
-- **Configuração:**
-  - Todas as configurações de mentoria, limites, textos e validações estão centralizadas em `appsettings.json` na seção `Mentoria`.
+1. **Obtenção de Dados**: O componente ResultadoMentoria.razor injeta o MentoriaService, que consulta o ApplicationDbContext para obter períodos liberados, respostas de mentorados e perguntas de mentoria.
+2. **Cálculo e Formatação**: O MentoriaHelper é utilizado para cálculos de médias, formatação de notas e agrupamento de respostas por período, promovendo reutilização.
+3. **Renderização de Gráficos**: O ChartHelper abstrai a integração com bibliotecas de gráficos (ex: ChartJS.Blazor), permitindo renderização de velocímetros/gauges para notas e médias, e pode ser reutilizado em outras páginas.
+4. **Configuração**: Todas as validações, textos e limites são parametrizados via appsettings.json na seção AutoAvaliacao:Mentoria.
+5. **Mensagens ao Usuário**: O serviço IMessageBoxService é utilizado para exibir mensagens de sucesso, erro, info e warning, promovendo padronização.
+6. **Injeção de Dependência**: Todos os serviços e helpers são registrados no DI em Program.cs, permitindo fácil consumo pelos componentes Blazor.
 
-- **Persistência:**
-  - O `ApplicationDbContext` garante que todas as entidades de mentoria estejam mapeadas e acessíveis via EF Core.
+## Fluxo do Processo (Mermaid)
 
-## 3. Funcionamento
-
-1. O componente `ResultadoMentoria.razor` é carregado e injeta os serviços necessários via DI.
-2. Ao inicializar, obtém os períodos liberados para mentoria e as respostas do mentorado via `MentoriaService`.
-3. As respostas são agrupadas e formatadas via `MentoriaHelper`.
-4. Para cada período, são exibidas as notas do mentor e dos peers, calculadas dinamicamente.
-5. Gráficos de velocímetro são renderizados via `ChartHelper`.
-6. O usuário pode atualizar notas e comentários, que são persistidos via métodos do `MentoriaService`.
-7. Mensagens de sucesso/erro são exibidas via `MessageBoxService`.
-8. Todas as validações, textos e limites são lidos do `appsettings.json`.
-
-## 4. Fluxo do Processo (Mermaid)
-
-```mermaid
+mermaid
 flowchart TD
-    A[ResultadoMentoria.razor] -->|Injeta| B(MentoriaService)
-    A -->|Injeta| C(MentoriaHelper)
-    A -->|Injeta| D(ChartHelper)
-    A -->|Injeta| E(MessageBoxService)
-    B -->|Consulta| F(ApplicationDbContext)
-    A -->|Lê Configuração| G[appsettings.json]
-    A -->|Renderiza| H[UI Tabs/Gráficos/Inputs]
-    H -->|Atualiza| B
-    B -->|Persiste| F
-    A -->|Exibe| E
-```
+    ResultadoMentoria[ResultadoMentoria.razor]
+    MentoriaService[Services/Mentoria/MentoriaService]
+    MentoriaHelper[Services/Mentoria/Common/MentoriaHelper]
+    ChartHelper[Services/Common/ChartHelper/ChartHelper]
+    ApplicationDbContext[Data/ApplicationDbContext]
+    AppSettings[appsettings.json]
+    MessageBoxService[Services/Common/MessageBoxService]
 
-## 5. Sugestões de Melhorias
+    ResultadoMentoria -- injeta --> MentoriaService
+    ResultadoMentoria -- injeta --> MentoriaHelper
+    ResultadoMentoria -- injeta --> ChartHelper
+    ResultadoMentoria -- injeta --> MessageBoxService
+    MentoriaService -- consulta --> ApplicationDbContext
+    MentoriaService -- lê config --> AppSettings
+    MentoriaHelper -- lê config --> AppSettings
+    ChartHelper -- lê config --> AppSettings
 
-- **Testes Automatizados:** Implementar testes unitários e de integração para os serviços e helpers, garantindo maior confiabilidade nas operações de mentoria.
-- **Componentização Avançada:** Refatorar subcomponentes da UI (ex: cards, gráficos, listas) para facilitar reutilização em outras páginas do sistema.
-- **Internacionalização:** Centralizar todos os textos de UI e validação para facilitar tradução e adaptação para outros idiomas.
-- **Cache de Dados:** Implementar cache local para respostas e períodos, reduzindo chamadas ao banco e melhorando performance.
-- **Aprimoramento dos Gráficos:** Permitir customização avançada dos gráficos (cores, estilos, tooltips) via configuração.
-- **Auditoria e Log:** Integrar logs detalhados de ações do usuário para auditoria e análise de uso.
-- **Acessibilidade:** Garantir que todos os componentes estejam em conformidade com padrões de acessibilidade (WCAG).
-- **Documentação Técnica:** Manter documentação técnica atualizada e exemplos de uso dos serviços para onboarding rápido de novos desenvolvedores.
 
-## 6. Referências
+## Sugestões de Melhorias Futuras
 
-- [Blazor Documentation](https://learn.microsoft.com/aspnet/core/blazor/)
-- [Entity Framework Core](https://learn.microsoft.com/ef/core/)
-- [ChartJS.Blazor](https://github.com/mariusmuntean/ChartJs.Blazor)
-- [Mermaid Diagrams](https://mermaid-js.github.io/mermaid/#/)
+- **Testes Automatizados**: Implementar testes unitários e de integração para os serviços e helpers de mentoria.
+- **Componentização Avançada**: Extrair subcomponentes Blazor para listas, tabs e gráficos, facilitando ainda mais a reutilização.
+- **Internacionalização**: Parametrizar todos os textos para suportar múltiplos idiomas.
+- **Performance**: Avaliar uso de cache para respostas de mentoria e médias, reduzindo consultas repetidas.
+- **Analytics**: Integrar eventos de uso da página com Application Insights para monitoramento de uso e performance.
+- **Acessibilidade**: Garantir que os gráficos e componentes atendam padrões de acessibilidade (WCAG).
+- **Documentação Técnica**: Expandir exemplos de uso dos serviços e helpers para onboarding de novos desenvolvedores.
