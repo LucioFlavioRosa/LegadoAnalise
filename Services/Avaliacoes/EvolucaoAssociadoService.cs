@@ -6,27 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using Peers.Moderno.Data;
 using Peers.Moderno.Models;
 using Services.Common;
+using Peers.Moderno.Services.Avaliacoes.Common;
 
 namespace Services.Avaliacoes;
 
-public interface IEvolucaoAssociadoService
-{
-    Task<List<EvolucaoAssociadoDto>> ListAssociadosEvolucaoAsync(int? idAssociado, int idPeriodo, int idVertical);
-    Task<int> GerarEvolucaoAssociadoOtimizadoAsync(
-        List<Avaliacao> avaliacoes,
-        List<AvaliacaoCompetencia> avCompetencias,
-        List<AvaliacaoPerformance> avPerformances,
-        List<Competencia> competencias,
-        List<Performance> performances,
-        int idAssociado,
-        int idPeriodo,
-        int idCargo,
-        string tipoAvaliacao,
-        string escopo
-    );
-}
-
-public class EvolucaoAssociadoService : IEvolucaoAssociadoService
+public class EvolucaoAssociadoService : Peers.Moderno.Services.Avaliacoes.Common.IEvolucaoAssociadoService
 {
     private readonly ApplicationDbContext _db;
 
@@ -35,7 +19,8 @@ public class EvolucaoAssociadoService : IEvolucaoAssociadoService
         _db = db;
     }
 
-    public async Task<List<EvolucaoAssociadoDto>> ListAssociadosEvolucaoAsync(int? idAssociado, int idPeriodo, int idVertical)
+    // Método auxiliar interno, renomeado para evitar conflito com interface
+    private async Task<List<EvolucaoAssociadoDto>> ListAssociadosParaEvolucaoInternoAsync(int? idAssociado, int idPeriodo, int idVertical)
     {
         var query = _db.Associados
             .Include(a => a.Cargo)
@@ -84,6 +69,24 @@ public class EvolucaoAssociadoService : IEvolucaoAssociadoService
     {
         await Task.Delay(100);
         return 1;
+    }
+
+    public async Task<EvolucaoAssociadoViewModel> ObterEvolucaoAssociadoAsync(int associadoId, string tipoAvaliacao, string escopo)
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("Método ObterEvolucaoAssociadoAsync a ser implementado na fase de migração de lógica de negócio");
+    }
+
+    public async Task<string> MontarJsonRadarAsync(List<EvolucaoAssociadoProjeto> projetos, int idCargo)
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("Método MontarJsonRadarAsync a ser implementado na fase de migração de lógica de negócio");
+    }
+
+    public async Task<AssociadoInfoViewModel> ObterInfoAssociadoAsync(int associadoId)
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("Método ObterInfoAssociadoAsync a ser implementado na fase de migração de lógica de negócio");
     }
 }
 
