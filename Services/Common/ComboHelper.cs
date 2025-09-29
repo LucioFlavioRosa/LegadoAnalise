@@ -191,7 +191,6 @@ public static class ComboHelper
         return await Task.FromResult(statusList);
     }
 
-    // Novos métodos para combos de períodos, projetos e associados para página de resultado
     public static async Task<List<ComboItem>> GetPeriodosResultadoComboAsync(ApplicationDbContext db, int? empresaId = null)
     {
         if (db == null) return new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
