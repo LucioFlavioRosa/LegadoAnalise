@@ -268,6 +268,7 @@ builder.Services.AddScoped<IMentoriaHelper, MentoriaHelper>();
 builder.Services.AddScoped<IChartHelper, ChartHelper.ChartHelper>();
 
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<IFeedbackValidator, FeedbackValidator>();
 builder.Services.AddScoped<IFeedbackFinalizationService, FeedbackFinalizationService>();
 builder.Services.AddScoped<IFeedbackComboHelper, FeedbackComboHelper>();
 builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorService, Services.AvaliacoesGestor.Common.AvaliacoesGestorService>();
