@@ -83,6 +83,7 @@ using Services.Common.ChartHelper;
 using Services.Competencias;
 using Services.Competencias.Common;
 using Services.Workflow;
+using Peers.Moderno.Services.Avaliacoes.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -203,6 +204,7 @@ builder.Services.AddScoped<IPeriodoUtil, PeriodoUtil>();
 builder.Services.AddScoped<IDisparoMassivoRHService, DisparoMassivoRHService>();
 builder.Services.AddScoped<IEnvioAvaliacoesService, EnvioAvaliacoesService>();
 builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>();
+builder.Services.AddScoped<IEvolucaoAssociadoViewService, EvolucaoAssociadoViewService>();
 builder.Services.AddScoped<IEvolucaoAssociadoPerformanceService, EvolucaoAssociadoPerformanceService>();
 builder.Services.AddScoped<INotaHelper, NotaHelper>();
 builder.Services.AddScoped<IValidationHelper, ValidationHelper>();
@@ -252,7 +254,7 @@ builder.Services.AddScoped<IComentariosService, ComentariosService>();
 builder.Services.AddScoped<ComentariosHelper>();
 builder.Services.AddScoped<IRetrocederAvaliacaoService, RetrocederAvaliacaoService>();
 builder.Services.AddScoped<IRetrocederAvaliacaoValidator, RetrocederAvaliacaoValidator>();
-builder.Services.AddScoped<Services.Avaliacoes.EvolucaoAssociadoService.IEvolucaoAssociadoService, Services.Avaliacoes.EvolucaoAssociadoService>();
+builder.Services.AddScoped<Services.Avaliacoes.EvolucaoAssociadoService.IEvolucaoAssociadoService, Services.Avaliacoes.EvolucaoAssociadoService.EvolucaoAssociadoService>();
 builder.Services.AddScoped<Peers.Moderno.Services.Avaliacoes.Common.IEvolucaoAssociadoViewService, Peers.Moderno.Services.Avaliacoes.Common.EvolucaoAssociadoViewService>();
 builder.Services.AddScoped<Services.Avaliacoes.EvolucaoAssociadoPerformanceService.IEvolucaoAssociadoPerformanceService, Services.Avaliacoes.EvolucaoAssociadoPerformanceService>();
 builder.Services.AddScoped<IExportarAvaliacoesService, ExportarAvaliacoesService>();
