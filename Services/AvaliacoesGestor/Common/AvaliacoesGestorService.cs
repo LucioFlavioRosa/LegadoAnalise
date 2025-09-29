@@ -14,9 +14,9 @@ public class AvaliacoesGestorService : IAvaliacoesGestorService
 {
     private readonly ApplicationDbContext _db;
     private readonly IComboHelper _comboHelper;
-    private readonly AvaliacoesGestorHelper _helper;
+    private readonly IAvaliacoesGestorHelper _helper;
 
-    public AvaliacoesGestorService(ApplicationDbContext db, IComboHelper comboHelper, AvaliacoesGestorHelper helper)
+    public AvaliacoesGestorService(ApplicationDbContext db, IComboHelper comboHelper, IAvaliacoesGestorHelper helper)
     {
         _db = db;
         _comboHelper = comboHelper;
