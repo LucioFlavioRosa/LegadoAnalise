@@ -8,106 +8,127 @@ namespace Tests.Services.Common
     public class ComboHelperTests
     {
         [Fact]
-        public void GetNotasCompetenciaItems_IncludeSelecionarFalse_DeveNaoIncluirSelecionar()
+        public void GetNotasCompetenciaItems_QuandoIncludeSelecionarTrue_DeveRetornarComSelecionar()
         {
-            var result = ComboHelper.GetNotasCompetenciaItems(false);
-
-            Assert.DoesNotContain(result, item => item.Text == "[Selecionar]");
-            Assert.Equal(5, result.Count);
-            Assert.Contains(result, item => item.Value == "1" && item.Text == "1");
-            Assert.Contains(result, item => item.Value == "5" && item.Text == "N/A");
-        }
-
-        [Fact]
-        public void GetNotasCompetenciaItems_IncludeSelecionarTrue_DeveIncluirSelecionar()
-        {
+            // Act
             var result = ComboHelper.GetNotasCompetenciaItems(true);
 
-            Assert.Contains(result, item => item.Text == "[Selecionar]" && item.IsDisabled);
+            // Assert
+            Assert.NotNull(result);
             Assert.Equal(6, result.Count);
-            var selecionarItem = result.First(item => item.Text == "[Selecionar]");
-            Assert.True(selecionarItem.IsDisabled);
-            Assert.Equal("0", selecionarItem.Value);
+            Assert.Equal("[Selecionar]", result.First().Text);
+            Assert.Equal("0", result.First().Value);
+            Assert.True(result.First().IsDisabled);
+            Assert.Equal("5", result.Last().Value);
+            Assert.Equal("N/A", result.Last().Text);
         }
 
         [Fact]
-        public void GetNotasPerformanceItems_IncludeSelecionarFalse_DeveNaoIncluirSelecionar()
+        public void GetNotasCompetenciaItems_QuandoIncludeSelecionarFalse_DeveRetornarSemSelecionar()
         {
+            // Act
+            var result = ComboHelper.GetNotasCompetenciaItems(false);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(5, result.Count);
+            Assert.Equal("1", result.First().Value);
+            Assert.Equal("1", result.First().Text);
+            Assert.Equal("5", result.Last().Value);
+            Assert.Equal("N/A", result.Last().Text);
+        }
+
+        [Fact]
+        public void GetNotasPerformanceItems_QuandoIncludeSelecionarTrue_DeveRetornarComSelecionar()
+        {
+            // Act
+            var result = ComboHelper.GetNotasPerformanceItems(true);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(6, result.Count);
+            Assert.Equal("[Selecionar]", result.First().Text);
+            Assert.Equal("0", result.First().Value);
+            Assert.True(result.First().IsDisabled);
+            Assert.Equal("5", result.Last().Value);
+            Assert.Equal("N/A", result.Last().Text);
+        }
+
+        [Fact]
+        public void GetNotasPerformanceItems_QuandoIncludeSelecionarFalse_DeveRetornarSemSelecionar()
+        {
+            // Act
             var result = ComboHelper.GetNotasPerformanceItems(false);
 
-            Assert.DoesNotContain(result, item => item.Text == "[Selecionar]");
+            // Assert
+            Assert.NotNull(result);
             Assert.Equal(5, result.Count);
-            Assert.Contains(result, item => item.Value == "1" && item.Text == "1");
-            Assert.Contains(result, item => item.Value == "5" && item.Text == "N/A");
+            Assert.Equal("1", result.First().Value);
+            Assert.Equal("1", result.First().Text);
+            Assert.Equal("5", result.Last().Value);
+            Assert.Equal("N/A", result.Last().Text);
         }
 
         [Fact]
-        public void GetSelectedText_ItemNaoEncontrado_DeveRetornarSelecionar()
+        public void GetSelectedText_QuandoValueExiste_DeveRetornarTextoCorreto()
         {
+            // Arrange
             var items = new List<ComboItem>
             {
-                new ComboItem { Value = "1", Text = "Item 1" },
-                new ComboItem { Value = "2", Text = "Item 2" }
+                new ComboItem { Value = "1", Text = "Primeiro" },
+                new ComboItem { Value = "2", Text = "Segundo" }
             };
 
-            var result = ComboHelper.GetSelectedText(items, "999");
+            // Act
+            var result = ComboHelper.GetSelectedText(items, "2");
 
+            // Assert
+            Assert.Equal("Segundo", result);
+        }
+
+        [Fact]
+        public void GetSelectedText_QuandoValueNaoExiste_DeveRetornarSelecionarPadrao()
+        {
+            // Arrange
+            var items = new List<ComboItem>
+            {
+                new ComboItem { Value = "1", Text = "Primeiro" },
+                new ComboItem { Value = "2", Text = "Segundo" }
+            };
+
+            // Act
+            var result = ComboHelper.GetSelectedText(items, "3");
+
+            // Assert
             Assert.Equal("[Selecionar]", result);
         }
 
         [Fact]
-        public void GetSelectedText_ValueNuloOuVazio_DeveRetornarSelecionar()
+        public void GetSelectedText_QuandoValueNuloOuVazio_DeveRetornarSelecionarPadrao()
         {
+            // Arrange
             var items = new List<ComboItem>
             {
-                new ComboItem { Value = "1", Text = "Item 1" }
+                new ComboItem { Value = "1", Text = "Primeiro" }
             };
 
+            // Act
             var resultNull = ComboHelper.GetSelectedText(items, null);
             var resultEmpty = ComboHelper.GetSelectedText(items, "");
 
+            // Assert
             Assert.Equal("[Selecionar]", resultNull);
             Assert.Equal("[Selecionar]", resultEmpty);
         }
 
         [Fact]
-        public void GetSelectedText_ItemEncontrado_DeveRetornarTextoCorreto()
+        public void GetTiposAvaliacao_DeveRetornarListaEsperada()
         {
-            var items = new List<ComboItem>
-            {
-                new ComboItem { Value = "1", Text = "Item 1" },
-                new ComboItem { Value = "2", Text = "Item 2" }
-            };
-
-            var result = ComboHelper.GetSelectedText(items, "2");
-
-            Assert.Equal("Item 2", result);
-        }
-
-        [Fact]
-        public void IsValidSelection_ValueValidoOuInvalido_DeveRetornarCorreto()
-        {
-            Assert.True(ComboHelper.IsValidSelection("1"));
-            Assert.True(ComboHelper.IsValidSelection("valid"));
-            Assert.False(ComboHelper.IsValidSelection(null));
-            Assert.False(ComboHelper.IsValidSelection(""));
-            Assert.False(ComboHelper.IsValidSelection(string.Empty));
-        }
-
-        [Fact]
-        public void GetStatusText_StatusAtivoOuInativo_DeveRetornarTextoCorreto()
-        {
-            Assert.Equal("Ativo", ComboHelper.GetStatusText(1));
-            Assert.Equal("Inativo", ComboHelper.GetStatusText(0));
-            Assert.Equal("Inativo", ComboHelper.GetStatusText(-1));
-            Assert.Equal("Inativo", ComboHelper.GetStatusText(2));
-        }
-
-        [Fact]
-        public void GetTiposAvaliacao_DeveRetornarListaCorreta()
-        {
+            // Act
             var result = ComboHelper.GetTiposAvaliacao();
 
+            // Assert
+            Assert.NotNull(result);
             Assert.Equal(3, result.Count);
             Assert.Contains("[Selecionar]", result);
             Assert.Contains("desempenho", result);
@@ -115,10 +136,13 @@ namespace Tests.Services.Common
         }
 
         [Fact]
-        public void GetEscopos_DeveRetornarListaCorreta()
+        public void GetEscopos_DeveRetornarListaEsperada()
         {
+            // Act
             var result = ComboHelper.GetEscopos();
 
+            // Assert
+            Assert.NotNull(result);
             Assert.Equal(3, result.Count);
             Assert.Contains("[Selecionar]", result);
             Assert.Contains("projeto", result);
@@ -126,32 +150,103 @@ namespace Tests.Services.Common
         }
 
         [Fact]
+        public void GetTiposAvaliacaoItems_DeveRetornarItensCorretos()
+        {
+            // Act
+            var result = ComboHelper.GetTiposAvaliacaoItems();
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Count);
+            Assert.Equal("", result.First().Value);
+            Assert.Equal("[Selecionar]", result.First().Text);
+            Assert.Equal("desempenho", result[1].Value);
+            Assert.Equal("liderança", result.Last().Value);
+        }
+
+        [Fact]
+        public void GetEscoposItems_DeveRetornarItensCorretos()
+        {
+            // Act
+            var result = ComboHelper.GetEscoposItems();
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(3, result.Count);
+            Assert.Equal("", result.First().Value);
+            Assert.Equal("[Selecionar]", result.First().Text);
+            Assert.Equal("projeto", result[1].Value);
+            Assert.Equal("lider", result.Last().Value);
+        }
+
+        [Fact]
+        public void GetStatusItems_DeveRetornarItensCorretos()
+        {
+            // Act
+            var result = ComboHelper.GetStatusItems();
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+            Assert.Equal("1", result.First().Value);
+            Assert.Equal("Ativo", result.First().Text);
+            Assert.Equal("0", result.Last().Value);
+            Assert.Equal("Inativo", result.Last().Text);
+        }
+
+        [Fact]
+        public void GetAbrangenciaPerformanceItems_DeveRetornarItensCorretos()
+        {
+            // Act
+            var result = ComboHelper.GetAbrangenciaPerformanceItems();
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+            Assert.Equal("Individual", result.First().Value);
+            Assert.Equal("Individual", result.First().Text);
+            Assert.Equal("Coletivo", result.Last().Value);
+            Assert.Equal("Coletivo", result.Last().Text);
+        }
+
+        [Fact]
         public void GetDefaultSelectionItem_DeveRetornarItemPadrao()
         {
+            // Act
             var result = ComboHelper.GetDefaultSelectionItem();
 
+            // Assert
+            Assert.NotNull(result);
             Assert.Equal("", result.Value);
             Assert.Equal("[Selecionar]", result.Text);
         }
 
-        [Fact]
-        public void GetStatusItems_DeveRetornarItensStatus()
+        [Theory]
+        [InlineData("test", true)]
+        [InlineData("123", true)]
+        [InlineData("", false)]
+        [InlineData(null, false)]
+        public void IsValidSelection_DeveRetornarResultadoCorreto(string value, bool expected)
         {
-            var result = ComboHelper.GetStatusItems();
+            // Act
+            var result = ComboHelper.IsValidSelection(value);
 
-            Assert.Equal(2, result.Count);
-            Assert.Contains(result, item => item.Value == "1" && item.Text == "Ativo");
-            Assert.Contains(result, item => item.Value == "0" && item.Text == "Inativo");
+            // Assert
+            Assert.Equal(expected, result);
         }
 
-        [Fact]
-        public void GetAbrangenciaPerformanceItems_DeveRetornarItensAbrangencia()
+        [Theory]
+        [InlineData(1, "Ativo")]
+        [InlineData(0, "Inativo")]
+        [InlineData(2, "Inativo")]
+        [InlineData(-1, "Inativo")]
+        public void GetStatusText_DeveRetornarTextoCorreto(int status, string expected)
         {
-            var result = ComboHelper.GetAbrangenciaPerformanceItems();
+            // Act
+            var result = ComboHelper.GetStatusText(status);
 
-            Assert.Equal(2, result.Count);
-            Assert.Contains(result, item => item.Value == "Individual" && item.Text == "Individual");
-            Assert.Contains(result, item => item.Value == "Coletivo" && item.Text == "Coletivo");
+            // Assert
+            Assert.Equal(expected, result);
         }
     }
 }
