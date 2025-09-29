@@ -1,276 +1,212 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Peers.Moderno.Data;
 using Peers.Moderno.Models;
-using Peers.Moderno.Services.Common;
-using Peers.Moderno.Services.Competencias.Common;
-using OfficeOpenXml;
+using Services.Competencias.Common;
+using Services.Common;
 
-namespace Peers.Moderno.Services.Competencias;
+namespace Services.Competencias;
+
+public interface ICompetenciasService
+{
+    Task<List<CompetenciaModel>> ObterListaCompetenciasModelAsync(int idAssociado, int idProjeto, int idPeriodo, string tipoAvaliacao, string escopo, int idAvaliacao, int? idCargo = null, int? idNivel = null, int? idEmpresa = null);
+    Task<bool> SalvarAvaliacaoAsync(int idAssociado, int idProjeto, int idPeriodo, int idAvaliacao, string tipoAvaliacao, string escopo, List<AvaliacaoCompetenciaInputModel> avaliacoes, bool finalizarAvaliacao = false);
+    Task<AvaliacaoCompetencia?> ObterAvaliacaoCompetenciaAsync(int idAssociado, int idProjeto, int idCompetencia, int idPeriodo, string tipoAvaliacao, string escopo, int idAvaliacao);
+}
 
 public class CompetenciasService : ICompetenciasService
 {
-    private readonly ApplicationDbContext _context;
-    private readonly ICompetenciasImportExportUtil _importExportUtil;
-    private readonly ITelemetryService _telemetryService;
+    private readonly ApplicationDbContext _db;
+    private readonly IMessageBoxService _messageBoxService;
 
-    public CompetenciasService(
-        ApplicationDbContext context,
-        ICompetenciasImportExportUtil importExportUtil,
-        ITelemetryService telemetryService)
+    public CompetenciasService(ApplicationDbContext db, IMessageBoxService messageBoxService)
     {
-        _context = context;
-        _importExportUtil = importExportUtil;
-        _telemetryService = telemetryService;
+        _db = db;
+        _messageBoxService = messageBoxService;
     }
 
-    public async Task<bool> CadastrarAsync(Competencia competencia)
+    public async Task<List<CompetenciaModel>> ObterListaCompetenciasModelAsync(
+        int idAssociado,
+        int idProjeto,
+        int idPeriodo,
+        string tipoAvaliacao,
+        string escopo,
+        int idAvaliacao,
+        int? idCargo = null,
+        int? idNivel = null,
+        int? idEmpresa = null)
     {
-        try
+        // Busca associado e projeto
+        var associado = await _db.Associados.Include(a => a.Cargo).FirstOrDefaultAsync(a => a.Id == idAssociado);
+        if (associado == null) return new List<CompetenciaModel>();
+        var projeto = await _db.Projetos.FirstOrDefaultAsync(p => p.Id == idProjeto);
+        if (projeto == null) return new List<CompetenciaModel>();
+        var periodo = await _db.PeriodosAvaliacoes.FirstOrDefaultAsync(p => p.IdPeriodo == idPeriodo);
+        if (periodo == null) return new List<CompetenciaModel>();
+
+        // Busca avaliação email
+        var avaliacaoEmail = await _db.AvaliacoesEmail.FirstOrDefaultAsync(a => a.idAvaliacao == idAvaliacao);
+        if (avaliacaoEmail == null) return new List<CompetenciaModel>();
+
+        // Busca competências parametrizadas
+        var competencias = await _db.Competencias
+            .Where(c => c.IdCargo == (idCargo ?? associado.IdCargo) && c.TipoAvaliacao == tipoAvaliacao && c.Escopo == escopo)
+            .OrderBy(c => c.IdCompetencia)
+            .ToListAsync();
+
+        var listaCompetenciasModel = new List<CompetenciaModel>();
+        int cont = 0;
+        foreach (var item in competencias)
         {
-            competencia.DHC = DateTime.Now;
-            competencia.ATV = 1;
-
-            _context.Competencias.Add(competencia);
-            await _context.SaveChangesAsync();
-
-            await AtualizarRelacaoCargoSubcompetenciaAsync(
-                competencia.IdCargo,
-                competencia.IdSubCompetencia,
-                competencia.CompetenciaJR);
-
-            _telemetryService.TrackEvent("CompetenciaCadastrada", new Dictionary<string, string>
+            var linhaCompetencia = new CompetenciaModel
             {
-                { "IdCompetencia", competencia.IdCompetencia.ToString() },
-                { "TipoAvaliacao", competencia.TipoAvaliacao }
-            });
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _telemetryService.TrackException(ex, "Erro ao cadastrar competência");
-            return false;
-        }
-    }
-
-    public async Task<bool> AlterarAsync(Competencia competencia)
-    {
-        try
-        {
-            var competenciaExistente = await _context.Competencias
-                .FirstOrDefaultAsync(c => c.IdCompetencia == competencia.IdCompetencia);
-
-            if (competenciaExistente == null)
-                return false;
-
-            // Atualizar propriedades
-            competenciaExistente.IdCargo = competencia.IdCargo;
-            competenciaExistente.IdEixo = competencia.IdEixo;
-            competenciaExistente.IdSubCompetencia = competencia.IdSubCompetencia;
-            competenciaExistente.IdDimensao = competencia.IdDimensao;
-            competenciaExistente.CompetenciaJR = competencia.CompetenciaJR;
-            competenciaExistente.CompetenciaJRDetalhe = competencia.CompetenciaJRDetalhe;
-            competenciaExistente.CompetenciaPL = competencia.CompetenciaPL;
-            competenciaExistente.CompetenciaPLDetalhe = competencia.CompetenciaPLDetalhe;
-            competenciaExistente.CompetenciaSR = competencia.CompetenciaSR;
-            competenciaExistente.CompetenciaSRDetalhe = competencia.CompetenciaSRDetalhe;
-            competenciaExistente.PalavrasChave = competencia.PalavrasChave;
-            competenciaExistente.TipoAvaliacao = competencia.TipoAvaliacao;
-            competenciaExistente.Escopo = competencia.Escopo;
-            competenciaExistente.InputAutoAvaliacao = competencia.InputAutoAvaliacao;
-            competenciaExistente.InputAvaliacaoAsCegas = competencia.InputAvaliacaoAsCegas;
-            competenciaExistente.InputAvaliacaoGestor = competencia.InputAvaliacaoGestor;
-            competenciaExistente.InputFeedback = competencia.InputFeedback;
-            competenciaExistente.InputNivel1 = competencia.InputNivel1;
-            competenciaExistente.InputNivel2 = competencia.InputNivel2;
-            competenciaExistente.VisivelAutoAvaliacao = competencia.VisivelAutoAvaliacao;
-            competenciaExistente.VisivelAvaliacaoAsCegas = competencia.VisivelAvaliacaoAsCegas;
-            competenciaExistente.VisivelAvaliacaoGestor = competencia.VisivelAvaliacaoGestor;
-            competenciaExistente.VisivelFeedback = competencia.VisivelFeedback;
-            competenciaExistente.VisivelNivel1 = competencia.VisivelNivel1;
-            competenciaExistente.VisivelNivel2 = competencia.VisivelNivel2;
-            competenciaExistente.IdNotaPadraoNivel1 = competencia.IdNotaPadraoNivel1;
-            competenciaExistente.IdNotaPadraoNivel2 = competencia.IdNotaPadraoNivel2;
-            competenciaExistente.IdModo = competencia.IdModo;
-
-            await _context.SaveChangesAsync();
-
-            await AtualizarRelacaoCargoSubcompetenciaAsync(
-                competencia.IdCargo,
-                competencia.IdSubCompetencia,
-                competencia.CompetenciaJR);
-
-            _telemetryService.TrackEvent("CompetenciaAlterada", new Dictionary<string, string>
-            {
-                { "IdCompetencia", competencia.IdCompetencia.ToString() }
-            });
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _telemetryService.TrackException(ex, "Erro ao alterar competência");
-            return false;
-        }
-    }
-
-    public async Task<bool> ExcluirAsync(int idCompetencia)
-    {
-        try
-        {
-            var competencia = await _context.Competencias
-                .FirstOrDefaultAsync(c => c.IdCompetencia == idCompetencia);
-
-            if (competencia == null)
-                return false;
-
-            competencia.ATV = 0;
-            await _context.SaveChangesAsync();
-
-            _telemetryService.TrackEvent("CompetenciaInativada", new Dictionary<string, string>
-            {
-                { "IdCompetencia", idCompetencia.ToString() }
-            });
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _telemetryService.TrackException(ex, "Erro ao inativar competência");
-            return false;
-        }
-    }
-
-    public async Task<List<Competencia>> ListarAsync(bool apenasAtivas = true)
-    {
-        try
-        {
-            var query = _context.Competencias
-                .Include(c => c.Cargo)
-                .Include(c => c.Eixo)
-                .Include(c => c.SubCompetencia)
-                .Include(c => c.Dimensao)
-                .AsQueryable();
-
-            if (apenasAtivas)
-                query = query.Where(c => c.ATV == 1);
-
-            return await query.OrderBy(c => c.IdCompetencia).ToListAsync();
-        }
-        catch (Exception ex)
-        {
-            _telemetryService.TrackException(ex, "Erro ao listar competências");
-            return new List<Competencia>();
-        }
-    }
-
-    public async Task<Competencia?> ObterPorIdAsync(int idCompetencia)
-    {
-        try
-        {
-            return await _context.Competencias
-                .Include(c => c.Cargo)
-                .Include(c => c.Eixo)
-                .Include(c => c.SubCompetencia)
-                .Include(c => c.Dimensao)
-                .FirstOrDefaultAsync(c => c.IdCompetencia == idCompetencia);
-        }
-        catch (Exception ex)
-        {
-            _telemetryService.TrackException(ex, "Erro ao obter competência por ID");
-            return null;
-        }
-    }
-
-    public async Task<byte[]> ExportarAsync()
-    {
-        try
-        {
-            var competencias = await ListarAsync(false);
-            return await _importExportUtil.ExportarParaExcelAsync(competencias);
-        }
-        catch (Exception ex)
-        {
-            _telemetryService.TrackException(ex, "Erro ao exportar competências");
-            throw;
-        }
-    }
-
-    public async Task<ImportResult> ImportarAsync(Stream fileStream, int idEmpresa, int idUsuario)
-    {
-        try
-        {
-            var resultado = await _importExportUtil.ImportarDeExcelAsync(fileStream, idEmpresa, idUsuario);
-
-            _telemetryService.TrackEvent("CompetenciasImportadas", new Dictionary<string, string>
-            {
-                { "LinhasInseridas", resultado.LinhasInseridas.ToString() },
-                { "LinhasAlteradas", resultado.LinhasAlteradas.ToString() },
-                { "LinhasDesconsideradas", resultado.LinhasDesconsideradas.ToString() },
-                { "LinhasComErro", resultado.LinhasComErro.ToString() }
-            });
-
-            return resultado;
-        }
-        catch (Exception ex)
-        {
-            _telemetryService.TrackException(ex, "Erro ao importar competências");
-            throw;
-        }
-    }
-
-    public async Task<int> AgregarCompetenciaAvaliacoesAsync(int idCompetencia)
-    {
-        try
-        {
-            var competencia = await ObterPorIdAsync(idCompetencia);
-            if (competencia == null || competencia.TipoAvaliacao != "desempenho")
-                return 0;
-
-            // Lógica de agregação seria implementada aqui
-            // Por enquanto retornando 0 como placeholder
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            _telemetryService.TrackException(ex, "Erro ao agregar competência às avaliações");
-            return 0;
-        }
-    }
-
-    public async Task<RelacaoCargoSubcompetencia?> ObterRelacaoCargoSubcompetenciaAsync(int idCargo, int idSubcompetencia)
-    {
-        try
-        {
-            return await _context.RelacoesCargosSubcompetencias
-                .FirstOrDefaultAsync(r => r.IdCargo == idCargo && r.IdSubcompetencia == idSubcompetencia);
-        }
-        catch (Exception ex)
-        {
-            _telemetryService.TrackException(ex, "Erro ao obter relação cargo-subcompetência");
-            return null;
-        }
-    }
-
-    private async Task AtualizarRelacaoCargoSubcompetenciaAsync(int idCargo, int idSubcompetencia, string descricao)
-    {
-        var relacao = await ObterRelacaoCargoSubcompetenciaAsync(idCargo, idSubcompetencia);
-
-        if (relacao == null)
-        {
-            relacao = new RelacaoCargoSubcompetencia
-            {
-                IdCargo = idCargo,
-                IdSubcompetencia = idSubcompetencia,
-                Descricao = descricao
+                IdCompetencia = item.IdCompetencia,
+                PalavrasChave = item.PalavrasChave,
+                Eixo = item.Eixo?.Nome ?? string.Empty,
+                SubCompetencia = item.SubCompetencia?.Nome ?? string.Empty,
+                Dimensao = item.Dimensao?.Nome ?? string.Empty
             };
-            _context.RelacoesCargosSubcompetencias.Add(relacao);
-        }
-        else
-        {
-            relacao.Descricao = descricao;
-        }
 
-        await _context.SaveChangesAsync();
+            // Detalhamento e títulos por nível
+            switch (idNivel ?? associado.IdNivel)
+            {
+                case 1: // Junior
+                    linhaCompetencia.DetalheNivelAtual = item.CompetenciaJRDetalhe;
+                    linhaCompetencia.CompetenciaAtual = item.CompetenciaJR;
+                    linhaCompetencia.CompetenciaProximo = item.CompetenciaPL;
+                    linhaCompetencia.DetalheProximoNivel = item.CompetenciaPLDetalhe;
+                    linhaCompetencia.IsHiddenDetalhamentoProximoNivel = "hidden";
+                    break;
+                case 2: // Pleno
+                    linhaCompetencia.DetalheNivelAtual = item.CompetenciaPLDetalhe;
+                    linhaCompetencia.CompetenciaAtual = item.CompetenciaPL;
+                    linhaCompetencia.CompetenciaProximo = item.CompetenciaSR;
+                    linhaCompetencia.DetalheProximoNivel = item.CompetenciaSRDetalhe;
+                    linhaCompetencia.IsHiddenDetalhamentoProximoNivel = "hidden";
+                    break;
+                case 3: // Senior
+                    linhaCompetencia.DetalheNivelAtual = item.CompetenciaSRDetalhe;
+                    linhaCompetencia.CompetenciaAtual = item.CompetenciaSR;
+                    linhaCompetencia.CompetenciaProximo = "Não existe parametrização para o próximo nível";
+                    linhaCompetencia.DetalheProximoNivel = "Não existe parametrização para o próximo nível";
+                    linhaCompetencia.IsHiddenDetalhamentoProximoNivel = string.Empty;
+                    break;
+                default:
+                    linhaCompetencia.DetalheNivelAtual = string.Empty;
+                    linhaCompetencia.CompetenciaAtual = string.Empty;
+                    linhaCompetencia.CompetenciaProximo = string.Empty;
+                    linhaCompetencia.DetalheProximoNivel = string.Empty;
+                    linhaCompetencia.IsHiddenDetalhamentoProximoNivel = string.Empty;
+                    break;
+            }
+            listaCompetenciasModel.Add(linhaCompetencia);
+            cont++;
+        }
+        return listaCompetenciasModel;
     }
+
+    public async Task<AvaliacaoCompetencia?> ObterAvaliacaoCompetenciaAsync(int idAssociado, int idProjeto, int idCompetencia, int idPeriodo, string tipoAvaliacao, string escopo, int idAvaliacao)
+    {
+        return await _db.AvaliacoesCompetencias.FirstOrDefaultAsync(a =>
+            a.IdAssociado == idAssociado &&
+            a.IdProjeto == idProjeto &&
+            a.IdCompetencia == idCompetencia &&
+            a.IdPeriodo == idPeriodo &&
+            a.TipoAvaliacao == tipoAvaliacao &&
+            a.Escopo == escopo &&
+            a.idAvaliacao == idAvaliacao
+        );
+    }
+
+    public async Task<bool> SalvarAvaliacaoAsync(
+        int idAssociado,
+        int idProjeto,
+        int idPeriodo,
+        int idAvaliacao,
+        string tipoAvaliacao,
+        string escopo,
+        List<AvaliacaoCompetenciaInputModel> avaliacoes,
+        bool finalizarAvaliacao = false)
+    {
+        var associado = await _db.Associados.FirstOrDefaultAsync(a => a.Id == idAssociado);
+        if (associado == null) return false;
+        var avaliacaoEmail = await _db.AvaliacoesEmail.FirstOrDefaultAsync(a => a.idAvaliacao == idAvaliacao);
+        if (avaliacaoEmail == null) return false;
+        foreach (var input in avaliacoes)
+        {
+            var avaliacao = await ObterAvaliacaoCompetenciaAsync(idAssociado, idProjeto, input.IdCompetencia, idPeriodo, tipoAvaliacao, escopo, idAvaliacao);
+            if (avaliacao == null)
+            {
+                avaliacao = new AvaliacaoCompetencia
+                {
+                    IdEmpresa = associado.IdEmpresa,
+                    IdAssociado = idAssociado,
+                    USRAutoAvaliacao = idAssociado,
+                    IdCargo = associado.IdCargo,
+                    IdNivel = associado.IdNivel,
+                    IdProjeto = idProjeto,
+                    IdPeriodo = idPeriodo,
+                    IdCompetencia = input.IdCompetencia,
+                    IdAvaliacaoStatus = 2, // Em Andamento
+                    PosicaoAtualFluxoAvaliacao = "Em Auto-avaliação",
+                    DataHoraInicio = DateTime.Now,
+                    DHCAutoAvaliacao = DateTime.Now,
+                    USR = idAssociado,
+                    DHC = DateTime.Now,
+                    ATV = true,
+                    IdNotaNivel1AutoAvaliacao = input.IdNotaNivel1,
+                    IdNotaNivel2AutoAvaliacao = input.IdNotaNivel2,
+                    ComentariosAutoAvaliacao = input.Comentarios?.Trim() ?? string.Empty,
+                    DataHoraInicioAutoAvaliacao = DateTime.Now,
+                    TipoAvaliacao = tipoAvaliacao,
+                    Escopo = escopo,
+                    idAvaliacao = idAvaliacao
+                };
+                await _db.AvaliacoesCompetencias.AddAsync(avaliacao);
+            }
+            else
+            {
+                avaliacao.IdNotaNivel1AutoAvaliacao = input.IdNotaNivel1;
+                avaliacao.IdNotaNivel2AutoAvaliacao = input.IdNotaNivel2;
+                avaliacao.ComentariosAutoAvaliacao = input.Comentarios?.Trim() ?? string.Empty;
+                if (avaliacao.IdAvaliacaoStatus == 1)
+                {
+                    avaliacao.IdAvaliacaoStatus = 2;
+                    avaliacao.PosicaoAtualFluxoAvaliacao = "Em Auto-avaliação";
+                    if (avaliacao.DataHoraInicio == DateTime.MinValue)
+                        avaliacao.DataHoraInicio = DateTime.Now;
+                    avaliacao.DataHoraInicioAutoAvaliacao = DateTime.Now;
+                }
+            }
+            if (finalizarAvaliacao)
+                avaliacao.DataHoraFimAutoAvaliacao = DateTime.Now;
+        }
+        await _db.SaveChangesAsync();
+        return true;
+    }
+}
+
+public class CompetenciaModel
+{
+    public int IdCompetencia { get; set; }
+    public string PalavrasChave { get; set; } = string.Empty;
+    public string Eixo { get; set; } = string.Empty;
+    public string SubCompetencia { get; set; } = string.Empty;
+    public string Dimensao { get; set; } = string.Empty;
+    public string DetalheNivelAtual { get; set; } = string.Empty;
+    public string CompetenciaAtual { get; set; } = string.Empty;
+    public string CompetenciaProximo { get; set; } = string.Empty;
+    public string DetalheProximoNivel { get; set; } = string.Empty;
+    public string IsHiddenDetalhamentoProximoNivel { get; set; } = string.Empty;
+}
+
+public class AvaliacaoCompetenciaInputModel
+{
+    public int IdCompetencia { get; set; }
+    public int IdNotaNivel1 { get; set; }
+    public int IdNotaNivel2 { get; set; }
+    public string? Comentarios { get; set; }
 }
