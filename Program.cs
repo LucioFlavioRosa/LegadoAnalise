@@ -93,6 +93,8 @@ using Services.Common.ChartHelper;
 // Importação dos novos serviços para avaliação de competências
 using Services.Competencias;
 using Services.Competencias.Common;
+// Registro dos novos serviços de workflow
+using Services.Workflow;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -297,6 +299,10 @@ builder.Services.AddScoped<IAvaliacoesSinalizadasService, AvaliacoesSinalizadasS
 // Registro dos novos serviços para avaliação de competências (Passos 8 e 9)
 builder.Services.AddScoped<Services.Competencias.Common.ICompetenciaHelper, Services.Competencias.Common.CompetenciaHelper>();
 builder.Services.AddScoped<Services.Competencias.ICompetenciasService, Services.Competencias.CompetenciasService>();
+
+// Registro dos novos serviços de workflow (Passo 7)
+builder.Services.AddScoped<IWorkflowService, WorkflowService>();
+builder.Services.AddScoped<IWorkflowComboHelper, WorkflowComboHelper>();
 
 var app = builder.Build();
 
