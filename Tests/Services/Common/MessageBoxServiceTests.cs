@@ -6,119 +6,130 @@ namespace Tests.Services.Common
 {
     public class MessageBoxServiceTests
     {
-        [Fact]
-        public void ShowError_DeveDispararEventoComTipoError()
+        private readonly MessageBoxService _service;
+
+        public MessageBoxServiceTests()
         {
-            var service = new MessageBoxService();
+            _service = new MessageBoxService();
+        }
+
+        [Fact]
+        public void ShowSuccess_DeveDispararEventoComTipoCorreto()
+        {
+            // Arrange
             MessageBoxEventArgs capturedArgs = null;
-            service.OnMessageReceived += (args) => capturedArgs = args;
+            _service.OnMessageReceived += (args) => capturedArgs = args;
 
-            service.ShowError("Test error message", "Error Title", 5000);
+            // Act
+            _service.ShowSuccess("Sucesso", "Título", 5000);
 
+            // Assert
             Assert.NotNull(capturedArgs);
-            Assert.Equal("Test error message", capturedArgs.Message);
-            Assert.Equal(MessageBoxType.Error, capturedArgs.Type);
-            Assert.Equal("Error Title", capturedArgs.Title);
+            Assert.Equal("Sucesso", capturedArgs.Message);
+            Assert.Equal(MessageBoxType.Success, capturedArgs.Type);
+            Assert.Equal("Título", capturedArgs.Title);
             Assert.Equal(5000, capturedArgs.Delay);
         }
 
         [Fact]
-        public void ShowSuccess_DeveDispararEventoComTipoSuccess()
+        public void ShowError_DeveDispararEventoComTipoCorreto()
         {
-            var service = new MessageBoxService();
+            // Arrange
             MessageBoxEventArgs capturedArgs = null;
-            service.OnMessageReceived += (args) => capturedArgs = args;
+            _service.OnMessageReceived += (args) => capturedArgs = args;
 
-            service.ShowSuccess("Success message");
+            // Act
+            _service.ShowError("Erro", "Título Erro", 3000);
 
+            // Assert
             Assert.NotNull(capturedArgs);
-            Assert.Equal("Success message", capturedArgs.Message);
-            Assert.Equal(MessageBoxType.Success, capturedArgs.Type);
+            Assert.Equal("Erro", capturedArgs.Message);
+            Assert.Equal(MessageBoxType.Error, capturedArgs.Type);
+            Assert.Equal("Título Erro", capturedArgs.Title);
+            Assert.Equal(3000, capturedArgs.Delay);
+        }
+
+        [Fact]
+        public void ShowInfo_DeveDispararEventoComTipoCorreto()
+        {
+            // Arrange
+            MessageBoxEventArgs capturedArgs = null;
+            _service.OnMessageReceived += (args) => capturedArgs = args;
+
+            // Act
+            _service.ShowInfo("Informação");
+
+            // Assert
+            Assert.NotNull(capturedArgs);
+            Assert.Equal("Informação", capturedArgs.Message);
+            Assert.Equal(MessageBoxType.Info, capturedArgs.Type);
             Assert.Null(capturedArgs.Title);
             Assert.Null(capturedArgs.Delay);
         }
 
         [Fact]
-        public void ShowInfo_DeveDispararEventoComTipoInfo()
+        public void ShowWarning_DeveDispararEventoComTipoCorreto()
         {
-            var service = new MessageBoxService();
+            // Arrange
             MessageBoxEventArgs capturedArgs = null;
-            service.OnMessageReceived += (args) => capturedArgs = args;
+            _service.OnMessageReceived += (args) => capturedArgs = args;
 
-            service.ShowInfo("Info message", "Info Title");
+            // Act
+            _service.ShowWarning("Aviso", "Título Aviso");
 
+            // Assert
             Assert.NotNull(capturedArgs);
-            Assert.Equal("Info message", capturedArgs.Message);
-            Assert.Equal(MessageBoxType.Info, capturedArgs.Type);
-            Assert.Equal("Info Title", capturedArgs.Title);
-        }
-
-        [Fact]
-        public void ShowWarning_DeveDispararEventoComTipoWarning()
-        {
-            var service = new MessageBoxService();
-            MessageBoxEventArgs capturedArgs = null;
-            service.OnMessageReceived += (args) => capturedArgs = args;
-
-            service.ShowWarning("Warning message", "Warning Title", 3000);
-
-            Assert.NotNull(capturedArgs);
-            Assert.Equal("Warning message", capturedArgs.Message);
+            Assert.Equal("Aviso", capturedArgs.Message);
             Assert.Equal(MessageBoxType.Warning, capturedArgs.Type);
-            Assert.Equal("Warning Title", capturedArgs.Title);
-            Assert.Equal(3000, capturedArgs.Delay);
+            Assert.Equal("Título Aviso", capturedArgs.Title);
+            Assert.Null(capturedArgs.Delay);
         }
 
         [Fact]
         public void Show_DeveDispararEventoComParametrosCorretos()
         {
-            var service = new MessageBoxService();
+            // Arrange
             MessageBoxEventArgs capturedArgs = null;
-            service.OnMessageReceived += (args) => capturedArgs = args;
+            _service.OnMessageReceived += (args) => capturedArgs = args;
 
-            service.Show("Generic message", MessageBoxType.Warning, "Generic Title", 2000);
+            // Act
+            _service.Show("Mensagem customizada", MessageBoxType.Warning, "Título customizado", 2000);
 
+            // Assert
             Assert.NotNull(capturedArgs);
-            Assert.Equal("Generic message", capturedArgs.Message);
+            Assert.Equal("Mensagem customizada", capturedArgs.Message);
             Assert.Equal(MessageBoxType.Warning, capturedArgs.Type);
-            Assert.Equal("Generic Title", capturedArgs.Title);
+            Assert.Equal("Título customizado", capturedArgs.Title);
             Assert.Equal(2000, capturedArgs.Delay);
         }
 
         [Fact]
         public void Show_SemParametrosOpcionais_DeveUsarPadroes()
         {
-            var service = new MessageBoxService();
+            // Arrange
             MessageBoxEventArgs capturedArgs = null;
-            service.OnMessageReceived += (args) => capturedArgs = args;
+            _service.OnMessageReceived += (args) => capturedArgs = args;
 
-            service.Show("Default message");
+            // Act
+            _service.Show("Mensagem simples");
 
+            // Assert
             Assert.NotNull(capturedArgs);
-            Assert.Equal("Default message", capturedArgs.Message);
+            Assert.Equal("Mensagem simples", capturedArgs.Message);
             Assert.Equal(MessageBoxType.Info, capturedArgs.Type);
             Assert.Null(capturedArgs.Title);
             Assert.Null(capturedArgs.Delay);
         }
 
         [Fact]
-        public void MultipleSubscribers_DevemReceberEventos()
+        public void OnMessageReceived_SemSubscribers_NaoDeveGerarExcecao()
         {
-            var service = new MessageBoxService();
-            MessageBoxEventArgs capturedArgs1 = null;
-            MessageBoxEventArgs capturedArgs2 = null;
-            
-            service.OnMessageReceived += (args) => capturedArgs1 = args;
-            service.OnMessageReceived += (args) => capturedArgs2 = args;
+            // Arrange
+            var serviceWithoutSubscribers = new MessageBoxService();
 
-            service.ShowError("Multi subscriber test");
-
-            Assert.NotNull(capturedArgs1);
-            Assert.NotNull(capturedArgs2);
-            Assert.Equal("Multi subscriber test", capturedArgs1.Message);
-            Assert.Equal("Multi subscriber test", capturedArgs2.Message);
-            Assert.Equal(MessageBoxType.Error, capturedArgs1.Type);
-            Assert.Equal(MessageBoxType.Error, capturedArgs2.Type);
+            // Act & Assert
+            var exception = Record.Exception(() => serviceWithoutSubscribers.ShowSuccess("Teste"));
+            Assert.Null(exception);
         }
     }
 }
