@@ -33,7 +33,7 @@ Esta documentação descreve a arquitetura, funcionamento, integração e fluxo 
 
 ## Fluxo do Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     Start([Início]) --> PaginaAvaliacaoCompetencia["AvaliacaoCompetencia.razor"]
     PaginaAvaliacaoCompetencia -->|Carrega contexto| CompetenciasService
@@ -46,7 +46,7 @@ flowchart TD
     CompetenciasService -->|Persiste| ApplicationDbContext
     PaginaAvaliacaoCompetencia -->|Redireciona| ProximaEtapa["Próxima Página"]
     ProximaEtapa --> End([Fim])
-
+```
 
 ## Integração com Outros Módulos
 
