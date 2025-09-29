@@ -84,6 +84,10 @@ using Services.Pendencias.Common;
 // Importação dos novos serviços de períodos
 using Services.Periodos;
 using Services.Periodos.Common;
+// Novos serviços Radar
+using Services.Radar;
+using Services.Radar.Common;
+using Services.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -169,6 +173,9 @@ builder.Services.AddScoped<IResultadoLiderancaService, ResultadoLiderancaService
 builder.Services.AddScoped<IResultadoLiderancaHelper, ResultadoLiderancaHelper>();
 // Serviço de ChartJsInterop reutilizável
 builder.Services.AddScoped<ChartJsInteropService>();
+// Serviços Radar
+builder.Services.AddScoped<IRadarService, RadarService>();
+builder.Services.AddScoped<IRadarHelper, RadarHelper>();
 
 // New Common Services - Index Page Migration
 builder.Services.AddScoped<IUserContextService, UserContextService>();
