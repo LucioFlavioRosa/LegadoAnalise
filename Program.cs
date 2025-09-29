@@ -88,7 +88,9 @@ using Services.Periodos.Common;
 using Services.Radar;
 using Services.Radar.Common;
 using Services.Common;
-// Importação dos novos helpers para gráficos
+// Novos serviços para mentoria
+using Services.Mentoria;
+using Services.Mentoria.Common;
 using Services.Common.ChartHelper;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -255,13 +257,8 @@ builder.Services.AddScoped<IProjetosComboHelper, ProjetosComboHelper>();
 builder.Services.AddScoped<ITiposProjetosService, TiposProjetosService>();
 builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoService, Services.Avaliacoes.AvaliacaoService>();
 builder.Services.AddScoped<Services.Avaliacoes.Common.IAvaliacaoUtils, Services.Avaliacoes.Common.AvaliacaoUtils>();
-
-// Serviços de Mentoria (Passo 8):
 builder.Services.AddScoped<IMentoriaService, MentoriaService>();
 builder.Services.AddScoped<IMentoriaHelper, MentoriaHelper>();
-// Helper de gráficos reutilizável (Passo 8):
-builder.Services.AddScoped<IChartHelper, ChartHelper.ChartHelper>();
-
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IFeedbackFinalizationService, FeedbackFinalizationService>();
 builder.Services.AddScoped<IFeedbackComboHelper, FeedbackComboHelper>();
@@ -290,6 +287,10 @@ builder.Services.AddScoped<IPeriodoService, PeriodoService>();
 builder.Services.AddScoped<IPeriodoValidator, PeriodoValidator>();
 builder.Services.AddScoped<IPeriodoFormatHelper, PeriodoFormatHelper>();
 builder.Services.AddScoped<IAvaliacoesSinalizadasService, AvaliacoesSinalizadasService>();
+// Registro dos novos serviços e helpers de mentoria e chart
+builder.Services.AddScoped<Services.Mentoria.IMentoriaService, Services.Mentoria.MentoriaService>();
+builder.Services.AddScoped<Services.Mentoria.Common.IMentoriaHelper, Services.Mentoria.Common.MentoriaHelper>();
+builder.Services.AddScoped<Services.Common.ChartHelper.IChartHelper, Services.Common.ChartHelper.ChartHelper>();
 
 var app = builder.Build();
 
