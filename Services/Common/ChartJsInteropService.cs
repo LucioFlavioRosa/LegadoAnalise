@@ -1,15 +1,13 @@
-using Microsoft.JSInterop;
 using System.Threading.Tasks;
-using System.Collections.Generic;
+using Microsoft.JSInterop;
 
 namespace Services.Common;
 
 public interface IChartJsInteropService
 {
-    Task RenderBarChartAsync(string canvasId, IEnumerable<string> labels, IEnumerable<decimal> data, string label = "", string backgroundColor = "#355AA5");
-    Task RenderRadarChartAsync(string canvasId, IEnumerable<string> labels, IEnumerable<decimal> data, string label = "", string backgroundColor = "#355AA5");
-    Task RenderMultiDatasetBarChartAsync(string canvasId, IEnumerable<string> labels, IEnumerable<(string Label, IEnumerable<decimal> Data, string Color)> datasets);
-    Task RenderMultiDatasetRadarChartAsync(string canvasId, IEnumerable<string> labels, IEnumerable<(string Label, IEnumerable<decimal> Data, string Color)> datasets);
+    Task InitializeChartAsync(string canvasId, object chartConfig);
+    Task UpdateChartAsync(string canvasId, object chartConfig);
+    Task DestroyChartAsync(string canvasId);
 }
 
 public class ChartJsInteropService : IChartJsInteropService
@@ -21,33 +19,18 @@ public class ChartJsInteropService : IChartJsInteropService
         _jsRuntime = jsRuntime;
     }
 
-    public async Task RenderBarChartAsync(string canvasId, IEnumerable<string> labels, IEnumerable<decimal> data, string label = "", string backgroundColor = "#355AA5")
+    public async Task InitializeChartAsync(string canvasId, object chartConfig)
     {
-        await _jsRuntime.InvokeVoidAsync("ChartJsInterop.renderBarChart", canvasId, labels, data, label, backgroundColor);
+        await _jsRuntime.InvokeVoidAsync("chartJsInterop.initialize", canvasId, chartConfig);
     }
 
-    public async Task RenderRadarChartAsync(string canvasId, IEnumerable<string> labels, IEnumerable<decimal> data, string label = "", string backgroundColor = "#355AA5")
+    public async Task UpdateChartAsync(string canvasId, object chartConfig)
     {
-        await _jsRuntime.InvokeVoidAsync("ChartJsInterop.renderRadarChart", canvasId, labels, data, label, backgroundColor);
+        await _jsRuntime.InvokeVoidAsync("chartJsInterop.update", canvasId, chartConfig);
     }
 
-    public async Task RenderMultiDatasetBarChartAsync(string canvasId, IEnumerable<string> labels, IEnumerable<(string Label, IEnumerable<decimal> Data, string Color)> datasets)
+    public async Task DestroyChartAsync(string canvasId)
     {
-        var datasetsList = new List<object>();
-        foreach (var ds in datasets)
-        {
-            datasetsList.Add(new { label = ds.Label, data = ds.Data, backgroundColor = ds.Color });
-        }
-        await _jsRuntime.InvokeVoidAsync("ChartJsInterop.renderMultiBarChart", canvasId, labels, datasetsList);
-    }
-
-    public async Task RenderMultiDatasetRadarChartAsync(string canvasId, IEnumerable<string> labels, IEnumerable<(string Label, IEnumerable<decimal> Data, string Color)> datasets)
-    {
-        var datasetsList = new List<object>();
-        foreach (var ds in datasets)
-        {
-            datasetsList.Add(new { label = ds.Label, data = ds.Data, backgroundColor = ds.Color });
-        }
-        await _jsRuntime.InvokeVoidAsync("ChartJsInterop.renderMultiRadarChart", canvasId, labels, datasetsList);
+        await _jsRuntime.InvokeVoidAsync("chartJsInterop.destroy", canvasId);
     }
 }
