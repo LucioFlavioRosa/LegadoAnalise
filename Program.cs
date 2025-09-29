@@ -84,6 +84,7 @@ using Services.Competencias;
 using Services.Competencias.Common;
 using Services.Workflow;
 using Peers.Moderno.Services.Avaliacoes.Common;
+using Services.Avaliacoes;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -206,57 +207,9 @@ builder.Services.AddScoped<IEnvioAvaliacoesService, EnvioAvaliacoesService>();
 builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>();
 builder.Services.AddScoped<IEvolucaoAssociadoViewService, EvolucaoAssociadoViewService>();
 builder.Services.AddScoped<IEvolucaoAssociadoPerformanceService, EvolucaoAssociadoPerformanceService>();
-builder.Services.AddScoped<INotaHelper, NotaHelper>();
-builder.Services.AddScoped<IValidationHelper, ValidationHelper>();
-builder.Services.AddScoped<IAccordionHelper, AccordionHelper>();
-builder.Services.AddScoped<IAvaliacaoIAService, AvaliacaoIAService>();
-builder.Services.AddScoped<IFrentesInternasService, FrentesInternasService>();
-builder.Services.AddScoped<Services.FrentesInternas.Common.Helpers.FrentesInternasHelper>();
-builder.Services.AddScoped<IStatusHelper, StatusHelper>();
-builder.Services.AddScoped<IExportHelper, ExportHelper>();
-builder.Services.AddScoped<IPerfisService, PerfisService>();
-builder.Services.AddScoped<IPerformanceService, PerformanceService>();
-builder.Services.AddScoped<IFeedbackPerformanceService, FeedbackPerformanceService>();
-builder.Services.AddScoped<Services.Performance.IPerformanceMentorService, Services.Performance.PerformanceMentorService>();
-builder.Services.AddScoped<IPerformanceImportExportUtil, PerformanceImportExportUtil>();
-builder.Services.AddScoped<IPerformanceValidationUtil, PerformanceValidationUtil>();
-builder.Services.AddScoped<IPerformanceComboHelper, PerformanceComboHelper>();
-builder.Services.AddScoped<IFeedbackPerformanceService, FeedbackPerformanceService>();
-builder.Services.AddScoped<IFeedbackPerformanceHelper, FeedbackPerformanceHelper>();
-builder.Services.AddScoped<IFeedbackPerformanceValidator, FeedbackPerformanceValidator>();
-builder.Services.AddScoped<IPrazosService, PrazosService>();
-builder.Services.AddScoped<IPrazosValidationHelper, PrazosValidationHelper>();
-builder.Services.AddScoped<IProjetosService, ProjetosService>();
-builder.Services.AddScoped<IProjetosComboHelper, ProjetosComboHelper>();
-builder.Services.AddScoped<ITiposProjetosService, TiposProjetosService>();
-builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoService, Services.Avaliacoes.AvaliacaoService>();
-builder.Services.AddScoped<Services.Avaliacoes.Common.IAvaliacaoUtils, Services.Avaliacoes.Common.AvaliacaoUtils>();
-builder.Services.AddScoped<IMentoriaService, MentoriaService>();
-builder.Services.AddScoped<IMentoriaHelper, MentoriaHelper>();
-builder.Services.AddScoped<IChartHelper, ChartHelper.ChartHelper>();
-builder.Services.AddScoped<IFeedbackService, FeedbackService>();
-builder.Services.AddScoped<IFeedbackValidator, FeedbackValidator>();
-builder.Services.AddScoped<IFeedbackFinalizationService, FeedbackFinalizationService>();
-builder.Services.AddScoped<IFeedbackComboHelper, FeedbackComboHelper>();
-builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorService, Services.AvaliacoesGestor.Common.AvaliacoesGestorService>();
-builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorHelper, Services.AvaliacoesGestor.Common.AvaliacoesGestorHelper>();
-builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorHelper, Services.AvaliacoesGestor.Common.AvaliacoesGestorHelper>();
-builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoCompetenciaService, Services.Avaliacoes.AvaliacaoCompetenciaService>();
-builder.Services.AddScoped<IAvaliacaoGestorasCegasPerformanceService, AvaliacaoGestorasCegasPerformanceService>();
-builder.Services.AddScoped<IAvaliacaoMentorCompetenciaService, AvaliacaoMentorCompetenciaService>();
-builder.Services.AddScoped<AvaliacaoMentorCompetenciaHelper>();
-builder.Services.AddScoped<IResultadoService, ResultadoService>();
-builder.Services.AddScoped<IResultadoHelper, ResultadoHelper>();
-builder.Services.AddScoped<IResultadoLiderancaService, ResultadoLiderancaService>();
-builder.Services.AddScoped<IResultadoLiderancaHelper, ResultadoLiderancaHelper>();
-builder.Services.AddScoped<ChartJsInteropService>();
-builder.Services.AddScoped<IComentariosService, ComentariosService>();
-builder.Services.AddScoped<ComentariosHelper>();
-builder.Services.AddScoped<IRetrocederAvaliacaoService, RetrocederAvaliacaoService>();
-builder.Services.AddScoped<IRetrocederAvaliacaoValidator, RetrocederAvaliacaoValidator>();
-builder.Services.AddScoped<Services.Avaliacoes.EvolucaoAssociadoService.IEvolucaoAssociadoService, Services.Avaliacoes.EvolucaoAssociadoService.EvolucaoAssociadoService>();
-builder.Services.AddScoped<Peers.Moderno.Services.Avaliacoes.Common.IEvolucaoAssociadoViewService, Peers.Moderno.Services.Avaliacoes.Common.EvolucaoAssociadoViewService>();
-builder.Services.AddScoped<Services.Avaliacoes.EvolucaoAssociadoPerformanceService.IEvolucaoAssociadoPerformanceService, Services.Avaliacoes.EvolucaoAssociadoPerformanceService>();
+builder.Services.AddScoped<IEvolucaoAssociadoViewService, EvolucaoAssociadoViewService>();
+builder.Services.AddScoped<IEvolucaoAssociadoPerformanceService, EvolucaoAssociadoPerformanceService>();
+builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>();
 builder.Services.AddScoped<IExportarAvaliacoesService, ExportarAvaliacoesService>();
 builder.Services.AddScoped<IExportarAvaliacoesHelper, ExportarAvaliacoesHelper>();
 builder.Services.AddScoped<IExportarAvaliacoesExcelService, ExportarAvaliacoesExcelService>();
@@ -269,6 +222,9 @@ builder.Services.AddScoped<Services.Competencias.Common.ICompetenciaHelper, Serv
 builder.Services.AddScoped<Services.Competencias.ICompetenciasService, Services.Competencias.CompetenciasService>();
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
 builder.Services.AddScoped<IWorkflowComboHelper, WorkflowComboHelper>();
+
+// Registro único e correto do serviço de EvoluçãoAssociadoService
+builder.Services.AddScoped<Peers.Moderno.Services.Avaliacoes.Common.IEvolucaoAssociadoService, Services.Avaliacoes.EvolucaoAssociadoService>();
 
 var app = builder.Build();
 
