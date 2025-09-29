@@ -11,12 +11,12 @@ public static class ComboHelper
 {
     public static List<string> GetTiposAvaliacao()
     {
-        return new List<string> { "[Selecionar]", "desempenho" };
+        return new List<string> { "[Selecionar]", "desempenho", "liderança" };
     }
 
     public static List<string> GetEscopos()
     {
-        return new List<string> { "[Selecionar]", "projeto" };
+        return new List<string> { "[Selecionar]", "projeto", "lider" };
     }
 
     public static List<ComboItem> GetTiposAvaliacaoItems()
@@ -24,7 +24,8 @@ public static class ComboHelper
         return new List<ComboItem>
         {
             new ComboItem { Value = "", Text = "[Selecionar]" },
-            new ComboItem { Value = "desempenho", Text = "desempenho" }
+            new ComboItem { Value = "desempenho", Text = "desempenho" },
+            new ComboItem { Value = "liderança", Text = "liderança" }
         };
     }
 
@@ -33,7 +34,8 @@ public static class ComboHelper
         return new List<ComboItem>
         {
             new ComboItem { Value = "", Text = "[Selecionar]" },
-            new ComboItem { Value = "projeto", Text = "projeto" }
+            new ComboItem { Value = "projeto", Text = "projeto" },
+            new ComboItem { Value = "lider", Text = "lider" }
         };
     }
 
@@ -114,8 +116,10 @@ public static class ComboHelper
         return status == 1 ? "Ativo" : "Inativo";
     }
 
-    public static async Task<List<ComboItem>> GetProjetosComboAsync(ApplicationDbContext db, int? gestorId = null, int? clienteId = null, int? status = null, int? periodoId = null)
+    // Métodos otimizados para uso em Blazor:
+    public static async Task<List<ComboItem>> GetProjetosComboAsync(ApplicationDbContext db = null, int? gestorId = null, int? clienteId = null, int? status = null, int? periodoId = null)
     {
+        if (db == null) return new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
         var query = db.Projetos.AsQueryable();
         if (gestorId.HasValue)
             query = query.Where(p => p.IdAssociadoGestor == gestorId.Value);
@@ -131,16 +135,9 @@ public static class ComboHelper
         return items;
     }
 
-    public static async Task<List<ComboItem>> GetClientesComboAsync(ApplicationDbContext db)
+    public static async Task<List<ComboItem>> GetPeriodosComboAsync(ApplicationDbContext db = null, int? empresaId = null)
     {
-        var clientes = await db.Clientes.OrderBy(c => c.Nome).ToListAsync();
-        var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
-        items.AddRange(clientes.Select(c => new ComboItem { Value = c.IdCliente.ToString(), Text = c.Nome }));
-        return items;
-    }
-
-    public static async Task<List<ComboItem>> GetPeriodosComboAsync(ApplicationDbContext db, int? empresaId = null)
-    {
+        if (db == null) return new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
         var query = db.PeriodosAvaliacoes.AsQueryable();
         if (empresaId.HasValue)
             query = query.Where(p => p.IdEmpresa == empresaId.Value);
@@ -150,14 +147,28 @@ public static class ComboHelper
         return items;
     }
 
-    public static async Task<List<ComboItem>> GetProfissionaisComboAsync(ApplicationDbContext db, bool apenasAtivos = true)
+    public static async Task<List<ComboItem>> GetProfissionaisComboAsync(ApplicationDbContext db = null, int? projetoId = null, bool apenasAtivos = true)
     {
+        if (db == null) return new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
         var query = db.Associados.AsQueryable();
+        if (projetoId.HasValue)
+        {
+            var associadosIds = db.AssociadosProjetos.Where(ap => ap.IdProjeto == projetoId.Value).Select(ap => ap.IdAssociado);
+            query = query.Where(a => associadosIds.Contains(a.Id));
+        }
         if (apenasAtivos)
             query = query.Where(a => a.ATV == true);
         var profissionais = await query.OrderBy(a => a.Nome).ToListAsync();
         var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
         items.AddRange(profissionais.Select(a => new ComboItem { Value = a.Id.ToString(), Text = a.Nome }));
+        return items;
+    }
+
+    public static async Task<List<ComboItem>> GetClientesComboAsync(ApplicationDbContext db)
+    {
+        var clientes = await db.Clientes.OrderBy(c => c.Nome).ToListAsync();
+        var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
+        items.AddRange(clientes.Select(c => new ComboItem { Value = c.IdCliente.ToString(), Text = c.Nome }));
         return items;
     }
 
