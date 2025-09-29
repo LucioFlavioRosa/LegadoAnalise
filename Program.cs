@@ -273,6 +273,7 @@ builder.Services.AddScoped<IFeedbackFinalizationService, FeedbackFinalizationSer
 builder.Services.AddScoped<IFeedbackComboHelper, FeedbackComboHelper>();
 builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorService, Services.AvaliacoesGestor.Common.AvaliacoesGestorService>();
 builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorHelper, Services.AvaliacoesGestor.Common.AvaliacoesGestorHelper>();
+builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorHelper, Services.AvaliacoesGestor.Common.AvaliacoesGestorHelper>();
 builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoCompetenciaService, Services.Avaliacoes.AvaliacaoCompetenciaService>();
 builder.Services.AddScoped<IAvaliacaoGestorasCegasPerformanceService, AvaliacaoGestorasCegasPerformanceService>();
 builder.Services.AddScoped<IAvaliacaoMentorCompetenciaService, AvaliacaoMentorCompetenciaService>();
