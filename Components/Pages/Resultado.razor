@@ -1,0 +1,179 @@
+@rendermode InteractiveAuto
+@page "/resultado"
+@using Services.Resultados
+@using Services.Common
+@using Peers.Moderno.Models
+@inject IResultadoService ResultadoService
+@inject ComboHelper ComboHelper
+@inject IMessageBoxService MessageBoxService
+@inject ITelemetryService TelemetryService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Resultado Avaliações</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">Comitê</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Resultado Avaliações</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="page-content container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Filtro avaliações</h4>
+                    <div class="form-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Período</label>
+                                    <select class="form-control p-0 select2" style="width: 100%" @bind="Filtro.PeriodoId">
+                                        @foreach (var item in PeriodosCombo)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Projeto</label>
+                                    <select class="form-control p-0 select2" style="width: 100%" @bind="Filtro.ProjetoId">
+                                        @foreach (var item in ProjetosCombo)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Associado</label>
+                                    <select class="form-control p-0 select2" style="width: 100%" @bind="Filtro.AssociadoId">
+                                        @foreach (var item in AssociadosCombo)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">&nbsp;</div>
+                            <div class="col-md-2 text-right">
+                                <button class="btn btn-danger" style="margin-top: 30px" @onclick="BuscarResultados">Listar Avaliações</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title">Avaliações Finalizadas</h4>
+            <div class="table-responsive">
+                <table class="table table-striped border gridResultado">
+                    <thead>
+                        <tr>
+                            <th>Período</th>
+                            <th>Avaliado</th>
+                            <th>Cargo</th>
+                            <th>Mentor</th>
+                            <th>Tipo de Avaliações</th>
+                            <th>Escopo</th>
+                            <th>Qtd. Projetos</th>
+                            <th>Resultado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Resultados != null && Resultados.Any())
+                        {
+                            @foreach (var item in Resultados)
+                            {
+                                <tr>
+                                    <td>@item.Periodo</td>
+                                    <td>@item.Nome</td>
+                                    <td>@item.Cargo</td>
+                                    <td>@item.Mentor</td>
+                                    <td class="text-center">@item.TipoAvaliacao</td>
+                                    <td class="text-center">@item.Escopo</td>
+                                    <td class="text-center">@item.QtdProjetos</td>
+                                    <td class="text-center no-sort">
+                                        <a href="/avalizacao_resultado?IdAssociado=@item.IdAssociado&IdPeriodo=@item.IdPeriodo&TipoAvaliacao=@item.TipoAvaliacao&Escopo=@item.Escopo">
+                                            <button type="button" class="btn btn-info">Analisar</button>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="8" class="text-center">Nenhum resultado encontrado.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-body">
+        <h4>Resultados de avaliações de liderança</h4>
+        <br />
+        <div class="form-group">
+            <button class="btn btn-facebook" style="width:10%" @onclick="ExportarLideranca">Exportar</button>
+            @if (PodeLiberarLideranca)
+            {
+                <button class="btn btn-facebook" style="width:20%" @onclick="LiberarLideranca">@TextoBotaoLideranca</button>
+            }
+            @if (PodeLiberarMentoria)
+            {
+                <button class="btn btn-facebook" style="width:20%" @onclick="LiberarMentoria">@TextoBotaoMentoria</button>
+            }
+        </div>
+    </div>
+
+    <div class="card card-body">
+        <h4>Exportar resultados de avaliações de desempenho</h4>
+        <br />
+        <div class="col-md-2">
+            <div class="form-group">
+                <label>Período</label>
+                <select class="form-control p-0 select2" style="width: 100%" @bind="PeriodoExportDesempenho">
+                    @foreach (var item in PeriodosCombo)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-facebook" style="width:10%" @onclick="ExportarDesempenho">Exportar</button>
+    </div>
+
+    <div class="card card-body">
+        <h4>Exportar resultados de avaliações de mentorado</h4>
+        <br />
+        <div class="col-md-2">
+            <div class="form-group">
+                <label>Período</label>
+                <select class="form-control p-0 select2" style="width: 100%" @bind="PeriodoExportMentoria">
+                    @foreach (var item in PeriodosCombo)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-facebook" style="width:10%" @onclick="ExportarMentoria">Exportar</button>
+    </div>
+</div>
