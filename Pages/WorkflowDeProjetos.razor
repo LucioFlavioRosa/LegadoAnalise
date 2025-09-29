@@ -1,0 +1,248 @@
+@page "/workflowdeprojetos"
+@rendermode InteractiveAuto
+
+@inject Services.Workflow.IWorkflowService WorkflowService
+@inject Services.Workflow.IWorkflowComboHelper WorkflowComboHelper
+@inject Services.Common.IMessageBoxService MessageBoxService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Workflow de Projetos</PageTitle>
+
+<h3 class="font-medium text-uppercase mb-0">Workflow de Projetos</h3>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h4 class="card-title">Prazo das Avaliações (em dias)</h4>
+        <EditForm Model="workflowFormModel" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="form-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Período</label>
+                            <InputSelect class="form-control p-0 select2" @bind-Value="workflowFormModel.IdPeriodo">
+                                <option value="">[Selecionar]</option>
+                                @foreach (var periodo in periodos)
+                                {
+                                    <option value="@periodo.Value">@periodo.Text</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Data de Início</label>
+                            <InputDate class="form-control" @bind-Value="workflowFormModel.DataInicio" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Auto-Avaliação</label>
+                            <InputNumber class="form-control text-center" @bind-Value="workflowFormModel.DiasAutoAvaliacao" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Avaliação às Cegas</label>
+                            <InputNumber class="form-control text-center" @bind-Value="workflowFormModel.DiasAvaliacaoCegas" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Avaliação do Gestor</label>
+                            <InputNumber class="form-control text-center" @bind-Value="workflowFormModel.DiasAvaliacaoGestor" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Feedback</label>
+                            <InputNumber class="form-control text-center" @bind-Value="workflowFormModel.DiasFeedback" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Alerta Sem Alteração</label>
+                            <InputNumber class="form-control text-center" @bind-Value="workflowFormModel.DiasAlertaSemAlteracao" />
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-info w-100">@((workflowFormModel.IdWorkflow == 0) ? "Cadastrar" : "Salvar")</button>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h4 class="card-title">Configurações do Workflow</h4>
+        <div class="table-responsive">
+            <table class="table table-striped border dtInit">
+                <thead>
+                    <tr>
+                        <th>Período</th>
+                        <th>Data Início</th>
+                        <th>Auto-Avaliação</th>
+                        <th>Avaliação Às Cegas</th>
+                        <th>Avaliação do Gestor</th>
+                        <th>Avaliação Feedback</th>
+                        <th>Alerta Sem Alteração</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (workflows != null && workflows.Count > 0)
+                    {
+                        @foreach (var wf in workflows)
+                        {
+                            <tr>
+                                <td>@wf.NomePeriodo</td>
+                                <td>@wf.DataInicio.ToString("dd/MM/yyyy")</td>
+                                <td>@wf.DiasAutoAvaliacao</td>
+                                <td>@wf.DiasAvaliacaoCegas</td>
+                                <td>@wf.DiasAvaliacaoGestor</td>
+                                <td>@wf.DiasFeedback</td>
+                                <td>@wf.DiasAlertaSemAlteracao</td>
+                                <td>
+                                    <button class="btn btn-info btn-outline btn-circle btn-lg m-r-5" @onclick="() => EditarWorkflow(wf)"><i class="ti-pencil-alt"></i></button>
+                                    <button class="btn btn-dark btn-outline btn-circle btn-lg m-r-5" @onclick="() => DeletarWorkflow(wf.IdWorkflow)"><i class="ti-trash"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="8" class="text-center">Nenhum workflow cadastrado.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Services.Workflow.WorkflowListItem> workflows = new();
+    private List<Services.Common.ComboItem> periodos = new();
+    private WorkflowFormModel workflowFormModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarPeriodos();
+        await CarregarWorkflows();
+        LimparFormulario();
+    }
+
+    private async Task CarregarPeriodos()
+    {
+        periodos = await WorkflowComboHelper.GetPeriodosComboAsync();
+    }
+
+    private async Task CarregarWorkflows()
+    {
+        workflows = await WorkflowService.ObterListaAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (string.IsNullOrEmpty(workflowFormModel.IdPeriodo) || workflowFormModel.IdPeriodo == "")
+        {
+            MessageBoxService.ShowWarning("Selecione o período das avaliações", "Período Obrigatório");
+            return;
+        }
+        if (workflowFormModel.DataInicio == default)
+        {
+            MessageBoxService.ShowWarning("Selecione uma data para início das avaliações", "Data Inválida");
+            return;
+        }
+        if (workflowFormModel.DataInicio < DateTime.Today)
+        {
+            MessageBoxService.ShowWarning("A data de início das avaliações não pode ser anterior à data atual", "Data Inválida");
+            return;
+        }
+        if (workflowFormModel.DiasAutoAvaliacao <= 0 || workflowFormModel.DiasAvaliacaoCegas <= 0 || workflowFormModel.DiasAvaliacaoGestor <= 0 || workflowFormModel.DiasFeedback <= 0 || workflowFormModel.DiasAlertaSemAlteracao <= 0)
+        {
+            MessageBoxService.ShowWarning("Os prazos devem ser maiores que zero", "Prazo Inválido");
+            return;
+        }
+        var result = false;
+        if (workflowFormModel.IdWorkflow == 0)
+        {
+            result = await WorkflowService.InserirAsync(workflowFormModel);
+            if (result)
+            {
+                await CarregarWorkflows();
+                LimparFormulario();
+                MessageBoxService.ShowSuccess("Workflow inserido com sucesso", "OK");
+            }
+            else
+            {
+                MessageBoxService.ShowError("Falha ao inserir o Workflow", "Erro");
+            }
+        }
+        else
+        {
+            result = await WorkflowService.AlterarAsync(workflowFormModel);
+            if (result)
+            {
+                await CarregarWorkflows();
+                LimparFormulario();
+                MessageBoxService.ShowSuccess("Workflow alterado com sucesso", "OK");
+            }
+            else
+            {
+                MessageBoxService.ShowError("Falha ao alterar o Workflow", "Erro");
+            }
+        }
+    }
+
+    private void LimparFormulario()
+    {
+        workflowFormModel = new WorkflowFormModel();
+    }
+
+    private void EditarWorkflow(Services.Workflow.WorkflowListItem wf)
+    {
+        workflowFormModel = new WorkflowFormModel
+        {
+            IdWorkflow = wf.IdWorkflow,
+            IdPeriodo = wf.IdPeriodo.ToString(),
+            DataInicio = wf.DataInicio,
+            DiasAutoAvaliacao = wf.DiasAutoAvaliacao,
+            DiasAvaliacaoCegas = wf.DiasAvaliacaoCegas,
+            DiasAvaliacaoGestor = wf.DiasAvaliacaoGestor,
+            DiasFeedback = wf.DiasFeedback,
+            DiasAlertaSemAlteracao = wf.DiasAlertaSemAlteracao
+        };
+    }
+
+    private async Task DeletarWorkflow(int idWorkflow)
+    {
+        var result = await WorkflowService.DeletarAsync(idWorkflow);
+        if (result)
+        {
+            MessageBoxService.ShowSuccess("Workflow excluído com sucesso", "Exclusão OK");
+            await CarregarWorkflows();
+            LimparFormulario();
+        }
+        else
+        {
+            MessageBoxService.ShowError("Falha na tentativa de exclusão do Workflow", "Falha na Exclusão");
+        }
+    }
+
+    public class WorkflowFormModel
+    {
+        public int IdWorkflow { get; set; } = 0;
+        public string IdPeriodo { get; set; } = string.Empty;
+        public DateTime DataInicio { get; set; }
+        public int DiasAutoAvaliacao { get; set; }
+        public int DiasAvaliacaoCegas { get; set; }
+        public int DiasAvaliacaoGestor { get; set; }
+        public int DiasFeedback { get; set; }
+        public int DiasAlertaSemAlteracao { get; set; }
+    }
+}
