@@ -21,7 +21,7 @@ O Radar das Avaliações é uma funcionalidade central do sistema de avaliação
 
 ## Fluxo de Funcionamento
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa Radar.razor] --> B[Carregamento dos filtros via ComboHelper]
     B --> C[Usuário seleciona filtros]
@@ -29,7 +29,7 @@ flowchart TD
     D --> E[RadarHelper formata dados para Chart.js]
     E --> F[ChartJsInteropService renderiza gráfico]
     F --> G[Usuário visualiza gráfico radar]
-
+```
 
 ## Detalhes Técnicos
 
