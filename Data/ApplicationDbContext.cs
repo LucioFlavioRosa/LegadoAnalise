@@ -41,6 +41,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ResultadoProjetosModel> ResultadoProjetos { get; set; }
     public DbSet<ResultadoSomaProjetosModel> ResultadoSomaProjetos { get; set; }
     public DbSet<COMENTARIOS> Comentarios { get; set; }
+    public DbSet<WORKFLOW> Workflows { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -348,6 +349,19 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.IdPeriodo);
             entity.ToTable("PERIODOSAVALIACOES");
+        });
+        modelBuilder.Entity<WORKFLOW>(entity =>
+        {
+            entity.HasKey(e => e.IdWorkflow);
+            entity.ToTable("WORKFLOW");
+            entity.Property(e => e.IdWorkflow).HasColumnName("IdWorkflow");
+            entity.Property(e => e.IdPeriodo).HasColumnName("IdPeriodo");
+            entity.Property(e => e.DataInicio).HasColumnName("DataInicio");
+            entity.Property(e => e.DiasAutoAvaliacao).HasColumnName("DiasAutoAvaliacao");
+            entity.Property(e => e.DiasAvaliacaoCegas).HasColumnName("DiasAvaliacaoCegas");
+            entity.Property(e => e.DiasAvaliacaoGestor).HasColumnName("DiasAvaliacaoGestor");
+            entity.Property(e => e.DiasFeedback).HasColumnName("DiasFeedback");
+            entity.Property(e => e.DiasAlertaSemAlteracao).HasColumnName("DiasAlertaSemAlteracao");
         });
 
         modelBuilder.Entity<AvaliacaoPerformance>(entity =>
