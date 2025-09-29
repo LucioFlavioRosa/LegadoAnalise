@@ -1,50 +1,71 @@
-# Avaliação às Cegas por Competência - Blazor Híbrido (.NET 9)
+# Documentação: Avaliação de Competências em Blazor (.NET 9)
 
 ## Visão Geral
 
-Esta documentação descreve a arquitetura, funcionamento e integração do novo componente Blazor para Avaliação às Cegas por Competência, migrado do Web Forms para Blazor híbrido em .NET 9. O objetivo é modernizar a experiência do usuário, centralizar regras de negócio em serviços reutilizáveis e facilitar a manutenção e evolução do sistema.
+Esta documentação descreve a arquitetura, funcionamento, integração e fluxo do novo módulo de Avaliação de Competências migrado de Web Forms para Blazor Híbrido (.NET 9). O objetivo é modernizar a experiência do usuário, centralizar a lógica de negócio em serviços reutilizáveis e garantir manutenibilidade e extensibilidade do sistema.
 
-## Estrutura e Integração
+## Estrutura de Componentes e Serviços
 
-- **Componente Blazor:** `Components/Avaliacoes/AvaliacaoCompetencia.razor`
-- **Serviço de Domínio:** `Services/Avaliacoes/AvaliacaoCompetenciaService.cs` (registrado no DI)
-- **Helpers Reutilizáveis:** `Services/Common/CompetenciasHelper.cs`, `Services/Common/ComboHelper.cs`
-- **Configuração:** `appsettings.json` (mensagens, parâmetros de UI, opções de negócio)
-- **Registro de Serviços:** `Program.cs`
-- **Modelos de Domínio:** `Peers.Moderno.Models` e `Data/ApplicationDbContext.cs`
+- **Componentes Blazor**: Interface da avaliação de competências, com tabelas, accordions, combos e botões, implementados em `Components/AvaliacaoCompetencia/AvaliacaoCompetencia.razor` e seu code-behind.
+- **Serviços de Negócio**: Toda a lógica de carregamento, validação e persistência de avaliações foi extraída para `Services/Competencias/CompetenciasService.cs`.
+- **Helpers Reutilizáveis**: Funções utilitárias (ex: truncamento de texto, validação de notas, carregamento de combos) estão em `Services/Competencias/Common/CompetenciaHelper.cs`.
+- **Helpers Comuns**: Combos, mensagens e formatação são centralizados em `Services/Common/ComboHelper.cs`, `Services/Common/MessageBoxService.cs` e `Services/Common/FormatHelper.cs`.
+- **Persistência**: O acesso ao banco é feito via Entity Framework Core, com as entidades mapeadas em `Data/ApplicationDbContext.cs`.
 
-O componente consome o serviço de domínio para carregar, validar e salvar avaliações, utilizando helpers comuns para lógica de negócio e combos. Toda a configuração é centralizada em `appsettings.json`.
+## Funcionamento e Integração
 
-## Fluxo do Processo
+1. **Carregamento Inicial**
+   - O componente Blazor é carregado e injeta os serviços necessários (`CompetenciasService`, `CompetenciaHelper`, `ComboHelper`, `MessageBoxService`).
+   - Os parâmetros de contexto (projeto, associado, período, tipo de avaliação, escopo, gestor) são obtidos da URL, sessão ou contexto de navegação.
+   - O serviço de competências carrega os dados do projeto, associado, período e cliente, além das competências parametrizadas.
+2. **Renderização da Tabela de Competências**
+   - As competências são exibidas em uma tabela responsiva, com accordions para detalhamento e botões para expandir/collapse.
+   - Os combos de notas são preenchidos usando o `ComboHelper`.
+   - O truncamento de textos longos é feito pelo `CompetenciaHelper`.
+3. **Interação do Usuário**
+   - O usuário seleciona notas e preenche considerações.
+   - A validação é feita em tempo real (ex: nota do próximo nível não pode ser maior que a do nível atual, regras de "Não se aplica").
+   - Mensagens de feedback são exibidas via `MessageBoxService`.
+4. **Salvamento e Finalização**
+   - Ao clicar em "Salvar Avaliação" ou "Finalizar", o serviço de competências valida e persiste os dados.
+   - O status da avaliação é atualizado conforme o fluxo.
+   - O usuário é redirecionado para a próxima etapa ou recebe confirmação de sucesso.
 
-```mermaid
+## Fluxo do Processo (Mermaid)
+
+mermaid
 flowchart TD
-    Start[Usuário acessa /avaliacao-competencia] --> LoadViewModel[Blazor chama AvaliacaoCompetenciaService.ObterAvaliacaoCompetenciaViewModelAsync];
-    LoadViewModel --> RenderizaTela[Renderização da tela com dados de contexto];
-    RenderizaTela --> InteracaoUsuario[Usuário preenche notas e considerações];
-    InteracaoUsuario --> Salvar[Usuário clica em "Salvar Avaliação"];
-    Salvar --> Validacao[Chama AvaliacaoCompetenciaService.SalvarAvaliacaoCompetenciaAsync];
-    Validacao -->|Sucesso| MensagemSucesso[Exibe mensagem de sucesso];
-    Validacao -->|Erro| MensagemErro[Exibe mensagem de erro];
-    MensagemSucesso --> Fim[Fim];
-    MensagemErro --> Fim;
-```
+    Start([Início]) --> PaginaAvaliacaoCompetencia["AvaliacaoCompetencia.razor"]
+    PaginaAvaliacaoCompetencia -->|Carrega contexto| CompetenciasService
+    CompetenciasService -->|Busca dados| ApplicationDbContext
+    PaginaAvaliacaoCompetencia -->|Renderiza tabela| TabelaCompetencias["Tabela de Competências"]
+    TabelaCompetencias -->|Usa combos| ComboHelper
+    TabelaCompetencias -->|Trunca textos| CompetenciaHelper
+    PaginaAvaliacaoCompetencia -->|Exibe mensagens| MessageBoxService
+    PaginaAvaliacaoCompetencia -->|Salva/Finaliza| CompetenciasService
+    CompetenciasService -->|Persiste| ApplicationDbContext
+    PaginaAvaliacaoCompetencia -->|Redireciona| ProximaEtapa["Próxima Página"]
+    ProximaEtapa --> End([Fim])
 
-## Funcionamento
 
-1. O componente é renderizado automaticamente ao acessar `/avaliacao-competencia`.
-2. Os dados da avaliação, competências, notas e contexto são carregados pelo serviço de domínio.
-3. O usuário pode preencher notas e considerações, conforme regras de negócio centralizadas.
-4. Ao salvar, o serviço valida as regras (ex: notas obrigatórias, consistência entre níveis) e persiste os dados.
-5. Mensagens de sucesso ou erro são exibidas via serviço de MessageBox reutilizável.
-6. Toda a configuração de textos, opções e parâmetros é lida de `appsettings.json`.
+## Integração com Outros Módulos
+
+- **ComboHelper**: Reutilizado para todos os combos de notas, tipos de avaliação e escopos.
+- **MessageBoxService**: Centraliza mensagens de feedback para o usuário.
+- **FormatHelper**: Utilizado para formatação de números, percentuais e textos exibidos.
+- **ApplicationDbContext**: Todas as operações de leitura e escrita usam o contexto EF Core já existente.
 
 ## Sugestões de Melhorias Futuras
 
-- Implementar testes automatizados de integração para o serviço e componente.
-- Adicionar suporte a auto-save (salvamento automático) com feedback visual ao usuário.
-- Integrar com IA para sugestões automáticas de notas e considerações.
-- Melhorar acessibilidade e responsividade da interface.
-- Permitir exportação dos dados de avaliação diretamente da tela.
-- Centralizar ainda mais as mensagens e textos para facilitar internacionalização.
-- Disponibilizar histórico de alterações das avaliações para auditoria.
+- Implementar testes automatizados para os serviços e helpers de competências.
+- Modularizar ainda mais os subcomponentes da tabela (ex: linha de competência, combo de nota, textarea de considerações).
+- Adicionar suporte a internacionalização (i18n) para textos e mensagens.
+- Melhorar a experiência mobile com responsividade avançada e navegação adaptativa.
+- Utilizar SignalR para feedback em tempo real e colaboração simultânea.
+- Adicionar logs de auditoria detalhados para todas as ações de avaliação.
+- Permitir customização de regras de validação via configuração.
+- Integrar com notificações push para lembrar o usuário de avaliações pendentes.
+
+---
+
+**Esta documentação deve ser mantida e atualizada a cada evolução do módulo de avaliação de competências.**
