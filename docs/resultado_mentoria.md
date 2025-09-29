@@ -34,7 +34,7 @@ Esta documentação detalha o funcionamento, integração e fluxo dos componente
 
 ## 4. Fluxo do Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     A[ResultadoMentoria.razor] -->|Injeta| B(MentoriaService)
     A -->|Injeta| C(MentoriaHelper)
@@ -46,7 +46,7 @@ flowchart TD
     H -->|Atualiza| B
     B -->|Persiste| F
     A -->|Exibe| E
-
+```
 
 ## 5. Sugestões de Melhorias
 
