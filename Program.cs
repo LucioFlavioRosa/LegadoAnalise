@@ -90,6 +90,9 @@ using Services.Radar.Common;
 using Services.Common;
 // Importação dos novos helpers para gráficos
 using Services.Common.ChartHelper;
+// Importação dos novos serviços para avaliação de competências
+using Services.Competencias;
+using Services.Competencias.Common;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -290,6 +293,10 @@ builder.Services.AddScoped<IPeriodoService, PeriodoService>();
 builder.Services.AddScoped<IPeriodoValidator, PeriodoValidator>();
 builder.Services.AddScoped<IPeriodoFormatHelper, PeriodoFormatHelper>();
 builder.Services.AddScoped<IAvaliacoesSinalizadasService, AvaliacoesSinalizadasService>();
+
+// Registro dos novos serviços para avaliação de competências (Passos 8 e 9)
+builder.Services.AddScoped<Services.Competencias.Common.ICompetenciaHelper, Services.Competencias.Common.CompetenciaHelper>();
+builder.Services.AddScoped<Services.Competencias.ICompetenciasService, Services.Competencias.CompetenciasService>();
 
 var app = builder.Build();
 
