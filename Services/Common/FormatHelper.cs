@@ -31,7 +31,7 @@ public static class FormatHelper
         {
             return Math.Round(nota.Value, 2).ToString();
         }
-        return "";
+        return string.Empty;
     }
 
     public static string FormatCurrency(decimal value)
@@ -54,5 +54,17 @@ public static class FormatHelper
             }
         }
         return texto;
+    }
+
+    // Novo método para formatação genérica de valores para exibição em UI Blazor
+    public static string FormatValue(object? value, string format = "")
+    {
+        if (value == null)
+            return string.Empty;
+        if (string.IsNullOrEmpty(format))
+            return value.ToString() ?? string.Empty;
+        if (value is IFormattable formattable)
+            return formattable.ToString(format, null);
+        return value.ToString() ?? string.Empty;
     }
 }
