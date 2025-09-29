@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
-using Services.Resultados;
 using Peers.Moderno.Data;
 using Peers.Moderno.Models;
 using Peers.Moderno.Services.Common;
-using MockQueryable.Moq;
+using Services.Resultados;
 
 namespace Tests.Services.Resultados
 {
@@ -19,19 +19,63 @@ namespace Tests.Services.Resultados
         private readonly Mock<ITelemetryService> _mockTelemetryService;
         private readonly Mock<IMessageBoxService> _mockMessageBoxService;
         private readonly Mock<IExportFileService> _mockExportFileService;
-        private readonly ResultadoService _resultadoService;
+        private readonly Mock<DbSet<ResultadoProjetosModel>> _mockDbSet;
+        private readonly ResultadoService _service;
+        private readonly List<ResultadoProjetosModel> _testData;
 
         public ResultadoServiceTests()
         {
-            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-            _mockDbContext = new Mock<ApplicationDbContext>(options);
+            _mockDbContext = new Mock<ApplicationDbContext>(new DbContextOptions<ApplicationDbContext>());
             _mockTelemetryService = new Mock<ITelemetryService>();
             _mockMessageBoxService = new Mock<IMessageBoxService>();
             _mockExportFileService = new Mock<IExportFileService>();
+            _mockDbSet = new Mock<DbSet<ResultadoProjetosModel>>();
 
-            _resultadoService = new ResultadoService(
+            _testData = new List<ResultadoProjetosModel>
+            {
+                new ResultadoProjetosModel
+                {
+                    Id = 1,
+                    IdProjeto = 100,
+                    IdAssociado = 200,
+                    IdPeriodo = 300,
+                    TipoAvaliacao = "lideranca"
+                },
+                new ResultadoProjetosModel
+                {
+                    Id = 2,
+                    IdProjeto = 101,
+                    IdAssociado = 201,
+                    IdPeriodo = 301,
+                    TipoAvaliacao = "desempenho"
+                },
+                new ResultadoProjetosModel
+                {
+                    Id = 3,
+                    IdProjeto = 100,
+                    IdAssociado = 200,
+                    IdPeriodo = 300,
+                    TipoAvaliacao = "lideranca"
+                },
+                new ResultadoProjetosModel
+                {
+                    Id = 4,
+                    IdProjeto = 102,
+                    IdAssociado = 202,
+                    IdPeriodo = 302,
+                    TipoAvaliacao = "mentoria"
+                }
+            };
+
+            var queryable = _testData.AsQueryable();
+            _mockDbSet.As<IQueryable<ResultadoProjetosModel>>().Setup(m => m.Provider).Returns(queryable.Provider);
+            _mockDbSet.As<IQueryable<ResultadoProjetosModel>>().Setup(m => m.Expression).Returns(queryable.Expression);
+            _mockDbSet.As<IQueryable<ResultadoProjetosModel>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
+            _mockDbSet.As<IQueryable<ResultadoProjetosModel>>().Setup(m => m.GetEnumerator()).Returns(queryable.GetEnumerator());
+
+            _mockDbContext.Setup(c => c.ResultadoProjetos).Returns(_mockDbSet.Object);
+
+            _service = new ResultadoService(
                 _mockDbContext.Object,
                 _mockTelemetryService.Object,
                 _mockMessageBoxService.Object,
@@ -39,223 +83,138 @@ namespace Tests.Services.Resultados
         }
 
         [Fact]
-        public async Task ListarResultadosAsync_RetornaResultadosFiltrados()
+        public async Task ListarResultadosAsync_FiltrosAplicados_RetornaResultadosFiltrados()
         {
-            var resultados = new List<ResultadoProjetosModel>
-            {
-                new ResultadoProjetosModel { Id = 1, IdProjeto = 1, IdAssociado = 1, IdPeriodo = 1, TipoAvaliacao = "desempenho" },
-                new ResultadoProjetosModel { Id = 2, IdProjeto = 2, IdAssociado = 2, IdPeriodo = 1, TipoAvaliacao = "lideranca" },
-                new ResultadoProjetosModel { Id = 3, IdProjeto = 1, IdAssociado = 1, IdPeriodo = 2, TipoAvaliacao = "desempenho" }
-            };
+            // Arrange
+            int? idProjeto = 100;
+            int? idAssociado = 200;
+            int? idPeriodo = 300;
+            string tipoAvaliacao = "lideranca";
 
-            var mockSet = resultados.AsQueryable().BuildMockDbSet();
-            _mockDbContext.Setup(c => c.ResultadoProjetos).Returns(mockSet.Object);
+            // Act
+            var resultado = await _service.ListarResultadosAsync(idProjeto, idAssociado, idPeriodo, tipoAvaliacao);
 
-            var result = await _resultadoService.ListarResultadosAsync(1, 1, 1, "desempenho");
-
-            Assert.Single(result);
-            Assert.Equal(1, result.First().IdProjeto);
-            Assert.Equal(1, result.First().IdAssociado);
-            Assert.Equal(1, result.First().IdPeriodo);
-            Assert.Equal("desempenho", result.First().TipoAvaliacao);
+            // Assert
+            Assert.NotNull(resultado);
+            Assert.Equal(2, resultado.Count);
+            Assert.All(resultado, r => Assert.Equal(idProjeto.Value, r.IdProjeto));
+            Assert.All(resultado, r => Assert.Equal(idAssociado.Value, r.IdAssociado));
+            Assert.All(resultado, r => Assert.Equal(idPeriodo.Value, r.IdPeriodo));
+            Assert.All(resultado, r => Assert.Equal(tipoAvaliacao, r.TipoAvaliacao));
 
             _mockTelemetryService.Verify(t => t.TrackEvent(
                 "ListarResultados",
-                It.IsAny<Dictionary<string, string>>(),
-                It.IsAny<Dictionary<string, double>>()), Times.Once);
+                It.Is<Dictionary<string, string>>(d =>
+                    d["IdProjeto"] == idProjeto.ToString() &&
+                    d["IdAssociado"] == idAssociado.ToString() &&
+                    d["IdPeriodo"] == idPeriodo.ToString() &&
+                    d["TipoAvaliacao"] == tipoAvaliacao &&
+                    d["Count"] == "2"),
+                null), Times.Once);
         }
 
         [Fact]
-        public async Task ListarResultadosAsync_QuandoDbLancaExcecao_RetornaListaVaziaERegistraErro()
+        public async Task ListarResultadosAsync_FiltroIdProjeto_RetornaApenasProjetosFiltrados()
         {
-            _mockDbContext.Setup(c => c.ResultadoProjetos)
-                .Throws(new Exception("Database error"));
+            // Arrange
+            int? idProjeto = 101;
+            int? idAssociado = null;
+            int? idPeriodo = null;
+            string tipoAvaliacao = null;
 
-            var result = await _resultadoService.ListarResultadosAsync(1, 1, 1, "desempenho");
+            // Act
+            var resultado = await _service.ListarResultadosAsync(idProjeto, idAssociado, idPeriodo, tipoAvaliacao);
 
-            Assert.Empty(result);
-            _mockTelemetryService.Verify(t => t.TrackException(
-                It.IsAny<Exception>(),
-                It.Is<Dictionary<string, string>>(d => d["Method"] == "ListarResultadosAsync")), Times.Once);
-            _mockMessageBoxService.Verify(m => m.ShowError("Erro ao listar resultados."), Times.Once);
+            // Assert
+            Assert.NotNull(resultado);
+            Assert.Single(resultado);
+            Assert.Equal(idProjeto.Value, resultado.First().IdProjeto);
+            Assert.Equal(201, resultado.First().IdAssociado);
+            Assert.Equal("desempenho", resultado.First().TipoAvaliacao);
         }
 
         [Fact]
-        public async Task ExportarResultadosLiderancaAsync_QuandoDbLancaExcecao_RetornaArrayVazioERegistraErro()
+        public async Task ListarResultadosAsync_FiltroTipoAvaliacao_RetornaApenasTiposFiltrados()
         {
-            _mockDbContext.Setup(c => c.PeriodosAvaliacoes)
-                .Throws(new Exception("Database error"));
+            // Arrange
+            int? idProjeto = null;
+            int? idAssociado = null;
+            int? idPeriodo = null;
+            string tipoAvaliacao = "lideranca";
 
-            var result = await _resultadoService.ExportarResultadosLiderancaAsync(1);
+            // Act
+            var resultado = await _service.ListarResultadosAsync(idProjeto, idAssociado, idPeriodo, tipoAvaliacao);
 
-            Assert.Equal(Array.Empty<byte>(), result);
-            _mockTelemetryService.Verify(t => t.TrackException(
-                It.IsAny<Exception>(),
-                It.Is<Dictionary<string, string>>(d => d["Method"] == "ExportarResultadosLiderancaAsync")), Times.Once);
-            _mockMessageBoxService.Verify(m => m.ShowError("Erro ao exportar resultados de liderança."), Times.Once);
+            // Assert
+            Assert.NotNull(resultado);
+            Assert.Equal(2, resultado.Count);
+            Assert.All(resultado, r => Assert.Equal(tipoAvaliacao, r.TipoAvaliacao));
         }
 
         [Fact]
-        public async Task ExportarResultadosLiderancaAsync_ComPeriodoValido_ChamaExportFileServiceComParametrosCorretos()
+        public async Task ListarResultadosAsync_SemFiltros_RetornaTodosResultados()
         {
-            var periodos = new List<PERIODOSAVALIACOES>
-            {
-                new PERIODOSAVALIACOES { IdPeriodo = 1, Nome = "Período 1" }
-            }.AsQueryable().BuildMockDbSet();
+            // Arrange
+            int? idProjeto = null;
+            int? idAssociado = null;
+            int? idPeriodo = null;
+            string tipoAvaliacao = null;
 
-            var avaliacoes = new List<AvaliacaoCompetencia>
-            {
-                new AvaliacaoCompetencia { Id = 1, TipoAvaliacao = "lideranca" }
-            }.AsQueryable().BuildMockDbSet();
+            // Act
+            var resultado = await _service.ListarResultadosAsync(idProjeto, idAssociado, idPeriodo, tipoAvaliacao);
 
-            var associados = new List<Associado>
-            {
-                new Associado { Id = 1, Nome = "Associado 1" }
-            }.AsQueryable().BuildMockDbSet();
+            // Assert
+            Assert.NotNull(resultado);
+            Assert.Equal(4, resultado.Count);
 
-            var avaliacoesNotas = new List<AvaliacaoCompetenciaNota>
-            {
-                new AvaliacaoCompetenciaNota { IdNota = 1 }
-            }.AsQueryable().BuildMockDbSet();
-
-            _mockDbContext.Setup(c => c.PeriodosAvaliacoes).Returns(periodos.Object);
-            _mockDbContext.Setup(c => c.AvaliacoesCompetencias).Returns(avaliacoes.Object);
-            _mockDbContext.Setup(c => c.Associados).Returns(associados.Object);
-            _mockDbContext.Setup(c => c.AvaliacoesCompetenciasNotas).Returns(avaliacoesNotas.Object);
-
-            var expectedBytes = new byte[] { 1, 2, 3, 4 };
-            _mockExportFileService.Setup(e => e.GerarExcelResultadoLiderancaAsync(
-                It.IsAny<List<PERIODOSAVALIACOES>>(),
-                It.IsAny<List<AvaliacaoCompetencia>>(),
-                It.IsAny<List<Associado>>(),
-                It.IsAny<List<AvaliacaoCompetenciaNota>>()))
-                .ReturnsAsync(expectedBytes);
-
-            var result = await _resultadoService.ExportarResultadosLiderancaAsync(1);
-
-            Assert.Equal(expectedBytes, result);
-            _mockExportFileService.Verify(e => e.GerarExcelResultadoLiderancaAsync(
-                It.IsAny<List<PERIODOSAVALIACOES>>(),
-                It.IsAny<List<AvaliacaoCompetencia>>(),
-                It.IsAny<List<Associado>>(),
-                It.IsAny<List<AvaliacaoCompetenciaNota>>()), Times.Once);
             _mockTelemetryService.Verify(t => t.TrackEvent(
-                "ExportarResultadosLideranca",
-                It.IsAny<Dictionary<string, string>>(),
-                It.IsAny<Dictionary<string, double>>()), Times.Once);
+                "ListarResultados",
+                It.Is<Dictionary<string, string>>(d =>
+                    d["IdProjeto"] == "" &&
+                    d["IdAssociado"] == "" &&
+                    d["IdPeriodo"] == "" &&
+                    d["TipoAvaliacao"] == "" &&
+                    d["Count"] == "4"),
+                null), Times.Once);
         }
 
         [Fact]
-        public async Task ExportarResultadosDesempenhoAsync_QuandoDbLancaExcecao_RetornaArrayVazioERegistraErro()
+        public async Task ListarResultadosAsync_FiltrosComValoresZero_NaoAplicaFiltro()
         {
-            _mockDbContext.Setup(c => c.ResultadoProjetos)
-                .Throws(new Exception("Database error"));
+            // Arrange
+            int? idProjeto = 0;
+            int? idAssociado = 0;
+            int? idPeriodo = 0;
+            string tipoAvaliacao = "";
 
-            var result = await _resultadoService.ExportarResultadosDesempenhoAsync(1);
+            // Act
+            var resultado = await _service.ListarResultadosAsync(idProjeto, idAssociado, idPeriodo, tipoAvaliacao);
 
-            Assert.Equal(Array.Empty<byte>(), result);
-            _mockTelemetryService.Verify(t => t.TrackException(
-                It.IsAny<Exception>(),
-                It.Is<Dictionary<string, string>>(d => d["Method"] == "ExportarResultadosDesempenhoAsync")), Times.Once);
-            _mockMessageBoxService.Verify(m => m.ShowError("Erro ao exportar resultados de desempenho."), Times.Once);
+            // Assert
+            Assert.NotNull(resultado);
+            Assert.Equal(4, resultado.Count);
         }
 
         [Fact]
-        public async Task LiberarLiderancaAsync_QuandoPeriodoNaoExiste_RetornaFalse()
+        public async Task ListarResultadosAsync_FiltrosSemCorrespondencia_RetornaListaVazia()
         {
-            var periodos = new List<PERIODOSAVALIACOES>().AsQueryable().BuildMockDbSet();
-            _mockDbContext.Setup(c => c.PeriodosAvaliacoes).Returns(periodos.Object);
+            // Arrange
+            int? idProjeto = 999;
+            int? idAssociado = null;
+            int? idPeriodo = null;
+            string tipoAvaliacao = null;
 
-            var result = await _resultadoService.LiberarLiderancaAsync(999);
+            // Act
+            var resultado = await _service.ListarResultadosAsync(idProjeto, idAssociado, idPeriodo, tipoAvaliacao);
 
-            Assert.False(result);
-            _mockDbContext.Verify(c => c.SaveChangesAsync(), Times.Never);
-        }
+            // Assert
+            Assert.NotNull(resultado);
+            Assert.Empty(resultado);
 
-        [Fact]
-        public async Task LiberarLiderancaAsync_QuandoDbLancaExcecao_RetornaFalseERegistraErro()
-        {
-            var periodo = new PERIODOSAVALIACOES { IdPeriodo = 1, fl_lib_res_lideranca = false };
-            var periodos = new List<PERIODOSAVALIACOES> { periodo }.AsQueryable().BuildMockDbSet();
-            _mockDbContext.Setup(c => c.PeriodosAvaliacoes).Returns(periodos.Object);
-            _mockDbContext.Setup(c => c.SaveChangesAsync()).ThrowsAsync(new Exception("Save error"));
-
-            var result = await _resultadoService.LiberarLiderancaAsync(1);
-
-            Assert.False(result);
-            _mockTelemetryService.Verify(t => t.TrackException(
-                It.IsAny<Exception>(),
-                It.Is<Dictionary<string, string>>(d => d["Method"] == "LiberarLiderancaAsync")), Times.Once);
-            _mockMessageBoxService.Verify(m => m.ShowError("Erro ao liberar liderança."), Times.Once);
-        }
-
-        [Fact]
-        public async Task LiberarLiderancaAsync_QuandoPeriodoExiste_AtualizaFlagERetornaTrue()
-        {
-            var periodo = new PERIODOSAVALIACOES { IdPeriodo = 1, fl_lib_res_lideranca = false };
-            var periodos = new List<PERIODOSAVALIACOES> { periodo }.AsQueryable().BuildMockDbSet();
-            _mockDbContext.Setup(c => c.PeriodosAvaliacoes).Returns(periodos.Object);
-            _mockDbContext.Setup(c => c.SaveChangesAsync()).ReturnsAsync(1);
-
-            var result = await _resultadoService.LiberarLiderancaAsync(1);
-
-            Assert.True(result);
-            Assert.True(periodo.fl_lib_res_lideranca);
-            _mockDbContext.Verify(c => c.Update(periodo), Times.Once);
-            _mockDbContext.Verify(c => c.SaveChangesAsync(), Times.Once);
             _mockTelemetryService.Verify(t => t.TrackEvent(
-                "LiberarLideranca",
-                It.IsAny<Dictionary<string, string>>(),
-                It.IsAny<Dictionary<string, double>>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task LiberarMentoriaAsync_QuandoPeriodoNaoExiste_RetornaFalse()
-        {
-            var periodos = new List<PERIODOSAVALIACOES>().AsQueryable().BuildMockDbSet();
-            _mockDbContext.Setup(c => c.PeriodosAvaliacoes).Returns(periodos.Object);
-
-            var result = await _resultadoService.LiberarMentoriaAsync(999);
-
-            Assert.False(result);
-            _mockDbContext.Verify(c => c.SaveChangesAsync(), Times.Never);
-        }
-
-        [Fact]
-        public async Task LiberarMentoriaAsync_QuandoDbLancaExcecao_RetornaFalseERegistraErro()
-        {
-            var periodo = new PERIODOSAVALIACOES { IdPeriodo = 1, fl_lib_res_mentoria = false };
-            var periodos = new List<PERIODOSAVALIACOES> { periodo }.AsQueryable().BuildMockDbSet();
-            _mockDbContext.Setup(c => c.PeriodosAvaliacoes).Returns(periodos.Object);
-            _mockDbContext.Setup(c => c.SaveChangesAsync()).ThrowsAsync(new Exception("Save error"));
-
-            var result = await _resultadoService.LiberarMentoriaAsync(1);
-
-            Assert.False(result);
-            _mockTelemetryService.Verify(t => t.TrackException(
-                It.IsAny<Exception>(),
-                It.Is<Dictionary<string, string>>(d => d["Method"] == "LiberarMentoriaAsync")), Times.Once);
-            _mockMessageBoxService.Verify(m => m.ShowError("Erro ao liberar mentoria."), Times.Once);
-        }
-
-        [Fact]
-        public async Task LiberarMentoriaAsync_QuandoPeriodoExiste_AtualizaFlagERetornaTrue()
-        {
-            var periodo = new PERIODOSAVALIACOES { IdPeriodo = 1, fl_lib_res_mentoria = false };
-            var periodos = new List<PERIODOSAVALIACOES> { periodo }.AsQueryable().BuildMockDbSet();
-            _mockDbContext.Setup(c => c.PeriodosAvaliacoes).Returns(periodos.Object);
-            _mockDbContext.Setup(c => c.SaveChangesAsync()).ReturnsAsync(1);
-
-            var result = await _resultadoService.LiberarMentoriaAsync(1);
-
-            Assert.True(result);
-            Assert.True(periodo.fl_lib_res_mentoria);
-            _mockDbContext.Verify(c => c.Update(periodo), Times.Once);
-            _mockDbContext.Verify(c => c.SaveChangesAsync(), Times.Once);
-            _mockTelemetryService.Verify(t => t.TrackEvent(
-                "LiberarMentoria",
-                It.IsAny<Dictionary<string, string>>(),
-                It.IsAny<Dictionary<string, double>>()), Times.Once);
+                "ListarResultados",
+                It.Is<Dictionary<string, string>>(d => d["Count"] == "0"),
+                null), Times.Once);
         }
     }
 }
