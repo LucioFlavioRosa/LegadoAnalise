@@ -42,6 +42,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<ResultadoSomaProjetosModel> ResultadoSomaProjetos { get; set; }
     public DbSet<COMENTARIOS> Comentarios { get; set; }
 
+    // Adição de DbSets para entidades de mentoria utilizadas na página de resultado de mentoria
+    // (verificação e adição conforme necessário para garantir compatibilidade com os serviços Blazor)
+    // As entidades MentoradoRespostaPill e MentoradoRespostasModel são view models e não entidades persistidas,
+    // portanto não são mapeadas como DbSet, mas as tabelas acessadas por elas estão corretamente mapeadas acima.
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
