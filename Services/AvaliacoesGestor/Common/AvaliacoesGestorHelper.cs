@@ -4,10 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System;
 using System.Linq;
+using Services.AvaliacoesGestor.Common;
 
 namespace Services.AvaliacoesGestor.Common;
 
-public class AvaliacoesGestorHelper
+public class AvaliacoesGestorHelper : IAvaliacoesGestorHelper
 {
     public bool DeveIncluirAssociadoNoFluxo(AssociadoProjeto ap, int? idPeriodo)
     {
@@ -134,7 +135,6 @@ public class AvaliacoesGestorHelper
         {
             if (av.IdNotaNivel1AvaliacaoCegas == null || av.IdNotaNivel2AvaliacaoCegas == null || av.IdNotaNivel1AvaliacaoCegas <= 0 || av.IdNotaNivel2AvaliacaoCegas <= 0)
             {
-                // Ajuste automático se modo == 2
                 if (av.IdModo == 2)
                 {
                     av.IdNotaNivel1AvaliacaoCegas = av.IdNotaPadraoNivel1 ?? 5;
