@@ -32,7 +32,7 @@ O teste utiliza 4 registros fictícios:
 
 ## Diagrama de Fluxo do Teste
 
-mermaid
+```mermaid
 flowchart TD
     A[Início do Teste] --> B[Setup: Mock DbContext com 4 registros]
     B --> C[Arrange: Define filtros<br/>Projeto=100, Associado=200<br/>Período=300, Tipo=lideranca]
@@ -57,7 +57,7 @@ flowchart TD
     style O fill:#c8e6c9
     style G fill:#c8e6c9
     style H fill:#ffcdd2
-
+```
 
 ## Lógica de Filtragem Testada
 
