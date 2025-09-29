@@ -25,7 +25,7 @@ O `ComboHelperTests` testa os métodos estáticos utilitários que geram listas 
 
 ## Fluxo de Teste Principal - ListarResultadosAsync
 
-mermaid
+```mermaid
 flowchart TD
     A[Início do teste ListarResultadosAsync] --> B{Configurar cenário}
     B --> C[Cenário de Sucesso]
@@ -44,7 +44,7 @@ flowchart TD
     
     H --> N[Teste concluído]
     M --> N
-
+```
 
 ## Cenários de Teste Críticos
 
