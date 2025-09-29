@@ -88,6 +88,8 @@ using Services.Periodos.Common;
 using Services.Radar;
 using Services.Radar.Common;
 using Services.Common;
+// Importação dos novos helpers para gráficos
+using Services.Common.ChartHelper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -160,89 +162,51 @@ if (builder.Configuration.GetValue<bool>("AutoAvaliacao:Features:EnableAIIntegra
 // Common Services
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 builder.Services.AddScoped<IMessageBoxService, MessageBoxService>();
-// Serviços e helpers comuns já existentes
 builder.Services.AddScoped<FormatHelper>();
 builder.Services.AddScoped<ComboHelper>();
-// Registro do serviço de consulta avançada
 builder.Services.AddScoped<IConsultaAvancadaService, ConsultaAvancadaService>();
-// Serviços de resultado de avaliação (novos para tela de resultado)
 builder.Services.AddScoped<IResultadoService, ResultadoService>();
 builder.Services.AddScoped<IResultadoHelper, ResultadoHelper>();
-// Serviços de resultado de liderança (novos para tela de resultado de liderança)
 builder.Services.AddScoped<IResultadoLiderancaService, ResultadoLiderancaService>();
 builder.Services.AddScoped<IResultadoLiderancaHelper, ResultadoLiderancaHelper>();
-// Serviço de ChartJsInterop reutilizável
 builder.Services.AddScoped<ChartJsInteropService>();
-// Serviços Radar
 builder.Services.AddScoped<IRadarService, RadarService>();
 builder.Services.AddScoped<IRadarHelper, RadarHelper>();
-
-// New Common Services - Index Page Migration
 builder.Services.AddScoped<IUserContextService, UserContextService>();
 builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
-
-// Auth Common Services - Login Migration
 builder.Services.AddScoped<ITokenDecoder, TokenDecoder>();
 builder.Services.AddScoped<IAuthCallbackService, AuthCallbackService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-
-// Auth Common Services - Logout Migration
 builder.Services.AddScoped<ILogoutService, LogoutService>();
-
-// Footer Services - Login Migration
 builder.Services.AddScoped<IFooterLinksService, FooterLinksService>();
-
-// Perguntas Encerramento Services - Nova funcionalidade
 builder.Services.AddScoped<IPerguntasEncerramentoService, PerguntasEncerramentoService>();
-
-// TotalAvaliacao Services - Nova migração de Web Forms para Blazor
 builder.Services.AddScoped<ITotalAvaliacaoService, TotalAvaliacaoService>();
-
-// WebForm4 Common Services - Nova migração de Web Forms para Blazor
 builder.Services.AddScoped<IComponentBaseService, ComponentBaseService>();
 builder.Services.AddScoped<IBlazorNavigationService, BlazorNavigationService>();
-
-// Business Services - Dependency Injection
 builder.Services.AddScoped<ICompetenciasService, CompetenciasService>();
 builder.Services.AddScoped<ICargosService, CargosService>();
 builder.Services.AddScoped<ISubCompetenciasService, SubCompetenciasService>();
 builder.Services.AddScoped<IAvaliacoesService, AvaliacoesService>();
 builder.Services.AddScoped<IExportFileService, ExportFileService>();
 builder.Services.AddScoped<Services.Premissas.Common.IPremissasService, Services.Premissas.PremissasService>();
-
-// SubCompetencias Services - Novos serviços adicionados conforme passo 8
 builder.Services.AddScoped<Services.SubCompetencias.ISubCompetenciasService, Services.SubCompetencias.SubCompetenciasService>();
 builder.Services.AddScoped<Services.SubCompetencias.Common.ISubCompetenciasValidator, Services.SubCompetencias.Common.SubCompetenciasValidator>();
 builder.Services.AddScoped<Services.SubCompetencias.Common.ISubCompetenciasExportService, Services.SubCompetencias.Common.SubCompetenciasExportService>();
 builder.Services.AddScoped<Services.SubCompetencias.Common.ISubCompetenciasImportService, Services.SubCompetencias.Common.SubCompetenciasImportService>();
-
-// Eixos Services
 builder.Services.AddScoped<Services.Eixos.IEixosService, Services.Eixos.EixosService>();
 builder.Services.AddScoped<Services.Eixos.Common.IExportFileService, Services.Eixos.Common.ExportFileService>();
-
-// Dimensoes Services
 builder.Services.AddScoped<Services.Dimensoes.Common.IDimensoesService, Services.Dimensoes.DimensoesService>();
 builder.Services.AddScoped<IDimensoesExportService, DimensoesExportService>();
-
-// Competencias Services
 builder.Services.AddScoped<Services.Competencias.ICompetenciasService, Services.Competencias.CompetenciasService>();
 builder.Services.AddScoped<ICompetenciasImportExportUtil, CompetenciasImportExportUtil>();
 builder.Services.AddScoped<ICompetenciasValidator, CompetenciasValidator>();
-
-// Cargos Services
 builder.Services.AddScoped<Services.Cargos.ICargosService, Services.Cargos.CargosService>();
 builder.Services.AddScoped<Services.Cargos.Common.IDropdownService, Services.Cargos.Common.DropdownService>();
 builder.Services.AddScoped<Services.Cargos.Common.IExportService, Services.Cargos.Common.ExportService>();
-
-// Cargos Common Services - Novo serviço adicionado
 builder.Services.AddScoped<ICargoLookupService, CargoLookupService>();
-
-// Associados Services
 builder.Services.AddScoped<IAssociadosService, AssociadosService>();
 builder.Services.AddScoped<AssociadosService>();
-
-// Associados Common Services
 builder.Services.AddScoped<IFotoService, FotoService>();
 builder.Services.AddScoped<FotoService>();
 builder.Services.AddScoped<IExcelService, ExcelService>();
@@ -251,152 +215,77 @@ builder.Services.AddScoped<Services.Associados.Common.IDropdownService, Services
 builder.Services.AddScoped<Services.Associados.Common.DropdownService>();
 builder.Services.AddScoped<IPromocaoService, PromocaoService>();
 builder.Services.AddScoped<PromocaoService>();
-
-// Clientes Services
 builder.Services.AddScoped<Services.Clientes.Common.IClientesService, Services.Clientes.ClientesService>();
-
-// Complexidades Services
 builder.Services.AddScoped<IComplexidadeService, ComplexidadesService>();
-
-// Consolidacao Services
 builder.Services.AddScoped<IConsolidacaoService, ConsolidacaoService>();
-
-// Consolidacao Common Services
 builder.Services.AddScoped<Services.Consolidacao.Common.IExportFileService, Services.Consolidacao.Common.ExportFileService>();
 builder.Services.AddScoped<Services.Consolidacao.Common.IImportFileService, Services.Consolidacao.Common.ImportFileService>();
-
-// Dashboard Services
 builder.Services.AddScoped<IDashboardService, DashboardService>();
-
-// Dashboard Common Services
 builder.Services.AddScoped<IChartJsonUtil, ChartJsonUtil>();
 builder.Services.AddScoped<IPeriodoUtil, PeriodoUtil>();
-
-// DisparoMassivoRH Services
 builder.Services.AddScoped<IDisparoMassivoRHService, DisparoMassivoRHService>();
-
-// Avaliacoes Services - Novos serviços adicionados
 builder.Services.AddScoped<IEnvioAvaliacoesService, EnvioAvaliacoesService>();
 builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>();
-
-// Avaliacoes Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IEmailUtils, EmailUtils>();
 builder.Services.AddScoped<IWorkflowUtils, WorkflowUtils>();
-
-// AutoAvaliacao Services - Novos serviços para migração de Web Forms
 builder.Services.AddScoped<IAutoAvaliacaoService, AutoAvaliacaoService>();
 builder.Services.AddScoped<IAutoAvaliacaoPerformanceService, AutoAvaliacaoPerformanceService>();
-
-// AutoAvaliacao Common Services - Novos serviços reutilizáveis (passo 12)
 builder.Services.AddScoped<INotaHelper, NotaHelper>();
 builder.Services.AddScoped<IValidationHelper, ValidationHelper>();
 builder.Services.AddScoped<IAccordionHelper, AccordionHelper>();
-
-// AI Services for AutoAvaliacao - Preparação para integração futura
 builder.Services.AddScoped<IAvaliacaoIAService, AvaliacaoIAService>();
-
-// FrentesInternas Services - Novos serviços adicionados
 builder.Services.AddScoped<IFrentesInternasService, FrentesInternasService>();
-// Helpers e modelos comuns de FrentesInternas
 builder.Services.AddScoped<Services.FrentesInternas.Common.Helpers.FrentesInternasHelper>();
-// Models já estão em Services.FrentesInternas.Common.Models
-
-// FrentesInternas Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IStatusHelper, StatusHelper>();
 builder.Services.AddScoped<IExportHelper, ExportHelper>();
-
-// Perfis Services - Novos serviços adicionados
 builder.Services.AddScoped<IPerfisService, PerfisService>();
-
-// Performance Services - Novos serviços adicionados
 builder.Services.AddScoped<IPerformanceService, PerformanceService>();
-// Registro do novo serviço de feedback de performance
 builder.Services.AddScoped<IFeedbackPerformanceService, FeedbackPerformanceService>();
-// Registro do novo serviço de performance mentor
 builder.Services.AddScoped<Services.Performance.IPerformanceMentorService, Services.Performance.PerformanceMentorService>();
-
-// Performance Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IPerformanceImportExportUtil, PerformanceImportExportUtil>();
 builder.Services.AddScoped<IPerformanceValidationUtil, PerformanceValidationUtil>();
 builder.Services.AddScoped<IPerformanceComboHelper, PerformanceComboHelper>();
-
-// FeedbackPerformance Services - Registro dos novos serviços e helpers
 builder.Services.AddScoped<IFeedbackPerformanceService, FeedbackPerformanceService>();
 builder.Services.AddScoped<IFeedbackPerformanceHelper, FeedbackPerformanceHelper>();
 builder.Services.AddScoped<IFeedbackPerformanceValidator, FeedbackPerformanceValidator>();
-
-// Prazos Services - Novos serviços adicionados
 builder.Services.AddScoped<IPrazosService, PrazosService>();
-
-// Prazos Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IPrazosValidationHelper, PrazosValidationHelper>();
-
-// Projetos Services - Novos serviços adicionados
 builder.Services.AddScoped<IProjetosService, ProjetosService>();
-
-// Projetos Common Services - Novos serviços adicionados
 builder.Services.AddScoped<IProjetosComboHelper, ProjetosComboHelper>();
-
-// Tipos Projetos Services - Migração de Web Forms para Blazor
 builder.Services.AddScoped<ITiposProjetosService, TiposProjetosService>();
-
-// Avaliacoes Services - Registro dos novos serviços do fluxo de avaliação
 builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoService, Services.Avaliacoes.AvaliacaoService>();
 builder.Services.AddScoped<Services.Avaliacoes.Common.IAvaliacaoUtils, Services.Avaliacoes.Common.AvaliacaoUtils>();
 
-// Mentoria Services - Registro dos novos serviços e helpers
+// Serviços de Mentoria (Passo 8):
 builder.Services.AddScoped<IMentoriaService, MentoriaService>();
 builder.Services.AddScoped<IMentoriaHelper, MentoriaHelper>();
+// Helper de gráficos reutilizável (Passo 8):
+builder.Services.AddScoped<IChartHelper, ChartHelper.ChartHelper>();
 
-// Feedback Services - Registro dos novos serviços e helpers
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IFeedbackFinalizationService, FeedbackFinalizationService>();
 builder.Services.AddScoped<IFeedbackComboHelper, FeedbackComboHelper>();
-
-// AvaliacoesGestor Services - Registro dos novos serviços e helpers (Passo 8)
 builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorService, Services.AvaliacoesGestor.Common.AvaliacoesGestorService>();
 builder.Services.AddScoped<Services.AvaliacoesGestor.Common.IAvaliacoesGestorHelper, Services.AvaliacoesGestor.Common.AvaliacoesGestorHelper>();
-
-// AvaliacaoCompetenciaService - Registro do serviço de avaliação de competências (Passo 8)
 builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoCompetenciaService, Services.Avaliacoes.AvaliacaoCompetenciaService>();
-
-// AvaliacoesGestorasCegas Performance Services - Passo 6
 builder.Services.AddScoped<IAvaliacaoGestorasCegasPerformanceService, AvaliacaoGestorasCegasPerformanceService>();
-
-// AvaliacaoMentorCompetencia Services - Passo 5
 builder.Services.AddScoped<IAvaliacaoMentorCompetenciaService, AvaliacaoMentorCompetenciaService>();
 builder.Services.AddScoped<AvaliacaoMentorCompetenciaHelper>();
-
-// REGISTRO DOS NOVOS SERVIÇOS DE RESULTADO DE AVALIAÇÃO
 builder.Services.AddScoped<IResultadoService, ResultadoService>();
 builder.Services.AddScoped<IResultadoHelper, ResultadoHelper>();
-// REGISTRO DOS NOVOS SERVIÇOS DE RESULTADO DE LIDERANÇA
 builder.Services.AddScoped<IResultadoLiderancaService, ResultadoLiderancaService>();
 builder.Services.AddScoped<IResultadoLiderancaHelper, ResultadoLiderancaHelper>();
-// Serviço de ChartJsInterop reutilizável
 builder.Services.AddScoped<ChartJsInteropService>();
-
-// Registro dos serviços de Comentários (Migração Comentarios)
 builder.Services.AddScoped<IComentariosService, ComentariosService>();
 builder.Services.AddScoped<ComentariosHelper>();
-
-// Registro dos serviços de retroceder avaliações
 builder.Services.AddScoped<IRetrocederAvaliacaoService, RetrocederAvaliacaoService>();
 builder.Services.AddScoped<IRetrocederAvaliacaoValidator, RetrocederAvaliacaoValidator>();
-
-// Registro dos novos serviços para envio de evolução
 builder.Services.AddScoped<Services.Avaliacoes.EvolucaoAssociadoService.IEvolucaoAssociadoService, Services.Avaliacoes.EvolucaoAssociadoService.EvolucaoAssociadoService>();
 builder.Services.AddScoped<Services.Common.EmailService.IEmailService, Services.Common.EmailService.EmailService>();
-
-// Registro dos novos serviços para exportação de avaliações
 builder.Services.AddScoped<IExportarAvaliacoesService, ExportarAvaliacoesService>();
 builder.Services.AddScoped<IExportarAvaliacoesHelper, ExportarAvaliacoesHelper>();
 builder.Services.AddScoped<IExportarAvaliacoesExcelService, ExportarAvaliacoesExcelService>();
-
-// Registro do serviço de pendências (migração de pendencias.aspx)
 builder.Services.AddScoped<IPendenciasService, PendenciasService>();
-
-// Registro dos novos serviços de períodos (CADASTRO E LISTAGEM DE PERÍODOS DE AVALIAÇÃO)
 builder.Services.AddScoped<IPeriodoService, PeriodoService>();
 builder.Services.AddScoped<IPeriodoValidator, PeriodoValidator>();
 builder.Services.AddScoped<IPeriodoFormatHelper, PeriodoFormatHelper>();
@@ -411,7 +300,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// AOT Optimization - Configuração condicional para otimização em produção
 if (app.Environment.IsProduction())
 {
     app.UseResponseCompression();
@@ -423,10 +311,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Session middleware
 app.UseSession();
 
-// Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
