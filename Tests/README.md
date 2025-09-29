@@ -1,188 +1,151 @@
-# Documentação dos Testes Unitários
+# Documentação dos Testes Unitários - ResultadoService e ComboHelper
 
 ## Visão Geral
 
-Esta documentação descreve os testes unitários implementados para garantir a qualidade e robustez do sistema de avaliações Peers Moderno.
+Esta documentação descreve os testes unitários implementados para garantir a qualidade e robustez dos serviços `ResultadoService` e `ComboHelper`. Os testes cobrem cenários críticos incluindo tratamento de exceções, validação de filtros e isolamento através de mocks.
 
 ## Estrutura dos Testes
 
 ### ResultadoService Tests
 
-O `ResultadoService` é responsável por gerenciar operações relacionadas aos resultados de avaliações, incluindo listagem, exportação e liberação de resultados.
+O `ResultadoServiceTests` utiliza mocks para isolar as dependências e testar cada método de forma independente:
 
-#### Teste: ListarResultadosAsync_QuandoDbFalha_DeveRetornarListaVaziaEChamarShowError
-
-Este teste garante que o método `ListarResultadosAsync` do `ResultadoService` trata corretamente falhas ao acessar o banco de dados, retornando uma lista vazia e exibindo uma mensagem de erro ao usuário.
-
-##### Objetivo
-- Simular uma exceção ao consultar o banco de dados
-- Verificar que:
-  - O retorno é uma lista vazia
-  - O método `ShowError` do `IMessageBoxService` é chamado
-  - O método `TrackException` do `ITelemetryService` é chamado
-
-##### Diagrama de Fluxo
-
-mermaid
-flowchart TD
-    A[Início do método ListarResultadosAsync] --> B{Acesso ao banco de dados}
-    B -- Sucesso --> C[Retorna lista de resultados]
-    B -- Exceção --> D[Chama TrackException no TelemetryService]
-    D --> E[Chama ShowError no MessageBoxService]
-    E --> F[Retorna lista vazia]
-
-
-##### Passos do Teste
-1. Configurar um mock do `ApplicationDbContext` para lançar uma exceção ao acessar `ResultadoProjetos`
-2. Invocar o método `ListarResultadosAsync`
-3. Verificar que o resultado é uma lista vazia
-4. Verificar que `ShowError` foi chamado
-5. Verificar que `TrackException` foi chamado
-
-##### Importância
-Este teste é **crítico** para garantir a robustez do sistema, pois protege a aplicação contra falhas inesperadas no banco de dados, evitando que exceções não tratadas impactem a experiência do usuário e garantindo rastreabilidade de erros via telemetria.
-
-#### Teste: ExportarResultadosLiderancaAsync_QuandoExportFileFalha_DeveRetornarArrayVazioEChamarShowError
-
-Este teste verifica o comportamento do método de exportação quando o serviço de exportação falha.
-
-##### Diagrama de Fluxo
-
-mermaid
-flowchart TD
-    A[Início ExportarResultadosLiderancaAsync] --> B[Buscar dados do banco]
-    B --> C[Chamar serviço de exportação]
-    C -- Sucesso --> D[Retornar bytes do arquivo]
-    C -- Exceção --> E[Chama TrackException]
-    E --> F[Chama ShowError]
-    F --> G[Retorna array vazio]
-
-
-#### Teste: LiberarLiderancaAsync_QuandoPeriodoNaoExiste_DeveRetornarFalse
-
-Testa o cenário onde o período solicitado para liberação não existe no banco de dados.
-
-##### Diagrama de Fluxo
-
-mermaid
-flowchart TD
-    A[Início LiberarLiderancaAsync] --> B[Buscar período no banco]
-    B -- Período encontrado --> C[Atualizar flag de liberação]
-    C --> D[Salvar alterações]
-    D --> E[Retornar true]
-    B -- Período não encontrado --> F[Retornar false]
-
+- **ApplicationDbContext**: Mockado para simular operações de banco de dados
+- **ITelemetryService**: Mockado para verificar rastreamento de eventos e exceções
+- **IMessageBoxService**: Mockado para verificar exibição de mensagens ao usuário
+- **IExportFileService**: Mockado para simular operações de exportação
 
 ### ComboHelper Tests
 
-O `ComboHelper` fornece métodos utilitários para criação de listas de opções para componentes de interface.
+O `ComboHelperTests` testa os métodos estáticos utilitários que geram listas para componentes de interface:
 
-#### Teste: GetNotasCompetenciaItems_DeveRetornarItensEsperados_QuandoIncludeSelecionarTrueOuFalse
+- Validação de itens de combo
+- Tratamento de parâmetros opcionais
+- Casos edge com valores nulos e vazios
 
-Verifica se o método retorna a estrutura correta de itens baseado no parâmetro `includeSelecionar`.
-
-##### Diagrama de Fluxo
-
-mermaid
-flowchart TD
-    A[GetNotasCompetenciaItems chamado] --> B{includeSelecionar?}
-    B -- true --> C[Adicionar item [Selecionar]]
-    B -- false --> D[Pular item [Selecionar]]
-    C --> E[Adicionar itens 1-5]
-    D --> E
-    E --> F[Retornar lista completa]
-
-
-#### Teste: GetSelectedText_DeveRetornarSelecionadoOuSelecionarPadrao
-
-Testa a lógica de busca de texto baseado no valor selecionado.
-
-##### Diagrama de Fluxo
+## Fluxo de Teste Principal - ListarResultadosAsync
 
 mermaid
 flowchart TD
-    A[GetSelectedText chamado] --> B{Value é nulo/vazio?}
-    B -- Sim --> C[Retornar [Selecionar]]
-    B -- Não --> D[Buscar item na lista]
-    D --> E{Item encontrado?}
-    E -- Sim --> F[Retornar texto do item]
-    E -- Não --> C
+    A[Início do teste ListarResultadosAsync] --> B{Configurar cenário}
+    B --> C[Cenário de Sucesso]
+    B --> D[Cenário de Falha]
+    
+    C --> E[Mock DbSet com dados]
+    E --> F[Executar método]
+    F --> G[Verificar resultados filtrados]
+    G --> H[Verificar telemetria]
+    
+    D --> I[Mock DbSet lança exceção]
+    I --> J[Executar método]
+    J --> K[Verificar lista vazia retornada]
+    K --> L[Verificar ShowError chamado]
+    L --> M[Verificar TrackException chamado]
+    
+    H --> N[Teste concluído]
+    M --> N
 
 
-### MessageBoxService Tests
+## Cenários de Teste Críticos
 
-O `MessageBoxService` gerencia a exibição de mensagens para o usuário.
+### 1. Tratamento de Exceções de Banco de Dados
 
-#### Teste: ShowSuccess_DeveDispararEventoComTipoCorreto
+**Teste**: `ListarResultadosAsync_QuandoDbFalha_DeveRetornarListaVaziaEChamarShowError`
 
-Verifica se o evento é disparado corretamente com os parâmetros adequados.
+**Objetivo**: Garantir que falhas no acesso ao banco sejam tratadas graciosamente.
 
-##### Diagrama de Fluxo
+**Fluxo**:
+1. Mock do DbContext configurado para lançar exceção
+2. Método executado com parâmetros válidos
+3. Verificação de retorno de lista vazia
+4. Verificação de chamada para `ShowError`
+5. Verificação de rastreamento da exceção
 
+**Importância**: Evita que exceções não tratadas impactem a experiência do usuário.
+
+### 2. Validação de Filtros
+
+**Teste**: `ListarResultadosAsync_DeveRetornarResultadosFiltrados`
+
+**Objetivo**: Verificar se todos os filtros são aplicados corretamente.
+
+**Fluxo**:
+1. Mock do DbSet com dados de teste variados
+2. Execução com filtros específicos (projeto, associado, período, tipo)
+3. Verificação de que apenas resultados correspondentes são retornados
+4. Verificação de telemetria de sucesso
+
+### 3. Operações de Liberação
+
+**Teste**: `LiberarLiderancaAsync_QuandoSucesso_DeveRetornarTrueEAtualizarPeriodo`
+
+**Objetivo**: Garantir que operações de liberação funcionem corretamente.
+
+**Fluxo**:
 mermaid
-flowchart TD
-    A[ShowSuccess chamado] --> B[Criar MessageBoxEventArgs]
-    B --> C[Disparar evento OnMessageReceived]
-    C --> D[Subscribers recebem evento]
+flowchart LR
+    A[Buscar período] --> B{Período existe?}
+    B -->|Sim| C[Atualizar flag]
+    B -->|Não| D[Retornar false]
+    C --> E[Salvar mudanças]
+    E --> F[Rastrear evento]
+    F --> G[Retornar true]
 
 
-### TelemetryService Tests
+### 4. Validação de ComboHelper
 
-O `TelemetryService` é responsável pelo rastreamento de eventos e métricas da aplicação.
+**Teste**: `GetNotasCompetenciaItems_QuandoIncludeSelecionarTrue_DeveIncluirItemSelecionar`
 
-#### Teste: TrackEvent_DevePassarParametrosCorretamente
+**Objetivo**: Verificar comportamento condicional baseado em parâmetros.
 
-Verifica se os parâmetros são passados corretamente para o cliente de telemetria.
+**Cenários testados**:
+- Inclusão/exclusão do item "[Selecionar]"
+- Validação de estrutura de dados (Value, Text, AdditionalData)
+- Casos edge com valores nulos
 
-##### Diagrama de Fluxo
+## Benefícios dos Testes Implementados
 
-mermaid
-flowchart TD
-    A[TrackEvent chamado] --> B[Validar parâmetros]
-    B --> C[Chamar TelemetryClient.TrackEvent]
-    C --> D[Evento registrado no Application Insights]
+### 1. **Robustez**
+- Garantia de tratamento adequado de exceções
+- Proteção contra falhas de dependências externas
+- Validação de cenários edge
 
+### 2. **Manutenibilidade**
+- Detecção precoce de regressões
+- Documentação viva do comportamento esperado
+- Facilita refatorações seguras
 
-## Estratégias de Teste
+### 3. **Qualidade**
+- Cobertura de caminhos críticos
+- Validação de contratos de interface
+- Verificação de side effects (telemetria, mensagens)
 
-### Mocking
-- Utilizamos **Moq** para criar mocks de dependências externas
-- Todos os testes são isolados, sem dependência de banco de dados real
-- Mocks garantem controle total sobre o comportamento das dependências
-
-### Cobertura de Cenários
-- **Cenários de Sucesso**: Verificam o comportamento esperado em condições normais
-- **Cenários de Falha**: Testam o tratamento de exceções e erros
-- **Casos Extremos**: Validam comportamento com entradas nulas, vazias ou inválidas
-
-### Padrões de Nomenclatura
-- `MetodoTestado_Condicao_ComportamentoEsperado`
-- Exemplo: `ListarResultadosAsync_QuandoDbFalha_DeveRetornarListaVaziaEChamarShowError`
-
-## Execução dos Testes
+## Executando os Testes
 
 bash
 # Executar todos os testes
 dotnet test
 
-# Executar testes com cobertura
-dotnet test --collect:"XPlat Code Coverage"
-
-# Executar testes específicos
+# Executar apenas testes do ResultadoService
 dotnet test --filter "FullyQualifiedName~ResultadoServiceTests"
+
+# Executar apenas testes do ComboHelper
+dotnet test --filter "FullyQualifiedName~ComboHelperTests"
+
+# Executar com cobertura de código
+dotnet test --collect:"XPlat Code Coverage"
 
 
 ## Métricas de Qualidade
 
-- **Cobertura de Código**: Objetivo de 90%+ para classes críticas
-- **Tempo de Execução**: Todos os testes devem executar em < 100ms
-- **Isolamento**: Nenhum teste deve depender de recursos externos
-- **Determinismo**: Todos os testes devem produzir resultados consistentes
+- **Cobertura de Código**: >90% nos métodos críticos
+- **Tempo de Execução**: <5 segundos para toda a suíte
+- **Isolamento**: 100% dos testes usam mocks para dependências externas
+- **Determinismo**: Todos os testes são determinísticos e podem ser executados em qualquer ordem
 
-## Benefícios dos Testes Implementados
+## Próximos Passos
 
-1. **Detecção Precoce de Bugs**: Identificação de problemas antes da produção
-2. **Refatoração Segura**: Confiança para modificar código existente
-3. **Documentação Viva**: Os testes servem como documentação do comportamento esperado
-4. **Qualidade do Código**: Força a criação de código mais modular e testável
-5. **Rastreabilidade**: Telemetria adequada para monitoramento em produção
+1. **Testes de Integração**: Implementar testes que validem a integração real com o banco de dados
+2. **Testes de Performance**: Adicionar testes para validar performance em cenários de alta carga
+3. **Testes de Contrato**: Implementar testes que validem contratos de API
+4. **Automação**: Integrar execução de testes no pipeline de CI/CD
