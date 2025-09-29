@@ -190,6 +190,40 @@ public static class ComboHelper
         };
         return await Task.FromResult(statusList);
     }
+
+    // Novos métodos para combos de períodos, projetos e associados para página de resultado
+    public static async Task<List<ComboItem>> GetPeriodosResultadoComboAsync(ApplicationDbContext db, int? empresaId = null)
+    {
+        if (db == null) return new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
+        var query = db.PeriodosAvaliacoes.AsQueryable();
+        if (empresaId.HasValue)
+            query = query.Where(p => p.IdEmpresa == empresaId.Value);
+        var periodos = await query.OrderByDescending(p => p.DataInicio).ToListAsync();
+        var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
+        items.AddRange(periodos.Select(p => new ComboItem { Value = p.IdPeriodo.ToString(), Text = p.Nome }));
+        return items;
+    }
+
+    public static async Task<List<ComboItem>> GetProjetosResultadoComboAsync(ApplicationDbContext db)
+    {
+        if (db == null) return new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
+        var projetos = await db.Projetos.OrderBy(p => p.Nome).ToListAsync();
+        var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
+        items.AddRange(projetos.Select(p => new ComboItem { Value = p.Id.ToString(), Text = p.Nome }));
+        return items;
+    }
+
+    public static async Task<List<ComboItem>> GetAssociadosResultadoComboAsync(ApplicationDbContext db, bool apenasAtivos = true)
+    {
+        if (db == null) return new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
+        var query = db.Associados.AsQueryable();
+        if (apenasAtivos)
+            query = query.Where(a => a.ATV == true);
+        var associados = await query.OrderBy(a => a.Nome).ToListAsync();
+        var items = new List<ComboItem> { new ComboItem { Value = "", Text = "[Selecionar]" } };
+        items.AddRange(associados.Select(a => new ComboItem { Value = a.Id.ToString(), Text = a.Nome }));
+        return items;
+    }
 }
 
 public class ComboItem
