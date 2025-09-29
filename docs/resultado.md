@@ -25,7 +25,7 @@ A tela de resultado foi migrada para um componente Blazor (Components/Pages/Resu
 
 ## Diagrama de Fluxo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     subgraph BlazorApp
         ResultadoPage["Resultado.razor"]
@@ -40,7 +40,7 @@ flowchart TD
     ResultadoService -- "Registra eventos" --> TelemetryService
     ResultadoService -- "Exibe mensagens" --> MessageBoxService
     ResultadoCodeBehind -- "Exibe mensagens" --> MessageBoxService
-
+```
 
 ## Sugestões de Melhorias Futuras
 
