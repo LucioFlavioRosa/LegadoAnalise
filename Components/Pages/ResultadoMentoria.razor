@@ -1,0 +1,162 @@
+@page "/resultado_mentoria"
+@rendermode InteractiveAuto
+@inject Services.Mentoria.IMentoriaService MentoriaService
+@inject Services.Mentoria.Common.IMentoriaHelper MentoriaHelper
+@inject Services.Common.IMessageBoxService MessageBoxService
+@inject Services.Common.ChartHelper ChartHelper
+@inject NavigationManager NavigationManager
+
+<PageTitle>Resultado de Avaliações de Mentoria</PageTitle>
+
+<div class="page-breadcrumb border-bottom">
+    <div class="row">
+        <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+            <h5 class="font-medium text-uppercase mb-0">RESULTADO MENTORIA</h5>
+        </div>
+        <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+            <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                <ol class="breadcrumb mb-0 justify-content-end p-0">
+                    <li class="breadcrumb-item"><a href="/">Peers / Mentoria</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Resultado de Avaliações de Mentoria</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<Services.Common.MessageBoxHandler MessageBoxService="MessageBoxService" />
+
+<div class="page-content container-fluid">
+    <div class="card card-body">
+        <h4 class="card-title">Períodos</h4>
+        <ul class="nav nav-pills mb-3" id="pills-tab2" role="tablist">
+            @foreach (var pill in Pills)
+            {
+                <li class="nav-item">
+                    <a class="nav-link btn @pill.Classe @pill.Active"
+                       id="@pill.Id"
+                       data-bs-toggle="pill"
+                       href="#@pill.Href"
+                       role="tab"
+                       aria-controls="@pill.AriaControls"
+                       aria-selected="@pill.AriaSelected"
+                       @onclick="() => SelecionarPeriodo(pill.IdPeriodo)">
+                        @pill.Periodo
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="tab-content" id="pills-tabContent">
+                @if (PeriodosExibidos != null)
+                {
+                    @foreach (var periodo in PeriodosExibidos)
+                    {
+                        <div class="tab-pane fade @(periodo.Active)" id="@periodo.Id" role="tabpanel" aria-labelledby="@periodo.AriaLabelled">
+                            <h4>@periodo.Periodo</h4>
+                            <div style="display:flex;flex-direction:column;gap:10px; background-color: #D0E4EE; border-radius: 0.25em; padding: 1em;">
+                                <div style="display: flex; width: 100%; flex-direction: row; gap: 10px; align-items:center">
+                                    <img src="@periodo.MentorFoto" width="100" height="100" style="border-radius: 0.25em" />
+                                    <div style="display:flex; flex-direction:column; gap:0.01px;justify-content:center">
+                                        <label style="font-size: 2em">@periodo.MentorNome</label>
+                                        <label style="font-size: 1em">Você orientou @periodo.CountMentorados associados neste período.</label>
+                                        <label style="font-size: 1em">No total, @periodo.CountMentores mentores foram avaliados neste período.</label>
+                                    </div>
+                                </div>
+                                @foreach (var resposta in periodo.Resultados)
+                                {
+                                    <div style="width: 100%; background-color: #E7F1F7; display: flex; flex-direction: row; padding: 0.5em; margin-bottom: 15px; border-radius: 0.25em; gap:10px">
+                                        <div style="width: 100%; display: flex; flex-direction: column;">
+                                            <label style="font-size: 1.25em">@resposta.Pergunta</label>
+                                            <div style="display:flex;flex-direction:row;align-items:center;justify-content:space-around;height:100%;gap:4px">
+                                                <div style="display:flex;flex-direction:column; border-radius:0.45em; padding:0.2em;align-items:center;text-align:center; height:100%; width:25%; background-color: white;color:#021240">
+                                                    <label style="font-size: 1.75em">Resultado Mentor</label>
+                                                    <label style="font-size: 2.25em">@(resposta.ShowNotaMentor ? resposta.ResultadoMentor : "-") / @resposta.NotaMaxima</label>
+                                                    <label style="font-size: 0.75em;font-style:italic">NOTA OBTIDA / NOTA MÁXIMA</label>
+                                                    <div class="container" @(resposta.HiddenVelocimetro)>
+                                                        <ChartHelper.VelocimetroChart Id="@($"chartMentor{periodo.IdPeriodo}_{resposta.IdResposta}")" Value="@resposta.VelocValorMentor" />
+                                                    </div>
+                                                </div>
+                                                <div style="display:flex;flex-direction:column; border-radius:0.45em; padding:0.2em;align-items:center;text-align:center; height:100%; width:25%; background-color: white;color:#021240">
+                                                    <label style="font-size: 1.75em">Resultado Peers</label>
+                                                    <label style="font-size: 2.25em">@resposta.ResultadoPeers / @resposta.NotaMaxima</label>
+                                                    <label style="font-size: 0.75em;font-style:italic">NOTA OBTIDA / NOTA MÁXIMA</label>
+                                                    <div class="container" @(resposta.HiddenVelocimetro)>
+                                                        <ChartHelper.VelocimetroChart Id="@($"chartPeers{periodo.IdPeriodo}_{resposta.IdResposta}")" Value="@resposta.VelocValorPeers" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                <div style="width: 100%; background-color: #C0C4CF; display: flex; flex-direction: row; padding: 0.5em; margin-bottom: 15px; border-radius: 0.25em; gap:10px">
+                                    <div style="width: 100%; display: flex; flex-direction: column;">
+                                        <label style="font-size: 1.25em">Resultado Periodo</label>
+                                        <div style="display:flex;flex-direction:row;align-items:center;justify-content:space-around;height:100%;gap:4px">
+                                            <div style="display:flex;flex-direction:column; border-radius:0.45em; padding:0.2em;align-items:center;text-align:center; height:100%; width:25%; background-color: white;color:#021240">
+                                                <label style="font-size: 1.75em">Resultado Mentor</label>
+                                                <label style="font-size: 2.25em">@(periodo.CountMentorados > 1 ? periodo.MediaMentor : "-") / @periodo.NotaMaxima</label>
+                                                <label style="font-size: 0.75em;font-style:italic">NOTA OBTIDA / NOTA MÁXIMA</label>
+                                                <div class="container">
+                                                    <ChartHelper.VelocimetroChart Id="@($"chartTotalMentor{periodo.IdPeriodo}")" Value="@periodo.MediaMentorPercent" Hidden="@(periodo.CountMentorados == 1)" />
+                                                </div>
+                                            </div>
+                                            <div style="display:flex;flex-direction:column; border-radius:0.45em; padding:0.2em;align-items:center;text-align:center; height:100%; width:25%; background-color: white;color:#021240">
+                                                <label style="font-size: 1.75em">Resultado Peers</label>
+                                                <label style="font-size: 2.25em">@periodo.MediaPeers / @periodo.NotaMaxima</label>
+                                                <label style="font-size: 0.75em;font-style:italic">NOTA OBTIDA / NOTA MÁXIMA</label>
+                                                <div class="container">
+                                                    <ChartHelper.VelocimetroChart Id="@($"chartTotalPeers{periodo.IdPeriodo}")" Value="@periodo.MediaPeersPercent" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info mt-4">Nenhum período de mentoria disponível para exibição.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<PDIPillsModel> Pills = new();
+    private List<MentoradoRespostaPill> PeriodosExibidos = new();
+    private int PeriodoSelecionadoId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CarregarPillsEPeriodos();
+    }
+
+    private async Task CarregarPillsEPeriodos()
+    {
+        Pills = await MentoriaService.GetPeriodosLiberadosMentoriaAsync();
+        if (Pills.Any())
+        {
+            PeriodoSelecionadoId = Pills.FirstOrDefault(x => x.Active == "active")?.IdPeriodo ?? Pills.First().IdPeriodo;
+            await CarregarPeriodosExibidos();
+        }
+    }
+
+    private async Task CarregarPeriodosExibidos()
+    {
+        PeriodosExibidos = await MentoriaService.GetMentoradoRespostasPorPeriodoAsync(PeriodoSelecionadoId);
+        StateHasChanged();
+    }
+
+    private async Task SelecionarPeriodo(int idPeriodo)
+    {
+        PeriodoSelecionadoId = idPeriodo;
+        await CarregarPeriodosExibidos();
+    }
+}
