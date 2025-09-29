@@ -59,71 +59,46 @@ using Services.AvaliacaoMentorCompetencia;
 using Services.AvaliacaoMentorCompetencia.Common;
 using Services.Performance.IPerformanceMentorService;
 using Services.Performance.PerformanceMentorService;
-// Novos serviços para resultado de avaliação
 using Services.Resultados;
 using Services.Resultados.Common;
-// Novos serviços para resultado de liderança
 using Services.ResultadoLideranca;
 using Services.ResultadoLideranca.Common;
 using Services.Common;
 using Services.Comentarios;
 using Services.Comentarios.Common;
-// Importação para Consulta Avançada
 using Services.Common;
-// Importação dos novos serviços de retroceder avaliações
 using Services.Avaliacoes;
 using Services.Avaliacoes.Common;
-// Importação dos novos serviços para envio de evolução
 using Services.Avaliacoes.EvolucaoAssociadoService;
 using Services.Common.EmailService;
-// Importação dos novos serviços de exportação de avaliações
 using Services.AvaliacoesExportacao;
 using Services.AvaliacoesExportacao.Common;
-// Importação do serviço de pendências
 using Services.Pendencias.Common;
-// Importação dos novos serviços de períodos
 using Services.Periodos;
 using Services.Periodos.Common;
-// Novos serviços Radar
 using Services.Radar;
 using Services.Radar.Common;
 using Services.Common;
-// Importação dos novos helpers para gráficos
 using Services.Common.ChartHelper;
-// Importação dos novos serviços para avaliação de competências
 using Services.Competencias;
 using Services.Competencias.Common;
-// Registro dos novos serviços de workflow
 using Services.Workflow;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-
-// Application Insights
 builder.Services.AddApplicationInsightsTelemetry(builder.Configuration["ApplicationInsights:ConnectionString"]);
-
-// Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// HttpClient for Auth Services
 builder.Services.AddHttpClient();
-
-// Session support for migration compatibility
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
-// HttpContextAccessor for session access
 builder.Services.AddHttpContextAccessor();
-
-// Authentication Services
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -152,19 +127,16 @@ builder.Services.AddAuthentication(options =>
     options.Scope.Add("email");
 });
 
-// AI Services - Preparação para integração futura
 if (builder.Configuration.GetValue<bool>("AutoAvaliacao:Features:EnableAIIntegration"))
 {
     builder.Services.AddSingleton<IChatClient>(serviceProvider =>
     {
-        // Configuração stub para futura integração com Azure OpenAI ou outros provedores
         return new ChatClientBuilder()
             .UseFunctionInvocation()
             .Build();
     });
 }
 
-// Common Services
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 builder.Services.AddScoped<IMessageBoxService, MessageBoxService>();
 builder.Services.AddScoped<FormatHelper>();
@@ -231,10 +203,7 @@ builder.Services.AddScoped<IPeriodoUtil, PeriodoUtil>();
 builder.Services.AddScoped<IDisparoMassivoRHService, DisparoMassivoRHService>();
 builder.Services.AddScoped<IEnvioAvaliacoesService, EnvioAvaliacoesService>();
 builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>();
-builder.Services.AddScoped<IEmailUtils, EmailUtils>();
-builder.Services.AddScoped<IWorkflowUtils, WorkflowUtils>();
-builder.Services.AddScoped<IAutoAvaliacaoService, AutoAvaliacaoService>();
-builder.Services.AddScoped<IAutoAvaliacaoPerformanceService, AutoAvaliacaoPerformanceService>();
+builder.Services.AddScoped<IEvolucaoAssociadoPerformanceService, EvolucaoAssociadoPerformanceService>();
 builder.Services.AddScoped<INotaHelper, NotaHelper>();
 builder.Services.AddScoped<IValidationHelper, ValidationHelper>();
 builder.Services.AddScoped<IAccordionHelper, AccordionHelper>();
@@ -260,13 +229,9 @@ builder.Services.AddScoped<IProjetosComboHelper, ProjetosComboHelper>();
 builder.Services.AddScoped<ITiposProjetosService, TiposProjetosService>();
 builder.Services.AddScoped<Services.Avaliacoes.IAvaliacaoService, Services.Avaliacoes.AvaliacaoService>();
 builder.Services.AddScoped<Services.Avaliacoes.Common.IAvaliacaoUtils, Services.Avaliacoes.Common.AvaliacaoUtils>();
-
-// Serviços de Mentoria (Passo 8):
 builder.Services.AddScoped<IMentoriaService, MentoriaService>();
 builder.Services.AddScoped<IMentoriaHelper, MentoriaHelper>();
-// Helper de gráficos reutilizável (Passo 8):
 builder.Services.AddScoped<IChartHelper, ChartHelper.ChartHelper>();
-
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IFeedbackValidator, FeedbackValidator>();
 builder.Services.AddScoped<IFeedbackFinalizationService, FeedbackFinalizationService>();
@@ -287,8 +252,9 @@ builder.Services.AddScoped<IComentariosService, ComentariosService>();
 builder.Services.AddScoped<ComentariosHelper>();
 builder.Services.AddScoped<IRetrocederAvaliacaoService, RetrocederAvaliacaoService>();
 builder.Services.AddScoped<IRetrocederAvaliacaoValidator, RetrocederAvaliacaoValidator>();
-builder.Services.AddScoped<Services.Avaliacoes.EvolucaoAssociadoService.IEvolucaoAssociadoService, Services.Avaliacoes.EvolucaoAssociadoService.EvolucaoAssociadoService>();
-builder.Services.AddScoped<Services.Common.EmailService.IEmailService, Services.Common.EmailService.EmailService>();
+builder.Services.AddScoped<Services.Avaliacoes.EvolucaoAssociadoService.IEvolucaoAssociadoService, Services.Avaliacoes.EvolucaoAssociadoService>();
+builder.Services.AddScoped<Peers.Moderno.Services.Avaliacoes.Common.IEvolucaoAssociadoViewService, Peers.Moderno.Services.Avaliacoes.Common.EvolucaoAssociadoViewService>();
+builder.Services.AddScoped<Services.Avaliacoes.EvolucaoAssociadoPerformanceService.IEvolucaoAssociadoPerformanceService, Services.Avaliacoes.EvolucaoAssociadoPerformanceService>();
 builder.Services.AddScoped<IExportarAvaliacoesService, ExportarAvaliacoesService>();
 builder.Services.AddScoped<IExportarAvaliacoesHelper, ExportarAvaliacoesHelper>();
 builder.Services.AddScoped<IExportarAvaliacoesExcelService, ExportarAvaliacoesExcelService>();
@@ -297,18 +263,13 @@ builder.Services.AddScoped<IPeriodoService, PeriodoService>();
 builder.Services.AddScoped<IPeriodoValidator, PeriodoValidator>();
 builder.Services.AddScoped<IPeriodoFormatHelper, PeriodoFormatHelper>();
 builder.Services.AddScoped<IAvaliacoesSinalizadasService, AvaliacoesSinalizadasService>();
-
-// Registro dos novos serviços para avaliação de competências (Passos 8 e 9)
 builder.Services.AddScoped<Services.Competencias.Common.ICompetenciaHelper, Services.Competencias.Common.CompetenciaHelper>();
 builder.Services.AddScoped<Services.Competencias.ICompetenciasService, Services.Competencias.CompetenciasService>();
-
-// Registro dos novos serviços de workflow (Passo 7)
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
 builder.Services.AddScoped<IWorkflowComboHelper, WorkflowComboHelper>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -323,16 +284,11 @@ if (app.Environment.IsProduction())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseSession();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapRazorPages();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
-
 app.Run();

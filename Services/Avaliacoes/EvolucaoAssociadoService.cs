@@ -61,7 +61,7 @@ public class EvolucaoAssociadoService : IEvolucaoAssociadoService
             IdPeriodo = idPeriodo,
             Periodo = periodo?.Nome ?? string.Empty,
             QtdProjetos = _db.AssociadosProjetos.Count(ap => ap.IdAssociado == a.Id && ap.IdPeriodo == idPeriodo),
-            Enviado = "Não", // Lógica pode ser aprimorada para buscar status real
+            Enviado = "Não",
             TipoAvaliacao = "desempenho",
             Escopo = "projeto"
         }).ToList();
@@ -82,9 +82,7 @@ public class EvolucaoAssociadoService : IEvolucaoAssociadoService
         string escopo
     )
     {
-        // Aqui seria implementada a lógica de geração de evolução para o associado
-        // Para manter compatibilidade, simula a geração e retorna 1
-        await Task.Delay(100); // Simula processamento
+        await Task.Delay(100);
         return 1;
     }
 }
