@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Peers.Moderno.Data;
 using Peers.Moderno.Models;
-using Services.Common;
+using Peers.Moderno.Services.Common;
 using Peers.Moderno.Services.Avaliacoes.Common;
 
-namespace Services.Avaliacoes;
+namespace Peers.Moderno.Services.Avaliacoes;
 
-public class EvolucaoAssociadoService : Peers.Moderno.Services.Avaliacoes.Common.IEvolucaoAssociadoService
+public class EvolucaoAssociadoService : IEvolucaoAssociadoService
 {
     private readonly ApplicationDbContext _db;
 
@@ -19,7 +19,6 @@ public class EvolucaoAssociadoService : Peers.Moderno.Services.Avaliacoes.Common
         _db = db;
     }
 
-    // Método auxiliar interno, renomeado para evitar conflito com interface
     private async Task<List<EvolucaoAssociadoDto>> ListAssociadosParaEvolucaoInternoAsync(int? idAssociado, int idPeriodo, int idVertical)
     {
         var query = _db.Associados

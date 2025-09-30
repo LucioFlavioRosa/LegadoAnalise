@@ -53,7 +53,6 @@ using Services.FeedbackPerformance.Common;
 using Services.AvaliacoesGestor;
 using Services.AvaliacoesGestor.Common;
 using Services.Avaliacoes;
-using Services.Avaliacoes.Common;
 using Services.AvaliacoesGestorasCegas;
 using Services.AvaliacaoMentorCompetencia;
 using Services.AvaliacaoMentorCompetencia.Common;
@@ -66,10 +65,6 @@ using Services.ResultadoLideranca.Common;
 using Services.Common;
 using Services.Comentarios;
 using Services.Comentarios.Common;
-using Services.Common;
-using Services.Avaliacoes;
-using Services.Avaliacoes.Common;
-using Services.Avaliacoes.EvolucaoAssociadoService;
 using Services.Common.EmailService;
 using Services.AvaliacoesExportacao;
 using Services.AvaliacoesExportacao.Common;
@@ -78,13 +73,10 @@ using Services.Periodos;
 using Services.Periodos.Common;
 using Services.Radar;
 using Services.Radar.Common;
-using Services.Common;
 using Services.Common.ChartHelper;
 using Services.Competencias;
 using Services.Competencias.Common;
 using Services.Workflow;
-using Peers.Moderno.Services.Avaliacoes.Common;
-using Services.Avaliacoes;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -204,12 +196,8 @@ builder.Services.AddScoped<IChartJsonUtil, ChartJsonUtil>();
 builder.Services.AddScoped<IPeriodoUtil, PeriodoUtil>();
 builder.Services.AddScoped<IDisparoMassivoRHService, DisparoMassivoRHService>();
 builder.Services.AddScoped<IEnvioAvaliacoesService, EnvioAvaliacoesService>();
-builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>();
 builder.Services.AddScoped<IEvolucaoAssociadoViewService, EvolucaoAssociadoViewService>();
 builder.Services.AddScoped<IEvolucaoAssociadoPerformanceService, EvolucaoAssociadoPerformanceService>();
-builder.Services.AddScoped<IEvolucaoAssociadoViewService, EvolucaoAssociadoViewService>();
-builder.Services.AddScoped<IEvolucaoAssociadoPerformanceService, EvolucaoAssociadoPerformanceService>();
-builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>();
 builder.Services.AddScoped<IExportarAvaliacoesService, ExportarAvaliacoesService>();
 builder.Services.AddScoped<IExportarAvaliacoesHelper, ExportarAvaliacoesHelper>();
 builder.Services.AddScoped<IExportarAvaliacoesExcelService, ExportarAvaliacoesExcelService>();
@@ -223,8 +211,8 @@ builder.Services.AddScoped<Services.Competencias.ICompetenciasService, Services.
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
 builder.Services.AddScoped<IWorkflowComboHelper, WorkflowComboHelper>();
 
-// Registro único e correto do serviço de EvoluçãoAssociadoService
-builder.Services.AddScoped<Peers.Moderno.Services.Avaliacoes.Common.IEvolucaoAssociadoService, Services.Avaliacoes.EvolucaoAssociadoService>();
+// Registro único e correto do serviço de EvolucaoAssociadoService
+builder.Services.AddScoped<IEvolucaoAssociadoService, EvolucaoAssociadoService>();
 
 var app = builder.Build();
 
