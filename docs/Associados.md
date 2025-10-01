@@ -1,15 +1,24 @@
-# Documentação Técnica - Página de Associados (Blazor .NET 9)
+# Página de Associados - Blazor (.NET 9)
 
 ## Visão Geral
-A página de Associados permite o cadastro, edição, inativação, upload de fotos, histórico de promoções, exportação/importação de dados e integração com múltiplas entidades (Cargos, Perfis, Mentores, Verticais, Empresas). Todo o fluxo foi migrado para Blazor, utilizando serviços injetáveis e componentes reutilizáveis.
+
+A página de Associados permite o cadastro, edição, inativação, visualização e importação/exportação de associados e promoções, além do upload de fotos e histórico de promoções. Sua implementação foi migrada de Web Forms para Blazor, utilizando componentes reutilizáveis e arquitetura moderna.
 
 ## Arquitetura
-- **Modelos:** ASSOCIADOS, CARGOS, PERFIS, VERTICAL, EMPRESAS, FOTOSASSOCIADOS, PROMOCOES
-- **Serviços:** AssociadosService, CargosService, PerfisService, VerticalService, FotosAssociadosService, ExportFileService, ImportFileService
-- **Componentes Blazor:** MessageBox, FileUploadComponent, DataTableComponent, Associados.razor
-- **DbContext:** ApplicationDbContext
+
+- **Componentes Reutilizáveis:**
+  - MessageBox (exibição de mensagens)
+  - FileUploadComponent (upload de arquivos)
+  - DataTableComponent (exibição de grids)
+- **Serviços:**
+  - AssociadosService, CargosService, PerfisService, VerticalService, FotosAssociadosService, ExportFileService, ImportFileService
+- **Modelos:**
+  - ASSOCIADOS, CARGOS, PERFIS, VERTICAL, FOTOSASSOCIADOS, PROMOCOES
+- **DbContext:**
+  - ApplicationDbContext (Entity Framework Core)
 
 ## Fluxo de Dados
+
 mermaid
 flowchart TD
     A[Usuário acessa /associados] --> B{Página Associados.razor}
@@ -77,23 +86,48 @@ flowchart TD
     BE --> AX
 
 
-## Integração dos Códigos
-- Todos os serviços são registrados via injeção de dependência no Program.cs.
-- Os componentes Blazor consomem os serviços via @inject.
-- O ApplicationDbContext centraliza o acesso ao banco de dados.
-- O serviço de exportação usa EPPlus para gerar arquivos Excel.
-- O serviço de importação lê arquivos Excel e executa inserção/atualização conforme a existência do registro.
-- O serviço de fotos armazena imagens em Base64 no banco.
+## Modelos de Dados
+
+- **ASSOCIADOS:** IdAssociado, Nome, Email, Senha, IdCargo, IdPerfil, IdAssociadoMentor, IdEmpresa, IdVertical, DataAdmissao, Vertical, FotoNome, ATV, IdStatus, IdNivel, USR, DHC
+- **CARGOS:** IdCargo, Cargo, ATV, DHC, USR
+- **PERFIS:** IdPerfil, Perfil, ATV, DHC, USR
+- **VERTICAL:** IdVertical, Descricao, ATV, DHC, USR
+- **FOTOSASSOCIADOS:** IdFoto, IdAssociado, AssociadoFoto, NomeFoto, Imagem, DHC, ATV
+- **PROMOCOES:** idPromocao, idAssociado, idCargoAnterior, idCargoNovo, DataPromocao, Comentarios, ATV, DHC
+
+## Serviços
+
+- **AssociadosService:** CRUD de associados, busca por e-mail, obtenção do último associado
+- **CargosService:** Listagem de cargos, promoções, alteração de comentários
+- **PerfisService:** Listagem de perfis
+- **VerticalService:** Listagem de verticais
+- **FotosAssociadosService:** CRUD de fotos dos associados
+- **ExportFileService:** Exportação de associados e promoções para Excel
+- **ImportFileService:** Importação de associados e promoções a partir de Excel
+
+## Componentes Blazor
+
+- **MessageBox:** Exibe mensagens de sucesso, erro, alerta ou informação
+- **FileUploadComponent:** Permite upload de arquivos (Excel, imagens)
+- **DataTableComponent:** Exibe listas de dados com ações de editar e inativar
+
+## Integração com Banco de Dados
+
+- Utiliza Entity Framework Core
+- ApplicationDbContext centraliza o acesso às tabelas
+- Relacionamentos configurados via Fluent API
 
 ## Sugestões de Melhorias
-- Implementar cache para combos de dados estáticos (Cargos, Perfis, Verticais, Mentores) usando IMemoryCache.
-- Adicionar paginação e busca avançada nos grids.
-- Implementar auditoria de alterações em associados e promoções.
-- Permitir upload de múltiplas fotos/documentos por associado.
-- Adicionar validação de e-mail duplicado em tempo real.
-- Notificações automáticas por e-mail para promoções.
-- Dashboard com estatísticas de associados e promoções.
-- Testes automatizados para serviços e componentes.
-- Segurança avançada: autenticação, autorização e uso de Key Vault.
-- Monitoramento com Application Insights e logging estruturado.
-- Avaliar uso de IA para sugestões de cargos e análise de promoções.
+
+- Implementar cache para combos (cargos, perfis, mentores, verticais)
+- Adicionar paginação e busca avançada nos grids
+- Implementar auditoria de alterações
+- Permitir upload de múltiplas fotos
+- Validação de e-mail duplicado em tempo real
+- Notificações por e-mail para promoções
+- Dashboard de estatísticas de associados
+- Testes automatizados para serviços e componentes
+- Autenticação e autorização com ASP.NET Core Identity
+- Monitoramento com Application Insights
+- CI/CD automatizado
+- Integração com IA para sugestões de cargos e análise de promoções
