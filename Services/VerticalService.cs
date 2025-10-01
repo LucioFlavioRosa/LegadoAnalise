@@ -1,15 +1,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Models;
 using Data;
+using Models;
 
 namespace Services
 {
     public class VerticalService : IVerticalService
     {
         private readonly ApplicationDbContext _context;
-
         public VerticalService(ApplicationDbContext context)
         {
             _context = context;
