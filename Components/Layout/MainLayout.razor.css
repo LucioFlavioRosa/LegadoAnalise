@@ -1,0 +1,33 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+header {
+    background: #004080;
+    color: #fff;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.logo {
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+main {
+    flex: 1;
+    padding: 2rem;
+    background: #fff;
+}
+
+footer {
+    background: #e4eaf1;
+    color: #333;
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.95rem;
+    border-top: 1px solid #d3dbe3;
+}
