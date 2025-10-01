@@ -1,51 +1,73 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Peers.Moderno.Data;
-using Peers.Moderno.Models;
+using Models;
+using Data;
 
-namespace Peers.Moderno.Services;
-
-public class CargosService : ICargosService
+namespace Services
 {
-    private readonly ApplicationDbContext _context;
-
-    public CargosService(ApplicationDbContext context)
+    public class CargosService : ICargosService
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
 
-    public async Task<List<Cargo>> ObterListaCargosAsync(bool ativo = true)
-    {
-        return await _context.Cargos
-            .Where(c => c.ATV == (ativo ? 1 : 0))
-            .OrderBy(c => c.Nome)
-            .ToListAsync();
-    }
-
-    public async Task<Cargo?> ObterCargoAsync(int id)
-    {
-        return await _context.Cargos.FindAsync(id);
-    }
-
-    public async Task<RelacaoCargoSubcompetencia?> ObterRelacaoCargoSubcompetenciaAsync(int idCargo, int idSubCompetencia)
-    {
-        return await _context.RelacoesCargosSubcompetencias
-            .FirstOrDefaultAsync(r => r.IdCargo == idCargo && r.IdSubcompetencia == idSubCompetencia);
-    }
-
-    public async Task AtualizarRelacaoCargoSubcompetenciaAsync(RelacaoCargoSubcompetencia relacao)
-    {
-        var existente = await ObterRelacaoCargoSubcompetenciaAsync(relacao.IdCargo, relacao.IdSubcompetencia);
-        
-        if (existente != null)
+        public CargosService(ApplicationDbContext context)
         {
-            existente.Descricao = relacao.Descricao;
-            _context.RelacoesCargosSubcompetencias.Update(existente);
+            _context = context;
         }
-        else
+
+        public async Task<List<CARGOS>> ObterListaCargosAsync(bool? ativo = null)
         {
-            _context.RelacoesCargosSubcompetencias.Add(relacao);
+            return await _context.CARGOS
+                .Where(c => ativo == null || c.ATV == (ativo.Value ? 1 : 0))
+                .ToListAsync();
         }
-        
-        await _context.SaveChangesAsync();
+
+        public async Task<List<PROMOCOES>> ObterPromocoesAssociadoAsync(int idAssociado)
+        {
+            return await _context.PROMOCOES
+                .Include(p => p.CARGOS)
+                .Include(p => p.CARGOS1)
+                .Where(p => p.idAssociado == idAssociado && p.ATV == true)
+                .OrderByDescending(p => p.DataPromocao)
+                .ToListAsync();
+        }
+
+        public async Task<bool> AdicionarPromocaoAsync(PROMOCOES promocao)
+        {
+            _context.PROMOCOES.Add(promocao);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> AlterarPromocaoComentarioAsync(int idPromocao, string comentario)
+        {
+            var promocao = await _context.PROMOCOES.FindAsync(idPromocao);
+            if (promocao == null) return false;
+            promocao.Comentarios = comentario;
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<List<PROMOCOES>> ObterListaPromocoesAsync()
+        {
+            return await _context.PROMOCOES
+                .Include(p => p.ASSOCIADOS)
+                .Include(p => p.CARGOS)
+                .Include(p => p.CARGOS1)
+                .ToListAsync();
+        }
+
+        public async Task<PROMOCOES?> ObterPromocaoAsync(int idAssociado, int idCargoAnterior, int idCargoNovo)
+        {
+            return await _context.PROMOCOES
+                .FirstOrDefaultAsync(p => p.idAssociado == idAssociado && p.idCargoAnterior == idCargoAnterior && p.idCargoNovo == idCargoNovo);
+        }
+
+        public async Task<bool> AlterarPromocaoAsync(PROMOCOES promocao)
+        {
+            var existente = await _context.PROMOCOES.FindAsync(promocao.idPromocao);
+            if (existente == null) return false;
+            _context.Entry(existente).CurrentValues.SetValues(promocao);
+            return await _context.SaveChangesAsync() > 0;
+        }
     }
 }
