@@ -13,7 +13,7 @@ A página de Associados permite o cadastro, edição, inativação, visualizaç�
 Os modelos foram criados para serem utilizados diretamente com o Entity Framework Core, permitindo o uso de navegação entre entidades e facilitando queries complexas. Os relacionamentos (um-para-muitos, muitos-para-um) são definidos por propriedades de navegação e coleções.
 
 ## Fluxo do Processo
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /associados] --> B{Página Associados.razor}
     B --> C[OnInitializedAsync]
@@ -59,7 +59,7 @@ flowchart TD
     AM --> AN[Limpar formulário]
     AN --> AB
     AE -- Inválido --> AO[Exibir mensagem de erro]
-
+```
 
 ## Sugestões de Melhorias
 - Implementar cache para os combos de cargos, perfis, mentores e verticais.
