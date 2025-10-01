@@ -1,27 +1,26 @@
-namespace Peers.Moderno.Models;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-public class Promocao
+namespace Peers.Moderno.Models
 {
-    public int Id { get; set; }
-    public int IdAssociado { get; set; }
-    public int IdCargoAnterior { get; set; }
-    public int IdCargoNovo { get; set; }
-    public DateTime DataPromocao { get; set; }
-    public string Comentarios { get; set; } = string.Empty;
-    public bool Ativo { get; set; } = true;
-    public DateTime DataCriacao { get; set; }
-    
-    // Navegação
-    public virtual Associado? Associado { get; set; }
-    public virtual Cargo? CargoAnterior { get; set; }
-    public virtual Cargo? CargoNovo { get; set; }
-}
+    public class Promocao
+    {
+        [Key]
+        public int IdPromocao { get; set; }
+        public int idAssociado { get; set; }
+        public int idCargoAnterior { get; set; }
+        public int idCargoNovo { get; set; }
+        public DateTime? DataPromocao { get; set; }
+        public string Comentarios { get; set; }
+        public bool ATV { get; set; }
+        public DateTime DHC { get; set; }
 
-public class PromocaoHistorico
-{
-    public int Id { get; set; }
-    public DateTime DataPromocao { get; set; }
-    public string CargoAnterior { get; set; } = string.Empty;
-    public string CargoNovo { get; set; } = string.Empty;
-    public string Comentarios { get; set; } = string.Empty;
+        [ForeignKey("idAssociado")]
+        public virtual Associado ASSOCIADOS { get; set; }
+        [ForeignKey("idCargoAnterior")]
+        public virtual Cargo CARGOS { get; set; }
+        [ForeignKey("idCargoNovo")]
+        public virtual Cargo CARGOS1 { get; set; }
+    }
 }
