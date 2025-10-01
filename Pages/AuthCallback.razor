@@ -1,38 +1,16 @@
-@page "/auth-callback"
-@using Peers.Moderno.Services.Common.Auth
-@using Microsoft.AspNetCore.Authentication
-@using Microsoft.AspNetCore.Authentication.Cookies
-@using System.Security.Claims
-@inject IAuthCallbackService AuthCallbackService
-@inject NavigationManager Navigation
-@inject IHttpContextAccessor HttpContextAccessor
-@rendermode InteractiveAuto
+@page "/authentication/login-callback"
+@rendermode InteractiveServer
 
-<PageTitle>Processando Login...</PageTitle>
+@inject NavigationManager Navigation
+@inject IAuthCallbackService AuthCallbackService
+@inject IUserSessionService UserSessionService
+@inject ILogger<AuthCallback> Logger
+@inject AssociadosService AssociadosService
 
 <div style="text-align: center; margin-top: 100px;">
-    @if (isProcessing)
-    {
-        <h3>Processando autenticação...</h3>
-        <p>Por favor, aguarde...</p>
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Carregando...</span>
-        </div>
-    }
-    else if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <div class="alert alert-danger" role="alert">
-            <h4 class="alert-heading">Erro de Autenticação</h4>
-            <p>@errorMessage</p>
-            <hr>
-            <p class="mb-0">
-                <a href="/login" class="btn btn-primary">Tentar Novamente</a>
-            </p>
-        </div>
-    }
-    else
-    {
-        <h3>Autenticação realizada com sucesso!</h3>
-        <p>Redirecionando...</p>
-    }
+    <h3>Processando autenticação...</h3>
+    <p>Por favor, aguarde...</p>
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
 </div>
