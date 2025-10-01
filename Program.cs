@@ -1,31 +1,28 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Data;
-using Services;
-using Microsoft.Extensions.Configuration;
+using Azure.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.UI;
+using Services.Auth;
+using Services.Associados;
+using Microsoft.Extensions.Caching.Memory;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Configuration.AddAzureKeyVault(
+    new Uri(builder.Configuration["KeyVaultUri"]),
+    new DefaultAzureCredential()
+);
 
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents()
-    .AddInteractiveWebAssemblyComponents();
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<IAssociadosService, AssociadosService>();
-builder.Services.AddScoped<ICargosService, CargosService>();
-builder.Services.AddScoped<IPerfisService, PerfisService>();
-builder.Services.AddScoped<IVerticalService, VerticalService>();
-builder.Services.AddScoped<IFotosAssociadosService, FotosAssociadosService>();
-builder.Services.AddScoped<IExportFileService, ExportFileService>();
-builder.Services.AddScoped<IImportFileService, ImportFileService>();
-
-builder.Services.AddServerSideBlazor();
+builder.Services.AddMicrosoftIdentityWebAppAuthentication(builder.Configuration, "AzureAd");
+builder.Services.AddAuthorization();
+builder.Services.AddRazorPages();
+builder.Services.AddServerSideBlazor().AddMicrosoftIdentityConsentHandler();
+builder.Services.AddScoped<IAuthCallbackService, AuthCallbackService>();
+builder.Services.AddScoped<IUserSessionService, UserSessionService>();
+builder.Services.AddScoped<AssociadosService>();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -38,7 +35,10 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapRazorComponents<App.Startup>("/");
+app.MapBlazorHub();
+app.MapFallbackToPage("/_Host");
 
 app.Run();
