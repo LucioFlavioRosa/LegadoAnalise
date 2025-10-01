@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace Peers.Moderno.Models
 {
-    public class VERTICAL
+    public class EMPRESAS
     {
-        public int IdVertical { get; set; }
-        public string Descricao { get; set; }
+        public int IdEmpresa { get; set; }
+        public string Empresa { get; set; }
         public int ATV { get; set; }
         public DateTime DHC { get; set; }
         public int USR { get; set; }
