@@ -12,7 +12,7 @@ Esta documentação detalha o processo de migração da página informativa Abou
 
 ## Fluxo de Renderização
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /about] --> B[Blazor Router]
     B --> C[About.razor carregado]
@@ -22,7 +22,7 @@ flowchart TD
     F --> G[Página exibida ao usuário]
     style C fill:#e1f5ff
     style E fill:#ffe1f5
-
+```
 
 ## Componentes Reutilizáveis Criados
 
