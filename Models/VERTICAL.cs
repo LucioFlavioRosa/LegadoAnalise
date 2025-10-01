@@ -6,12 +6,11 @@ namespace Peers.Moderno.Models
     public class VERTICAL
     {
         public int IdVertical { get; set; }
-        public string Descricao { get; set; } = string.Empty;
+        public string Descricao { get; set; }
         public int ATV { get; set; }
         public DateTime DHC { get; set; }
         public int USR { get; set; }
 
-        // Navegação
-        public ICollection<ASSOCIADOS>? ASSOCIADOS { get; set; }
+        public ICollection<ASSOCIADOS> ASSOCIADOS { get; set; } = new List<ASSOCIADOS>();
     }
 }
