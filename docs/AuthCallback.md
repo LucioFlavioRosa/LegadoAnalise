@@ -27,7 +27,7 @@ O fluxo de autenticação implementado utiliza OAuth 2.0 com PKCE para autentica
 
 ## Fluxo do Processo (Mermaid)
 
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /Login] --> B{Clica em 'Entrar com Azure AD'}
     B --> C[Login.razor: Gera codeVerifier, codeChallenge, state]
@@ -56,7 +56,7 @@ flowchart TD
     X --> Y[UserSessionService: Cria cookie de autenticação]
     Y --> Z[AuthCallback.razor: Redireciona para /Index]
     N --> V
-
+```
 
 ## Sugestões de Melhorias
 
