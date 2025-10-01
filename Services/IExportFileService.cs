@@ -1,8 +1,11 @@
-using Peers.Moderno.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Peers.Moderno.Services;
-
-public interface IExportFileService
+namespace Services
 {
-    byte[] GenerateExcelCompetencias(string fileName, List<CompetenciaExportModel> competencias);
+    public interface IExportFileService
+    {
+        Task<byte[]> ExportarAssociadosExcelAsync<T>(List<T> dados);
+        Task<byte[]> ExportarPromocoesExcelAsync<T>(List<T> dados);
+    }
 }
