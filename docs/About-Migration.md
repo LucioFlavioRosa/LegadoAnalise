@@ -9,7 +9,7 @@ A página About do sistema de avaliação interna foi migrada de ASP.NET Web For
 - **About.razor:** Página About migrada, utiliza os componentes acima.
 
 ## Fluxo de Renderização
-mermaid
+```mermaid
 flowchart TD
     A[Usuário acessa /about] --> B[Blazor Router]
     B --> C[About.razor carregado]
@@ -19,7 +19,7 @@ flowchart TD
     F --> G[Página exibida ao usuário]
     style C fill:#e1f5ff
     style E fill:#ffe1f5
-
+```
 
 ## Componentes Reutilizáveis Criados
 - **MainLayout.razor**: Layout base para todas as páginas.
