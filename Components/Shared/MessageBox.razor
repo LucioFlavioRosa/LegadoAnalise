@@ -1,0 +1,51 @@
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+
+@if (Visible)
+{
+    <div class="alert @GetAlertClass() alert-dismissible fade show" role="alert">
+        <strong>@Title</strong> @Message
+        <button type="button" class="close" aria-label="Close" @onclick="Hide">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@code {
+    [Parameter] public string Message { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public MessageBoxType Type { get; set; } = MessageBoxType.Info;
+    private bool Visible { get; set; }
+
+    public void Show(string message, string title = "", MessageBoxType type = MessageBoxType.Info)
+    {
+        Message = message;
+        Title = title;
+        Type = type;
+        Visible = true;
+        StateHasChanged();
+    }
+
+    public void Hide()
+    {
+        Visible = false;
+        StateHasChanged();
+    }
+
+    private string GetAlertClass() => Type switch
+    {
+        MessageBoxType.Info => "alert-info",
+        MessageBoxType.Warning => "alert-warning",
+        MessageBoxType.Error => "alert-danger",
+        MessageBoxType.Success => "alert-success",
+        _ => "alert-info"
+    };
+
+    public enum MessageBoxType
+    {
+        Info,
+        Warning,
+        Error,
+        Success
+    }
+}
