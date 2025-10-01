@@ -1,0 +1,183 @@
+@page "/associados"
+@rendermode InteractiveAuto
+@using Models
+@using Components.Shared
+@inject Services.IAssociadosService AssociadosService
+@inject Services.ICargosService CargosService
+@inject Services.IPerfisService PerfisService
+@inject Services.IVerticalService VerticalService
+@inject Services.IFotosAssociadosService FotosService
+@inject Services.IExportFileService ExportService
+@inject Services.IImportFileService ImportService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<main>
+    <div class="page-breadcrumb border-bottom">
+        <div class="row">
+            <div class="col-lg-3 col-md-4 col-xs-12 align-self-center">
+                <h5 class="font-medium text-uppercase mb-0">Associados</h5>
+            </div>
+            <div class="col-lg-9 col-md-8 col-xs-12 align-self-center">
+                <nav aria-label="breadcrumb" class="mt-2 float-md-right float-left">
+                    <ol class="breadcrumb mb-0 justify-content-end p-0">
+                        <li class="breadcrumb-item"><a href="/">Peers / Cadastros Básicos de Usuário</a></li>
+                        <li class="breadcrumb-item active">Associados</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <div class="page-content container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Dados do Associado</h4>
+                <EditForm Model="AssociadoAtual" OnValidSubmit="SalvarAssociado">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="form-body">
+                        <div class="row">
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label>Nome</label>
+                                    <InputText class="form-control" @bind-Value="AssociadoAtual.Nome" />
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label>Mentor</label>
+                                    <InputSelect class="form-control p-0 select2" @bind-Value="AssociadoAtual.IdAssociadoMentor">
+                                        <option value="">[Selecionar]</option>
+                                        @foreach (var mentor in Mentores)
+                                        {
+                                            <option value="@mentor.IdAssociado">@mentor.Nome</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label>E-mail</label>
+                                    <InputText class="form-control" @bind-Value="AssociadoAtual.Email" type="email" />
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label>Vertical</label>
+                                    <InputSelect class="form-control p-0 select2" @bind-Value="AssociadoAtual.IdVertical">
+                                        <option value="">[Selecionar]</option>
+                                        @foreach (var vertical in Verticais)
+                                        {
+                                            <option value="@vertical.IdVertical">@vertical.Descricao</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label>Senha</label>
+                                    <InputText class="form-control" @bind-Value="AssociadoAtual.Senha" type="password" />
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label>Data de Admissão</label>
+                                    <InputDate class="form-control" @bind-Value="AssociadoAtual.DataAdmissao" />
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label>Cargo</label>
+                                    <InputSelect class="form-control p-0 select2" @bind-Value="AssociadoAtual.IdCargo">
+                                        <option value="">[Selecionar]</option>
+                                        @foreach (var cargo in Cargos)
+                                        {
+                                            <option value="@cargo.IdCargo">@cargo.Cargo</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group" style="border:none">
+                                    <label>Promoção</label><br />
+                                    <InputCheckbox @bind-Value="PromocaoMarcada" style="transform: scale(2.1); margin-left:7px; margin-top:10px; border:none" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label>Perfil de acesso <a href="javascript:void(0)" data-toggle="modal" data-target="#perfil-modal" class="text-right ml-2"><i class="fa fa-plus" title="Adicionar"></i></a></label>
+                                    <InputSelect class="form-control p-0 select2" @bind-Value="AssociadoAtual.IdPerfil">
+                                        <option value="">[Selecionar]</option>
+                                        @foreach (var perfil in Perfis)
+                                        {
+                                            <option value="@perfil.IdPerfil">@perfil.Perfil</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="col-sm">
+                                <div class="form-group">
+                                    <label>Status</label>
+                                    <InputSelect class="form-control p-0 select2" @bind-Value="AssociadoAtual.ATV">
+                                        <option value="1">Ativo</option>
+                                        <option value="0">Inativo</option>
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-1">
+                                <div class="form-group">
+                                    <label>Foto</label>
+                                    <img src="@AssociadoAtual.FotoBase64" width="150" height="150" />
+                                </div>
+                            </div>
+                            <div class="col-md--0">
+                                <div class="form-group" style="margin-top:20%;margin-left:30%">
+                                    <FileUploadComponent AcceptedFileTypes=".png,.jpg,.jpeg,.gif" OnFileSelected="HandleFotoSelecionada" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions flex flex-row justify-content-between">
+                            <div class="text-right">
+                                <button type="submit" class="btn btn-info">Cadastrar/Salvar</button>
+                            </div>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Histórico de promoções do associado</h4>
+                <DataTableComponent TItem="PROMOCOES" Items="PromocoesAssociado" Columns="PromocoesColumns">
+                </DataTableComponent>
+                <button class="btn btn-success mt-2" @onclick="SalvarComentariosPromocoes">Salvar Comentários</button>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <h4 class="card-title">Exportar e Importar Associados e Promoções</h4>
+                </div>
+                <div class="row">
+                    <button class="btn btn-info mr-2" @onclick="ExportarAssociados">Exportar Associados</button>
+                    <FileUploadComponent AcceptedFileTypes=".xlsx" OnFileSelected="ImportarAssociados" />
+                    <button class="btn btn-info ml-4 mr-2" @onclick="ExportarPromocoes">Exportar Promoções</button>
+                    <FileUploadComponent AcceptedFileTypes=".xlsx" OnFileSelected="ImportarPromocoes" />
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Lista de Associados</h4>
+                <DataTableComponent TItem="ASSOCIADOS" Items="Associados" Columns="AssociadosColumns" OnEdit="EditarAssociado" OnDelete="InativarAssociado" />
+            </div>
+        </div>
+        <MessageBox @ref="MessageBoxRef" />
+    </div>
+</main>
