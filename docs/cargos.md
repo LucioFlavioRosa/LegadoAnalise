@@ -1,196 +1,76 @@
-# Módulo de Cargos - Documentação Técnica
+# Documentação da Página de Cargos
 
-## Visão Geral
+## Introdução
+A funcionalidade de Cargos permite o cadastro, edição, inativação e exportação de cargos dentro do sistema de avaliação interna. Os dados de cargos são estruturados nos modelos `CARGOS` e `CargosModelExport`.
 
-O módulo de Cargos foi migrado de Web Forms para Blazor Server com renderização híbrida (.NET 9), seguindo uma arquitetura baseada em serviços e injeção de dependência. O módulo permite o gerenciamento completo de cargos da empresa, incluindo CRUD, exportação para Excel e relacionamentos hierárquicos.
+## Modelos de Dados
 
-## Arquitetura
+### CARGOS
+- **IdCargo**: Identificador do cargo (int)
+- **Cargo**: Nome do cargo (string)
+- **idProximoCargo**: ID do próximo cargo (int?)
+- **TempoMinimoPromocao**: Tempo mínimo para promoção, em meses (int)
+- **Funcao**: Descrição da função (string)
+- **Autonomia**: Descrição da autonomia (string)
+- **EscopoDeAtuacao**: Descrição do escopo de atuação (string)
+- **NivelInterlocucao**: Nível de interlocução principal no cliente (string)
+- **ATV**: Status do cargo (1 = Ativo, 0 = Inativo) (int)
+- **DHC**: Data/Hora de criação (DateTime)
 
-### Estrutura de Pastas
+### CargosModelExport
+- **IdCargo**: Identificador do cargo (int)
+- **Cargo**: Nome do cargo (string)
+- **IdProximoCargo**: ID do próximo cargo (int)
+- **ProximoCargo**: Nome do próximo cargo (string)
+- **TempoMinimoPromocao**: Tempo mínimo para promoção, em meses (int)
+- **Funcao**: Descrição da função (string)
+- **Autonomia**: Descrição da autonomia (string)
+- **EscopoDeAtuacao**: Descrição do escopo de atuação (string)
+- **NivelInterlocucao**: Nível de interlocução principal no cliente (string)
+- **ATV**: Status do cargo (1 = Ativo, 0 = Inativo) (int)
 
-```text
-Services/
-├── Cargos/
-│   ├── CargosService.cs          # Serviço principal de negócio
-│   └── Common/
-│       ├── DropdownService.cs    # Serviço para dropdowns
-│       └── ExportService.cs      # Serviço de exportação
-└── Common/
-    └── MessageBoxService.cs      # Serviço de mensagens
+## Integração e Fluxo
 
-Components/
-└── Cargos/
-    ├── Cargos.razor             # Componente principal
-    └── Cargos.razor.cs          # Code-behind
+A seguir, o fluxo geral de páginas e processos relacionados à funcionalidade de cargos:
 
-Models/
-├── Cargo.cs                     # Modelo principal
-├── CargoExportModel.cs          # Modelo para exportação
-└── DropdownItem.cs              # Modelo para dropdowns
-```
-
-### Princípios de Design
-
-1. **Separação de Responsabilidades**: Lógica de negócio isolada em serviços
-2. **Reutilização**: Serviços comuns organizados em pastas `Common`
-3. **Injeção de Dependência**: Todos os serviços registrados no DI container
-4. **Renderização Híbrida**: Componente usa `@rendermode InteractiveAuto`
-
-## Serviços
-
-### CargosService
-
-**Responsabilidade**: CRUD de cargos e validações de negócio
-
-**Métodos principais**:
-- `ObterListaCargosAsync()`: Lista todos os cargos
-- `ObterCargoAsync(id)`: Obtém cargo específico
-- `InserirCargoAsync(cargo)`: Insere novo cargo
-- `AlterarCargoAsync(cargo)`: Altera cargo existente
-- `InativarCargoAsync(id)`: Inativa cargo
-- `ExisteCargoComNomeAsync(nome)`: Valida duplicação
-
-### DropdownService (Common)
-
-**Responsabilidade**: Popular dropdowns de forma padronizada
-
-**Métodos**:
-- `ObterCargosAtivosAsync()`: Cargos ativos para dropdown
-- `ObterTodosCargosAsync()`: Todos os cargos
-- `ObterStatusOptionsAsync()`: Opções de status
-
-**Reutilização**: Pode ser usado por outros módulos que precisem de dropdowns de cargos
-
-### ExportService (Common)
-
-**Responsabilidade**: Exportação de dados para Excel
-
-**Métodos**:
-- `ExportarCargosAsync()`: Gera arquivo Excel com dados dos cargos
-
-**Reutilização**: Padrão pode ser aplicado para exportação de outras entidades
-
-### MessageBoxService (Common)
-
-**Responsabilidade**: Sistema de mensagens para feedback ao usuário
-
-**Métodos**:
-- `ShowSuccess(message)`: Mensagem de sucesso
-- `ShowError(message)`: Mensagem de erro
-- `ShowInfo(message)`: Mensagem informativa
-- `ShowWarning(message)`: Mensagem de aviso
-
-**Reutilização**: Usado por qualquer componente que precise de feedback
-
-## Componente Blazor
-
-### Cargos.razor
-
-**Características**:
-- Renderização híbrida com `@rendermode InteractiveAuto`
-- Formulário reativo com validação
-- Grid de dados com ações inline
-- Exportação integrada
-- Sistema de toast para mensagens
-
-**Funcionalidades**:
-- Cadastro e edição de cargos
-- Listagem com filtros
-- Inativação de registros
-- Exportação para Excel
-- Validação client-side e server-side
-
-## Integração com Outros Módulos
-
-### Como Reutilizar os Serviços
-
-csharp
-// Em outro componente/serviço
-@inject Services.Cargos.Common.IDropdownService DropdownService
-@inject Services.Common.IMessageBoxService MessageBoxService
-
-// Usar dropdown de cargos
-var cargos = await DropdownService.ObterCargosAtivosAsync();
-
-// Mostrar mensagem
-MessageBoxService.ShowSuccess("Operação realizada com sucesso!");
-
-
-### Extensibilidade
-
-1. **Novos Campos**: Adicionar propriedades no modelo `Cargo` e atualizar o componente
-2. **Novas Validações**: Implementar no `CargosService` ou no modelo de formulário
-3. **Novos Formatos de Export**: Estender o `ExportService` com novos métodos
-4. **Integração com APIs**: Adicionar HttpClient nos serviços conforme necessário
-
-## Configuração
-
-### Registro no DI Container (Program.cs)
-
-csharp
-// Cargos Services
-builder.Services.AddScoped<Services.Cargos.ICargosService, Services.Cargos.CargosService>();
-builder.Services.AddScoped<Services.Cargos.Common.IDropdownService, Services.Cargos.Common.DropdownService>();
-builder.Services.AddScoped<Services.Cargos.Common.IExportService, Services.Cargos.Common.ExportService>();
-builder.Services.AddScoped<Services.Common.IMessageBoxService, Services.Common.MessageBoxService>();
-
-
-### Entity Framework
-
-O modelo `Cargo` está mapeado no `ApplicationDbContext` com:
-- Relacionamento self-referencing para `ProximoCargo`
-- Mapeamento para tabela `CARGOS`
-- Navigation properties configuradas
-
-## Fluxo de Alto Nível
-
-```mermaid
+mermaid
 flowchart TD
-    A[Usuário] --> B[Cargos.razor]
-    B --> C{Ação do Usuário}
-    
-    C -->|Carregar Dados| D[CargosService.ObterListaCargosAsync]
-    C -->|Popular Dropdown| E[DropdownService.ObterCargosAtivosAsync]
-    C -->|Salvar Cargo| F[CargosService.InserirCargoAsync/AlterarCargoAsync]
-    C -->|Inativar Cargo| G[CargosService.InativarCargoAsync]
-    C -->|Exportar| H[ExportService.ExportarCargosAsync]
-    
-    D --> I[ApplicationDbContext]
-    E --> I
-    F --> I
-    G --> I
-    H --> I
-    
-    I --> J[(SQL Server Database)]
-    
-    F --> K[MessageBoxService.ShowSuccess/ShowError]
-    G --> K
-    H --> K
-    
-    K --> L[Toast Notification]
-    L --> A
-    
-    H --> M[Download Excel File]
-    M --> A
-    
-    style B fill:#e1f5fe
-    style I fill:#f3e5f5
-    style J fill:#e8f5e8
-    style K fill:#fff3e0
-```
+    A[Usuário acessa /cargos] --> B{OnInitializedAsync}
+    B --> C[CargosService.ObterListaCargos]
+    C --> D[Renderiza lista de cargos na DataTable]
+    D --> E{Usuário clica em Alterar?}
+    E -- Sim --> F[AlterarCargo idCargo]
+    F --> G[CargosService.ObterCargo idCargo]
+    G --> H[Preenche formulário com dados do cargo]
+    H --> I[Usuário edita e clica em Salvar]
+    E -- Não --> J{Usuário preenche formulário e clica em Salvar?}
+    J -- Sim --> I
+    I --> K{CargoAtual.IdCargo == 0?}
+    K -- Sim --> L[CargosService.InserirCargo]
+    K -- Não --> M[CargosService.AlterarCargo]
+    L --> N[Exibe mensagem de sucesso]
+    M --> N
+    N --> O[Recarrega lista de cargos]
+    O --> D
+    J -- Não --> P{Usuário clica em Inativar?}
+    P -- Sim --> Q[InativarCargo idCargo]
+    Q --> R[CargosService.ExcluirCargo idCargo]
+    R --> S[Exibe mensagem de sucesso]
+    S --> O
+    P -- Não --> T{Usuário clica em Exportar?}
+    T -- Sim --> U[ExportarCargos]
+    U --> V[CargosService.ObterListaCargos]
+    V --> W[Mapeia para CargosModelExport]
+    W --> X[ExportFileService.GenerateExcel]
+    X --> Y[Download do arquivo Excel]
+    T -- Não --> D
 
-## Benefícios da Arquitetura
 
-1. **Testabilidade**: Serviços isolados facilitam testes unitários
-2. **Manutenibilidade**: Separação clara de responsabilidades
-3. **Reutilização**: Serviços comuns podem ser usados em outros módulos
-4. **Performance**: Renderização híbrida otimiza experiência do usuário
-5. **Escalabilidade**: Arquitetura preparada para crescimento
-
-## Próximos Passos
-
-1. Implementar cache para dropdowns frequentemente acessados
-2. Adicionar logs estruturados usando ILogger
-3. Implementar paginação para grandes volumes de dados
-4. Adicionar testes unitários para os serviços
-5. Considerar implementação de padrão Repository se necessário
+## Sugestões de Melhorias
+- Implementar validação de campos obrigatórios e regras de negócio no front-end e back-end.
+- Adicionar paginação server-side e busca avançada na tabela de cargos.
+- Implementar testes unitários para os serviços de cargos.
+- Utilizar cache para listas de cargos frequentemente acessadas.
+- Implementar auditoria de alterações em cargos.
+- Melhorar feedback visual ao usuário durante operações assíncronas (ex: loading spinner).
+- Adicionar confirmação de exclusão/inativação via modal.
