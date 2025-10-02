@@ -24,7 +24,7 @@ Todos os serviços são registrados no container de DI e podem ser injetados em 
 
 ## Fluxo do Processo (Mermaid)
 
-mermaid
+```mermaid
 graph TD
     UI[Componentes Blazor: Associados.razor e filhos] -->|Injeta| S1[IAssociadosService]
     UI -->|Injeta| S2[ICargosService]
@@ -43,7 +43,7 @@ graph TD
     Pages -->|Inclui| Historico[Associados_HistoricoSection.razor]
     Pages -->|Inclui| ImportExport[Associados_ImportExportSection.razor]
     Pages -->|Inclui| Lista[Associados_ListaSection.razor]
-
+```
 
 ## Estrutura de Páginas Relacionadas
 
