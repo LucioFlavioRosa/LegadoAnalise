@@ -1,0 +1,145 @@
+@using Peers.Moderno.Models
+@inject IAssociadosService AssociadosService
+@inject ICargosService CargosService
+@inject IPerfisService PerfisService
+@inject IVerticalService VerticalService
+@inject IFotosAssociadosService FotosAssociadosService
+
+<EditForm Model="Associado" OnValidSubmit="SalvarAssociado">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row">
+        <div class="col-sm">
+            <InputText @bind-Value="Associado.Nome" class="form-control" placeholder="Nome" />
+        </div>
+        <div class="col-sm">
+            <InputText @bind-Value="Associado.Email" class="form-control" placeholder="E-mail" />
+        </div>
+        <div class="col-sm">
+            <InputText @bind-Value="Associado.Senha" class="form-control" placeholder="Senha" />
+        </div>
+        <div class="col-sm">
+            <InputText @bind-Value="Associado.DataAdmissao" class="form-control" placeholder="Data de Admissão" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm">
+            <InputSelect @bind-Value="Associado.IdCargo" class="form-control">
+                <option value="">[Selecionar Cargo]</option>
+                @foreach (var cargo in Cargos)
+                {
+                    <option value="@cargo.IdCargo">@cargo.Cargo</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-sm">
+            <InputSelect @bind-Value="Associado.IdPerfil" class="form-control">
+                <option value="">[Selecionar Perfil]</option>
+                @foreach (var perfil in Perfis)
+                {
+                    <option value="@perfil.IdPerfil">@perfil.Perfil</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-sm">
+            <InputSelect @bind-Value="Associado.IdAssociadoMentor" class="form-control">
+                <option value="">[Selecionar Mentor]</option>
+                @foreach (var mentor in Mentores)
+                {
+                    <option value="@mentor.IdAssociado">@mentor.Nome</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-sm">
+            <InputSelect @bind-Value="Associado.IdVertical" class="form-control">
+                <option value="">[Selecionar Vertical]</option>
+                @foreach (var vertical in Verticais)
+                {
+                    <option value="@vertical.IdVertical">@vertical.Descricao</option>
+                }
+            </InputSelect>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm">
+            <InputSelect @bind-Value="Associado.ATV" class="form-control">
+                <option value="1">Ativo</option>
+                <option value="0">Inativo</option>
+            </InputSelect>
+        </div>
+        <div class="col-sm">
+            <FileUploadComponent Accept=".png,.jpg,.jpeg,.gif" OnFileSelected="OnFotoSelecionada" />
+            @if (!string.IsNullOrEmpty(FotoBase64))
+            {
+                <img src="@FotoBase64" width="150" height="150" class="mt-2" />
+            }
+        </div>
+    </div>
+    <div class="form-actions mt-3">
+        <button type="submit" class="btn btn-info">Cadastrar/Salvar</button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public EventCallback OnSave { get; set; }
+    public ASSOCIADOS Associado { get; set; } = new ASSOCIADOS();
+    public List<CARGOS> Cargos { get; set; } = new();
+    public List<PERFIS> Perfis { get; set; } = new();
+    public List<ASSOCIADOS> Mentores { get; set; } = new();
+    public List<VERTICAL> Verticais { get; set; } = new();
+    public string FotoBase64 { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Cargos = await CargosService.ObterListaCargosAsync(true);
+        Perfis = await PerfisService.ObterListaPerfisAsync(true);
+        Mentores = await AssociadosService.ObterAssociadosAsync(true);
+        Verticais = await VerticalService.ListarVerticaisAsync();
+        Associado.ATV = 1;
+    }
+
+    public async Task SalvarAssociado()
+    {
+        if (Associado.IdAssociado == 0)
+        {
+            Associado.FotoNome = FotoBase64;
+            await AssociadosService.InserirAssociadoAsync(Associado);
+        }
+        else
+        {
+            Associado.FotoNome = FotoBase64;
+            await AssociadosService.AlteraAssociadoAsync(Associado.IdAssociado, Associado);
+        }
+        await OnSave.InvokeAsync();
+        LimparFormulario();
+    }
+
+    public void LimparFormulario()
+    {
+        Associado = new ASSOCIADOS { ATV = 1 };
+        FotoBase64 = null;
+        StateHasChanged();
+    }
+
+    public async Task EditarAssociado(int idAssociado)
+    {
+        var associado = await AssociadosService.ObterAssociadoAsync(idAssociado);
+        if (associado != null)
+        {
+            Associado = associado;
+            var foto = await FotosAssociadosService.ObterFotoPorAssociadoAsync(idAssociado);
+            FotoBase64 = foto?.Imagem;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnFotoSelecionada(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream(maxAllowedSize: 1024 * 1024 * 5);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var base64 = Convert.ToBase64String(ms.ToArray());
+        FotoBase64 = $"data:{file.ContentType};base64,{base64}";
+        StateHasChanged();
+    }
+}
