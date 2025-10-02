@@ -1,0 +1,47 @@
+@using Peers.Moderno.Models
+@inject ICargosService CargosService
+
+@if (Promocoes != null && Promocoes.Count > 0)
+{
+    <DataTableComponent Items="Promocoes">
+        <HeaderTemplate>
+            <tr>
+                <th>Id</th>
+                <th>Data</th>
+                <th>Cargo Antigo</th>
+                <th>Cargo Novo</th>
+                <th>Comentários</th>
+            </tr>
+        </HeaderTemplate>
+        <RowTemplate Context="promo">
+            <tr>
+                <td>@promo.idPromocao</td>
+                <td>@promo.DataPromocao?.ToString("dd/MM/yyyy")</td>
+                <td>@promo.CARGOS?.Cargo</td>
+                <td>@promo.CARGOS1?.Cargo</td>
+                <td>
+                    <input value="@promo.Comentarios" @onchange="(e) => OnComentarioEditado(promo.idPromocao, e.Value?.ToString())" class="form-control" />
+                </td>
+            </tr>
+        </RowTemplate>
+    </DataTableComponent>
+}
+else
+{
+    <div class="alert alert-info">Nenhum histórico de promoções encontrado.</div>
+}
+
+@code {
+    public List<PROMOCOES> Promocoes { get; set; } = new();
+
+    public async Task CarregarHistorico(int idAssociado)
+    {
+        Promocoes = await CargosService.ObterTodasPromocoesAssociadoAsync(idAssociado);
+        StateHasChanged();
+    }
+
+    private async Task OnComentarioEditado(int idPromocao, string novoComentario)
+    {
+        await CargosService.AlterarPromocaoComentarioAsync(idPromocao, novoComentario);
+    }
+}
