@@ -1,64 +1,66 @@
-# Documentação da Migração: Página de Associados para Blazor (.NET 9)
+# Documentação: Serviços de Domínio - Associados (Blazor .NET 9)
 
 ## Visão Geral
 
-Esta documentação descreve a estrutura, funcionamento e integração dos arquivos criados para a migração da página de Associados do sistema legado para a nova arquitetura Blazor Web App (.NET 9). Foram criados os modelos POCO das entidades do domínio e o contexto de dados com Entity Framework Core, base para toda a lógica de negócio da aplicação.
+Esta documentação descreve a arquitetura, funcionamento e integração dos serviços de domínio criados para a funcionalidade de Associados na nova aplicação Blazor .NET 9. Os serviços seguem o padrão de injeção de dependência, promovendo reutilização, testabilidade e desacoplamento entre UI e lógica de negócio.
 
-## Estrutura dos Arquivos
+### Serviços Criados
 
-- **Peers.Moderno.csproj**: Projeto principal Blazor Web App (.NET 9), com dependências para Entity Framework Core, manipulação de imagens e Excel.
-- **Models/**: Contém as classes POCO que representam as entidades do domínio (ASSOCIADOS, CARGOS, PERFIS, VERTICAL, EMPRESAS, PROMOCOES, FOTOSASSOCIADOS).
-- **Data/ApplicationDbContext.cs**: Contexto de dados do Entity Framework Core, com DbSets para todas as entidades e mapeamentos de relacionamento.
+- `IAssociadosService` / `AssociadosService`: CRUD de associados e consulta por e-mail.
+- `ICargosService` / `CargosService`: Operações de cargos e promoções (listar cargos, adicionar/alterar promoções, editar comentários).
+- `IPerfisService` / `PerfisService`: Listagem de perfis de acesso.
+- `IVerticalService` / `VerticalService`: Listagem de verticais.
+- `IFotosAssociadosService` / `FotosAssociadosService`: Manipulação de fotos dos associados (obter, adicionar, atualizar).
+- `IExportFileService` / `ExportFileService`: Exportação genérica de listas para Excel usando EPPlus.
 
-## Integração e Funcionamento
+Todos os serviços são registrados no container de DI e podem ser injetados em componentes Blazor ou outros serviços.
 
-- As entidades do domínio são mapeadas diretamente para as tabelas do banco de dados.
-- O ApplicationDbContext gerencia o acesso aos dados e os relacionamentos entre as entidades.
-- Os serviços de negócio (a serem implementados nos próximos passos) irão injetar o ApplicationDbContext para realizar operações de CRUD e consultas.
+## Integração e Reutilização
+
+- Os serviços são consumidos nos componentes Blazor responsáveis pelas páginas de Associados.
+- Métodos assíncronos são utilizados para garantir performance e escalabilidade.
+- O serviço de exportação é genérico e pode ser reutilizado para qualquer entidade.
+- A separação em interfaces permite fácil substituição por mocks em testes ou versões alternativas.
 
 ## Fluxo do Processo (Mermaid)
 
 mermaid
 graph TD
-    subgraph Estrutura de Dados
-        A[ASSOCIADOS]
-        B[CARGOS]
-        C[PERFIS]
-        D[VERTICAL]
-        E[EMPRESAS]
-        F[PROMOCOES]
-        G[FOTOSASSOCIADOS]
-    end
-    A -- IdCargo --> B
-    A -- IdPerfil --> C
-    A -- IdVertical --> D
-    A -- IdEmpresa --> E
-    A -- IdAssociadoMentor --> A
-    F -- idAssociado --> A
-    F -- idCargoAnterior --> B
-    F -- idCargoNovo --> B
-    G -- IdAssociado --> A
+    UI[Componentes Blazor: Associados.razor e filhos] -->|Injeta| S1[IAssociadosService]
+    UI -->|Injeta| S2[ICargosService]
+    UI -->|Injeta| S3[IPerfisService]
+    UI -->|Injeta| S4[IVerticalService]
+    UI -->|Injeta| S5[IFotosAssociadosService]
+    UI -->|Injeta| S6[IExportFileService]
+    S1 -->|Usa| DB[(ApplicationDbContext)]
+    S2 -->|Usa| DB
+    S3 -->|Usa| DB
+    S4 -->|Usa| DB
+    S5 -->|Usa| DB
+    S6 -.->|Gera Excel| User
+    UI -->|Renderiza| Pages[Pages: /associados]
+    Pages -->|Inclui| Cadastro[Associados_CadastroSection.razor]
+    Pages -->|Inclui| Historico[Associados_HistoricoSection.razor]
+    Pages -->|Inclui| ImportExport[Associados_ImportExportSection.razor]
+    Pages -->|Inclui| Lista[Associados_ListaSection.razor]
 
 
-## Estrutura de Páginas/Componentes Envolvidas
+## Estrutura de Páginas Relacionadas
 
-- Models/ASSOCIADOS.cs
-- Models/CARGOS.cs
-- Models/PERFIS.cs
-- Models/VERTICAL.cs
-- Models/EMPRESAS.cs
-- Models/PROMOCOES.cs
-- Models/FOTOSASSOCIADOS.cs
-- Data/ApplicationDbContext.cs
+- `/associados` (Associados.razor)
+    - Cadastro de Associado (Associados_CadastroSection.razor)
+    - Histórico de Promoções (Associados_HistoricoSection.razor)
+    - Importação/Exportação (Associados_ImportExportSection.razor)
+    - Lista de Associados (Associados_ListaSection.razor)
 
 ## Sugestões de Melhorias
 
-- Adicionar Data Annotations mais detalhadas para validação (ex: tamanho máximo de campos, expressões regulares para e-mail, etc.).
-- Implementar métodos auxiliares de navegação para facilitar queries complexas.
-- Utilizar Value Objects para campos compostos ou que demandam lógica de validação específica.
-- Adicionar comentários de documentação para cada propriedade (quando apropriado).
-- Configurar índices e constraints adicionais no OnModelCreating para garantir integridade referencial e performance.
-- Considerar o uso de migrations automáticas para facilitar o versionamento do banco de dados.
-- Avaliar o uso de Soft Delete (campo de exclusão lógica) para entidades críticas.
-- Implementar logging e tratamento de exceções centralizado nas operações de dados.
-- Planejar testes de integração para garantir a correta configuração dos relacionamentos.
+- Implementar cache para consultas de dados estáticos (cargos, perfis, verticais).
+- Adicionar validação mais robusta e mensagens de erro detalhadas nos serviços.
+- Implementar logs detalhados de operações críticas.
+- Permitir upload de fotos diretamente para storage externo (ex: Azure Blob Storage) para maior escalabilidade.
+- Expandir o serviço de exportação para suportar outros formatos (CSV, PDF).
+- Adicionar paginação e filtros avançados nos métodos de listagem.
+- Implementar testes unitários e de integração para todos os serviços.
+- Avaliar uso de SignalR para atualização em tempo real da lista de associados.
+- Adicionar controle de permissões por perfil nos métodos dos serviços.
