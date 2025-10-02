@@ -1,0 +1,54 @@
+@inject IAssociadosService AssociadosService
+@inject ICargosService CargosService
+@inject IExportFileService ExportFileService
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h4 class="card-title">Exportar e Importar Associados e Promoções</h4>
+        <div class="row mb-2">
+            <button class="btn btn-info mr-2" @onclick="ExportarAssociados">Exportar Associados</button>
+            <FileUploadComponent Accept=".xlsx" OnFileSelected="ImportarAssociados" />
+        </div>
+        <div class="row mb-2">
+            <button class="btn btn-info mr-2" @onclick="ExportarPromocoes">Exportar Promoções</button>
+            <FileUploadComponent Accept=".xlsx" OnFileSelected="ImportarPromocoes" />
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnImportCompleted { get; set; }
+
+    private async Task ExportarAssociados()
+    {
+        var lista = await AssociadosService.ObterAssociadosExportAsync();
+        var fileName = $"Associados_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+        var fileBytes = ExportFileService.GenerateExcelConsideracoesMentor(fileName, lista);
+        await DownloadFileAsync(fileName, fileBytes);
+    }
+    private async Task ExportarPromocoes()
+    {
+        var lista = await CargosService.ObterListaPromocoesExportAsync();
+        var fileName = $"Promocoes_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+        var fileBytes = ExportFileService.GenerateExcelConsideracoesMentor(fileName, lista);
+        await DownloadFileAsync(fileName, fileBytes);
+    }
+    private async Task ImportarAssociados(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream();
+        await AssociadosService.ImportarAssociadosExcelAsync(stream);
+        await OnImportCompleted.InvokeAsync();
+    }
+    private async Task ImportarPromocoes(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream();
+        await CargosService.ImportarPromocoesExcelAsync(stream);
+        await OnImportCompleted.InvokeAsync();
+    }
+    private async Task DownloadFileAsync(string fileName, byte[] bytes)
+    {
+        var base64 = Convert.ToBase64String(bytes);
+        await JS.InvokeVoidAsync("BlazorDownloadFile", fileName, base64);
+    }
+    [Inject] IJSRuntime JS { get; set; }
+}
