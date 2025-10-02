@@ -1,0 +1,20 @@
+@typeparam TItem
+<table class="table table-striped border">
+    <thead>
+        @HeaderTemplate
+    </thead>
+    <tbody>
+        @if (Items != null)
+        {
+            @foreach (var item in Items)
+            {
+                @RowTemplate(item)
+            }
+        }
+    </tbody>
+</table>
+@code {
+    [Parameter] public IEnumerable<TItem> Items { get; set; }
+    [Parameter] public RenderFragment HeaderTemplate { get; set; }
+    [Parameter] public RenderFragment<TItem> RowTemplate { get; set; }
+}
