@@ -1,0 +1,59 @@
+@using Peers.Moderno.Models
+@inject IAssociadosService AssociadosService
+
+<DataTableComponent Items="Associados">
+    <HeaderTemplate>
+        <tr>
+            <th>Id</th>
+            <th>Nome</th>
+            <th>Cargo</th>
+            <th>Mentor</th>
+            <th>Status</th>
+            <th>Ação</th>
+        </tr>
+    </HeaderTemplate>
+    <RowTemplate Context="assoc">
+        <tr>
+            <td>@assoc.IdAssociado</td>
+            <td>@assoc.Nome</td>
+            <td>@assoc.CARGOS?.Cargo</td>
+            <td>@assoc.ASSOCIADOS2?.Nome</td>
+            <td>@(assoc.ATV == 1 ? "Ativo" : "Inativo")</td>
+            <td>
+                <button class="btn btn-info btn-sm mr-1" @onclick="() => EditarAssociado(assoc.IdAssociado)">Alterar</button>
+                @if (assoc.ATV == 1)
+                {
+                    <button class="btn btn-dark btn-sm" @onclick="() => InativarAssociado(assoc.IdAssociado)">Inativar</button>
+                }
+            </td>
+        </tr>
+    </RowTemplate>
+</DataTableComponent>
+
+@code {
+    [Parameter] public EventCallback<int> OnEditAssociado { get; set; }
+    [Parameter] public EventCallback<int> OnInativarAssociado { get; set; }
+    public List<ASSOCIADOS> Associados { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AtualizarLista();
+    }
+
+    public async Task AtualizarLista()
+    {
+        Associados = await AssociadosService.ObterAssociadosAsync();
+        StateHasChanged();
+    }
+
+    private async Task EditarAssociado(int idAssociado)
+    {
+        await OnEditAssociado.InvokeAsync(idAssociado);
+    }
+    private async Task InativarAssociado(int idAssociado)
+    {
+        await AssociadosService.ExcluiAssociadoAsync(idAssociado);
+        await OnInativarAssociado.InvokeAsync(idAssociado);
+        await AtualizarLista();
+    }
+}
