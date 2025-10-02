@@ -1,0 +1,1 @@
+// Code-behind opcional para lógica adicional do cadastro de associados. Lógica principal está no arquivo .razor.
