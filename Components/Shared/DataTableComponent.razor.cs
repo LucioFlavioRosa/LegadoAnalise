@@ -1,0 +1,1 @@
+// Code-behind opcional para DataTableComponent, mantido vazio para lógica futura ou extensão.
