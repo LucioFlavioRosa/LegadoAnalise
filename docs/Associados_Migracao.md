@@ -1,64 +1,70 @@
-# Documentação da Migração: Página de Associados para Blazor (.NET 9)
+# Documentação da Migração: Serviços de Domínio - Associados
 
 ## Visão Geral
 
-Esta documentação descreve a estrutura, funcionamento e integração dos arquivos criados para a migração da página de Associados do sistema legado para a nova arquitetura Blazor Web App (.NET 9). Foram criados os modelos POCO das entidades do domínio e o contexto de dados com Entity Framework Core, base para toda a lógica de negócio da aplicação.
+Esta etapa da migração do sistema de avaliação interna da empresa contempla a criação dos serviços de domínio responsáveis por toda a lógica de negócio relacionada a Associados, Cargos, Perfis, Verticais, Fotos de Associados e Exportação de Arquivos. Estes serviços seguem o padrão de injeção de dependência e são totalmente reutilizáveis em toda a aplicação Blazor .NET 9.
 
-## Estrutura dos Arquivos
+### Serviços Criados
 
-- **Peers.Moderno.csproj**: Projeto principal Blazor Web App (.NET 9), com dependências para Entity Framework Core, manipulação de imagens e Excel.
-- **Models/**: Contém as classes POCO que representam as entidades do domínio (ASSOCIADOS, CARGOS, PERFIS, VERTICAL, EMPRESAS, PROMOCOES, FOTOSASSOCIADOS).
-- **Data/ApplicationDbContext.cs**: Contexto de dados do Entity Framework Core, com DbSets para todas as entidades e mapeamentos de relacionamento.
+- **IAssociadosService / AssociadosService**: CRUD de associados, busca por e-mail, busca do último associado.
+- **ICargosService / CargosService**: Listagem de cargos, promoções, alteração de comentários de promoções.
+- **IPerfisService / PerfisService**: Listagem de perfis.
+- **IVerticalService / VerticalService**: Listagem de verticais.
+- **IFotosAssociadosService / FotosAssociadosService**: CRUD de fotos dos associados.
+- **IExportFileService / ExportFileService**: Geração de arquivos Excel genérica para qualquer modelo.
 
-## Integração e Funcionamento
+Todos os serviços utilizam o ApplicationDbContext (Entity Framework Core) para acesso ao banco de dados e são assíncronos, promovendo performance e escalabilidade.
 
-- As entidades do domínio são mapeadas diretamente para as tabelas do banco de dados.
-- O ApplicationDbContext gerencia o acesso aos dados e os relacionamentos entre as entidades.
-- Os serviços de negócio (a serem implementados nos próximos passos) irão injetar o ApplicationDbContext para realizar operações de CRUD e consultas.
+## Integração dos Serviços
+
+- Os serviços são registrados no container de dependências em `Program.cs`.
+- Os componentes Blazor injetam os serviços necessários via `@inject` ou construtor.
+- O ApplicationDbContext é compartilhado entre os serviços, evitando duplicidade de código e promovendo reuso.
+- O serviço de exportação é genérico e pode ser utilizado para qualquer entidade do domínio.
 
 ## Fluxo do Processo (Mermaid)
 
 mermaid
 graph TD
-    subgraph Estrutura de Dados
-        A[ASSOCIADOS]
-        B[CARGOS]
-        C[PERFIS]
-        D[VERTICAL]
-        E[EMPRESAS]
-        F[PROMOCOES]
-        G[FOTOSASSOCIADOS]
-    end
-    A -- IdCargo --> B
-    A -- IdPerfil --> C
-    A -- IdVertical --> D
-    A -- IdEmpresa --> E
-    A -- IdAssociadoMentor --> A
-    F -- idAssociado --> A
-    F -- idCargoAnterior --> B
-    F -- idCargoNovo --> B
-    G -- IdAssociado --> A
+    A[Componente Blazor requisita operação] --> B{Serviço de domínio chamado}
+    B --> C1[AssociadosService]
+    B --> C2[CargosService]
+    B --> C3[PerfisService]
+    B --> C4[VerticalService]
+    B --> C5[FotosAssociadosService]
+    B --> C6[ExportFileService]
+    C1 --> D[ApplicationDbContext]
+    C2 --> D
+    C3 --> D
+    C4 --> D
+    C5 --> D
+    C6 --> E[EPPlus]
+    D --> F[Banco de Dados SQL]
+    E --> G[Arquivo Excel gerado]
+    F --> H[Dados retornados para serviço]
+    G --> I[Arquivo enviado ao usuário]
+    H --> J[Serviço retorna resultado ao componente]
+    J --> K[Componente atualiza UI]
 
 
-## Estrutura de Páginas/Componentes Envolvidas
+### Estrutura de Páginas Relacionadas
 
-- Models/ASSOCIADOS.cs
-- Models/CARGOS.cs
-- Models/PERFIS.cs
-- Models/VERTICAL.cs
-- Models/EMPRESAS.cs
-- Models/PROMOCOES.cs
-- Models/FOTOSASSOCIADOS.cs
-- Data/ApplicationDbContext.cs
+- `Components/Pages/Associados.razor` (principal)
+    - Consome todos os serviços acima para CRUD, histórico, import/export, upload de fotos
+- `Components/Pages/Associados_CadastroSection.razor`
+- `Components/Pages/Associados_HistoricoSection.razor`
+- `Components/Pages/Associados_ImportExportSection.razor`
+- `Components/Pages/Associados_ListaSection.razor`
 
 ## Sugestões de Melhorias
 
-- Adicionar Data Annotations mais detalhadas para validação (ex: tamanho máximo de campos, expressões regulares para e-mail, etc.).
-- Implementar métodos auxiliares de navegação para facilitar queries complexas.
-- Utilizar Value Objects para campos compostos ou que demandam lógica de validação específica.
-- Adicionar comentários de documentação para cada propriedade (quando apropriado).
-- Configurar índices e constraints adicionais no OnModelCreating para garantir integridade referencial e performance.
-- Considerar o uso de migrations automáticas para facilitar o versionamento do banco de dados.
-- Avaliar o uso de Soft Delete (campo de exclusão lógica) para entidades críticas.
-- Implementar logging e tratamento de exceções centralizado nas operações de dados.
-- Planejar testes de integração para garantir a correta configuração dos relacionamentos.
+- Implementar cache para dados que mudam pouco (ex: cargos, perfis, verticais)
+- Adicionar logging estruturado em todos os métodos dos serviços
+- Adicionar tratamento de exceções centralizado e políticas de retry para operações críticas
+- Implementar testes unitários e mocks para os serviços
+- Considerar uso de DTOs para desacoplar entidades do banco da camada de apresentação
+- Adicionar validação extra de dados antes de persistir no banco
+- Permitir upload de fotos diretamente para blob storage (Azure, AWS) para maior escalabilidade
+- Otimizar consultas com projeções (Select) ao invés de carregar entidades completas quando não necessário
+- Implementar versionamento de arquivos exportados
+- Adicionar suporte a internacionalização nas mensagens de erro dos serviços
