@@ -1,0 +1,1 @@
+// Code-behind opcional para lógica adicional do histórico de promoções. Lógica principal está no arquivo .razor.
