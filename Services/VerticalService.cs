@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Peers.Moderno.Models;
 using Peers.Moderno.Data;
+using Peers.Moderno.Models;
 
 namespace Peers.Moderno.Services
 {
