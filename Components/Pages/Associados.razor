@@ -1,0 +1,40 @@
+@page "/associados"
+@rendermode InteractiveAuto
+
+<PageTitle>Associados</PageTitle>
+
+<div class="container-fluid">
+    <h2>Associados</h2>
+    <Associados_CadastroSection @ref="CadastroSection" OnSave="OnAssociadoSalvo" />
+    <Associados_HistoricoSection @ref="HistoricoSection" />
+    <Associados_ImportExportSection OnImportCompleted="OnImportCompleted" />
+    <Associados_ListaSection @ref="ListaSection" OnEditAssociado="OnEditAssociado" OnInativarAssociado="OnInativarAssociado" />
+    <MessageBox @ref="MessageBoxRef" />
+</div>
+
+@code {
+    private Associados_CadastroSection CadastroSection;
+    private Associados_HistoricoSection HistoricoSection;
+    private Associados_ListaSection ListaSection;
+    private MessageBoxBase MessageBoxRef;
+
+    private void OnAssociadoSalvo()
+    {
+        ListaSection?.AtualizarLista();
+        MessageBoxRef?.Show("Associado salvo com sucesso!", "Sucesso", MessageType.Info);
+    }
+    private void OnImportCompleted()
+    {
+        ListaSection?.AtualizarLista();
+        MessageBoxRef?.Show("Importação concluída!", "Importação", MessageType.Info);
+    }
+    private void OnEditAssociado(int idAssociado)
+    {
+        CadastroSection?.EditarAssociado(idAssociado);
+    }
+    private void OnInativarAssociado(int idAssociado)
+    {
+        ListaSection?.AtualizarLista();
+        MessageBoxRef?.Show("Associado inativado com sucesso!", "Sucesso", MessageType.Info);
+    }
+}
