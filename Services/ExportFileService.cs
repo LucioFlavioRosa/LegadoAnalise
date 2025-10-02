@@ -9,19 +9,23 @@ namespace Peers.Moderno.Services
     {
         public byte[] GenerateExcelConsideracoesMentor<T>(string fileName, List<T> data)
         {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var package = new ExcelPackage())
             {
-                var worksheet = package.Workbook.Worksheets.Add("Export");
-                var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
-                for (int i = 0; i < properties.Length; i++)
+                var worksheet = package.Workbook.Worksheets.Add("Dados");
+                if (data.Count > 0)
                 {
-                    worksheet.Cells[1, i + 1].Value = properties[i].Name;
-                }
-                for (int row = 0; row < data.Count; row++)
-                {
-                    for (int col = 0; col < properties.Length; col++)
+                    var props = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                    for (int i = 0; i < props.Length; i++)
                     {
-                        worksheet.Cells[row + 2, col + 1].Value = properties[col].GetValue(data[row]);
+                        worksheet.Cells[1, i + 1].Value = props[i].Name;
+                    }
+                    for (int row = 0; row < data.Count; row++)
+                    {
+                        for (int col = 0; col < props.Length; col++)
+                        {
+                            worksheet.Cells[row + 2, col + 1].Value = props[col].GetValue(data[row]);
+                        }
                     }
                 }
                 return package.GetAsByteArray();
