@@ -1,7 +1,8 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Peers.Moderno.Models;
 using Peers.Moderno.Data;
+using Peers.Moderno.Models;
 
 namespace Peers.Moderno.Services
 {
@@ -26,7 +27,7 @@ namespace Peers.Moderno.Services
 
         public async Task<bool> AtualizarFotoAsync(FOTOSASSOCIADOS foto)
         {
-            var existente = await _context.FotosAssociados.FindAsync(foto.IdFotoAssociado);
+            var existente = await _context.FotosAssociados.FirstOrDefaultAsync(f => f.IdAssociado == foto.IdAssociado);
             if (existente == null) return false;
             _context.Entry(existente).CurrentValues.SetValues(foto);
             return await _context.SaveChangesAsync() > 0;
