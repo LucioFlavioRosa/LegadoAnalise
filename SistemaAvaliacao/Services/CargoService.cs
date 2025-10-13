@@ -40,9 +40,13 @@ namespace SistemaAvaliacao.Services
             _cargoRepository.Inativar(id);
         }
 
-        public IEnumerable<CargoViewModel> ObterCargosParaProximoCargo()
+        public bool ValidarCargo(CargoViewModel cargo)
         {
-            return _cargoRepository.ObterParaProximoCargo();
+            if (string.IsNullOrWhiteSpace(cargo.Cargo))
+                return false;
+            if (cargo.TempoMinimoPromocaoMeses < 0)
+                return false;
+            return true;
         }
     }
 }
