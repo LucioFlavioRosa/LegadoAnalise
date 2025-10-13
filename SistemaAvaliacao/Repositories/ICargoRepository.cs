@@ -10,6 +10,5 @@ namespace SistemaAvaliacao.Repositories
         void Inserir(CargoViewModel cargo);
         void Atualizar(CargoViewModel cargo);
         void Inativar(int id);
-        IEnumerable<CargoViewModel> ObterParaProximoCargo();
     }
 }
