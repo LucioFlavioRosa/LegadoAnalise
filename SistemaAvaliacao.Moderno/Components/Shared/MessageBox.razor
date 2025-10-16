@@ -1,0 +1,62 @@
+@inject IJSRuntime JS
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    @if (visible)
+    {
+        <div class="toast align-items-center text-bg-@toastType border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @message
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Close" @onclick="Hide"></button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool visible;
+    private string message = string.Empty;
+    private string toastType = "success";
+    private System.Timers.Timer? timer;
+
+    public void ShowSuccess(string msg)
+    {
+        toastType = "success";
+        Show(msg);
+    }
+
+    public void ShowError(string msg)
+    {
+        toastType = "danger";
+        Show(msg);
+    }
+
+    public void ShowInfo(string msg)
+    {
+        toastType = "info";
+        Show(msg);
+    }
+
+    private void Show(string msg)
+    {
+        message = msg;
+        visible = true;
+        StateHasChanged();
+        timer?.Dispose();
+        timer = new System.Timers.Timer(4000);
+        timer.Elapsed += (s, e) => Hide();
+        timer.AutoReset = false;
+        timer.Start();
+    }
+
+    private void Hide()
+    {
+        visible = false;
+        message = string.Empty;
+        timer?.Dispose();
+        InvokeAsync(StateHasChanged);
+    }
+
+    // Para uso como serviço singleton, registre este componente como singleton e injete via referência (@ref) nos componentes consumidores.
+}
