@@ -1,0 +1,46 @@
+@inherits LayoutComponentBase
+
+<div class="d-flex" style="min-height: 100vh;">
+    <!-- Sidebar -->
+    <nav class="sidebar bg-light border-end p-3" style="width: 240px;">
+        <div class="sidebar-header mb-4">
+            <a class="navbar-brand fw-bold fs-4" href="/">Sistema Avaliação</a>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item mb-2">
+                <a class="nav-link" href="/cargos">
+                    <i class="bi bi-briefcase"></i> Cargos
+                </a>
+            </li>
+            <!-- Adicione outros links de navegação aqui -->
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="flex-grow-1 d-flex flex-column">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand navbar-light bg-white border-bottom shadow-sm">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">Gestão de Cargos</span>
+                <div class="d-flex align-items-center">
+                    <!-- Espaço para usuário, notificações, etc -->
+                </div>
+            </div>
+        </nav>
+
+        <!-- Breadcrumb -->
+        <div class="container-fluid py-2">
+            <Breadcrumb Items="@BreadcrumbItems" />
+        </div>
+
+        <!-- Conteúdo da página -->
+        <main class="flex-fill container-fluid py-3">
+            @Body
+        </main>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public List<BreadcrumbItem> BreadcrumbItems { get; set; } = new();
+}
