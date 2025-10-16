@@ -1,0 +1,62 @@
+@using SistemaAvaliacao.Moderno.Models
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+@typeparam TCargo
+
+<div class="mb-3">
+    <input class="form-control" placeholder="Buscar..." @bind="Filtro" @bind:event="oninput" />
+</div>
+<QuickGrid Items="Filtrados" Class="table table-striped border">
+    <PropertyColumn Property="@(c => c.IdCargo)" Title="Código" />
+    <PropertyColumn Property="@(c => c.NomeCargo)" Title="Cargo" />
+    <Column Title="Próximo Cargo">
+        @((context) => ObterNomeProximoCargo(context))
+    </Column>
+    <Column Title="Status">
+        @((context) => context.Ativo ? "Ativo" : "Inativo")
+    </Column>
+    <Column Title="Ação">
+        @((context) =>
+        {
+            <button class="btn btn-info btn-sm me-1" @onclick="() => OnAlterar.InvokeAsync(context.IdCargo)">Alterar</button>
+            <button class="btn btn-dark btn-sm" @onclick="() => OnInativar.InvokeAsync(context.IdCargo)" disabled="@(!context.Ativo)">Inativar</button>
+        })
+    </Column>
+</QuickGrid>
+
+@code {
+    [Parameter]
+    public List<Cargo> Cargos { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<int> OnAlterar { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnInativar { get; set; }
+
+    [Parameter]
+    public List<Cargo>? TodosCargos { get; set; }
+
+    private string Filtro { get; set; } = string.Empty;
+
+    private IEnumerable<Cargo> Filtrados =>
+        string.IsNullOrWhiteSpace(Filtro)
+            ? Cargos
+            : Cargos.Where(c =>
+                (c.NomeCargo?.Contains(Filtro, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                c.IdCargo.ToString().Contains(Filtro) ||
+                (ObterNomeProximoCargo(c)?.Contains(Filtro, StringComparison.OrdinalIgnoreCase) ?? false)
+            );
+
+    private string? ObterNomeProximoCargo(Cargo cargo)
+    {
+        if (cargo.ProximoCargoId.HasValue && TodosCargos != null)
+        {
+            var prox = TodosCargos.FirstOrDefault(x => x.IdCargo == cargo.ProximoCargoId.Value);
+            return prox?.NomeCargo ?? "-";
+        }
+        return "-";
+    }
+}
